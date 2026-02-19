@@ -39,6 +39,9 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Iniciar sesión de Laravel (para exportaciones vía web)
+        \Illuminate\Support\Facades\Auth::login($user);
+
         // Generar token con Sanctum (válido por 8 horas)
         $token = $user->createToken('auth_token', ['*'], now()->addHours(8))->plainTextToken;
 
@@ -59,8 +62,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Revocar el token actual
+        // Revocar el token oficial de Sanctum
         $request->user()->currentAccessToken()->delete();
+
+        // Cerrar sesión de Laravel (PHP Session)
+        \Illuminate\Support\Facades\Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,

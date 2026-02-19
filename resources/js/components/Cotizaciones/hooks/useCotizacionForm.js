@@ -42,11 +42,12 @@ export const useCotizacionForm = (cotizacionId = null) => {
         fecha: new Date().toISOString().split('T')[0],
         serie: 'B001',
         numero: '',
-        tipo_moneda: '1', // 1=Soles, 2=Dólares
-        moneda: '1',
+        tipo_moneda: 'PEN',
+        moneda: 'PEN',    // PEN por defecto (Soles)
         tipo_cambio: '1.000',
         aplicar_igv: '1', // 1=Sí, 0=No
         num_doc: '',
+        nom_cli: '',   // Alias de 'datos' para compatibilidad con ClienteFormSection shared
         datos: '',
         dir_cli: '',
         asunto: '',
@@ -85,6 +86,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
                     setFormData(prev => ({
                         ...prev,
                         num_doc: cotizacion.cliente.documento || '',
+                        nom_cli: cotizacion.cliente.datos || '',
                         datos: cotizacion.cliente.datos || '',
                         dir_cli: cotizacion.direccion || ''
                     }));
@@ -156,6 +158,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
         setFormData(prev => ({
             ...prev,
             num_doc: clienteData.documento || '',
+            nom_cli: clienteData.datos || '',   // Sincronizar con ClienteFormSection shared
             datos: clienteData.datos || '',
             dir_cli: clienteData.direccion || ''
         }));
@@ -171,10 +174,18 @@ export const useCotizacionForm = (cotizacionId = null) => {
             descripcion: product.nombre,
             cantidad: '1',
             stock: product.cantidad,
-            precioVenta: product.precio_venta || '0',
+            // Campos de precio que lee ProductPriceSelector
+            precio: product.precio || '0',
+            precio_mayor: product.precio_mayor || '0',
+            precio_menor: product.precio_menor || '0',
+            precio_unidad: product.precio_unidad || '0',
+            // precio_mostrado e precioVenta sincronizados con el precio base
+            precio_mostrado: product.precio || '0',
+            precioVenta: product.precio || '0',
             precioEspecial: '',
             descuento: '',
             moneda: product.moneda,
+            tipo: product.tipo || 'producto',
         });
     };
 

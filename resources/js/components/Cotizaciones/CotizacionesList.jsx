@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
 import MainLayout from "../Layout/MainLayout";
 import { useCotizaciones } from "./hooks/useCotizaciones";
 import { getCotizacionesColumns } from "./columns/cotizacionesColumns";
+import PrintOptionsModal from "../shared/PrintOptionsModal";
 
 export default function CotizacionesList() {
+    const [printCotizacion, setPrintCotizacion] = useState(null);
+
     const {
         cotizaciones,
         loading,
@@ -23,7 +27,9 @@ export default function CotizacionesList() {
         handleView,
         handleEdit,
         handleDelete,
-        handlePrint,
+        // Pasamos callback para abrir el modal con la cotizacion seleccionada
+        handlePrint: (cotizacion) =>
+            handlePrint(cotizacion, setPrintCotizacion),
     });
 
     // Estados de carga y error
@@ -89,6 +95,17 @@ export default function CotizacionesList() {
                     pageSize={10}
                 />
             </div>
+
+            {/* Modal de impresión PDF */}
+            {printCotizacion && (
+                <PrintOptionsModal
+                    isOpen={!!printCotizacion}
+                    onClose={() => setPrintCotizacion(null)}
+                    ventaId={printCotizacion.id}
+                    numeroCompleto={`COT-${String(printCotizacion.numero).padStart(6, "0")}`}
+                    tipo="cotizacion"
+                />
+            )}
         </MainLayout>
     );
 }

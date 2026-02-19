@@ -254,4 +254,52 @@ class ProveedorController extends Controller
             ]);
         }
     }
+
+    /**
+     * Obtener detalles completos de un proveedor incluyendo compras
+     */
+    public function getDetalles(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            $proveedor = Proveedor::where('id_empresa', $user->id_empresa)
+                ->findOrFail($id);
+            
+            // Estadísticas básicas
+            $totalComprasCount = $proveedor->compras()->count();
+            
+            $montoTotalPEN = $proveedor->compras()
+                ->where('moneda', 'PEN')
+                ->sum('total');
+                
+            $montoTotalUSD = $proveedor->compras()
+                ->where('moneda', 'USD')
+                ->sum('total');
+            
+            // Últimas 10 compras
+            $ultimasCompras = $proveedor->compras()
+                ->orderBy('fecha_emision', 'desc')
+                ->orderBy('id_compra', 'desc')
+                ->take(10)
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'proveedor' => $proveedor,
+                    'stats' => [
+                        'total_count' => $totalComprasCount,
+                        'total_monto_pen' => $montoTotalPEN,
+                        'total_monto_usd' => $montoTotalUSD,
+                    ],
+                    'compras' => $ultimasCompras
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener detalles: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

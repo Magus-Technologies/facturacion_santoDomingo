@@ -106,11 +106,11 @@ export const useCotizaciones = () => {
     };
 
     /**
-     * Imprime la cotización (TODO: implementar)
+     * Abre el modal de impresion para la cotización dada
+     * Retorna la cotización para que el componente gestione el modal
      */
-    const handlePrint = (cotizacion) => {
-        // TODO: Implementar impresión
-        toast.info('Función de impresión en desarrollo');
+    const handlePrint = (cotizacion, callback) => {
+        if (typeof callback === 'function') callback(cotizacion);
     };
 
     return {

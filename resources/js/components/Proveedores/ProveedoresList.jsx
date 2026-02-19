@@ -3,6 +3,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { toast, confirmDelete } from "@/lib/sweetalert";
 import ProveedorModal from "./ProveedorModal";
+import ProveedorDetallesModal from "./ProveedorDetallesModal";
 import {
     Eye,
     Edit,
@@ -12,6 +13,8 @@ import {
     MapPin,
     Building2,
     Loader2,
+    FileSpreadsheet,
+    FileText as FilePdf,
 } from "lucide-react";
 import MainLayout from "../Layout/MainLayout";
 
@@ -20,7 +23,9 @@ export default function ProveedoresList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetallesOpen, setIsDetallesOpen] = useState(false);
     const [selectedProveedor, setSelectedProveedor] = useState(null);
+    const [viewProveedorId, setViewProveedorId] = useState(null);
 
     useEffect(() => {
         fetchProveedores();
@@ -51,6 +56,11 @@ export default function ProveedoresList() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleExport = (tipo) => {
+        const url = `/proveedores/descargar-${tipo}`;
+        window.open(url, "_blank");
     };
 
     const handleDelete = async (proveedor) => {
@@ -112,16 +122,8 @@ export default function ProveedoresList() {
     };
 
     const handleView = (proveedor) => {
-        const ubicacion = [
-            proveedor.distrito,
-            proveedor.provincia,
-            proveedor.departamento,
-        ]
-            .filter(Boolean)
-            .join(", ");
-
-        const info = `INFORMACIÓN DEL PROVEEDOR\n\nRUC: ${proveedor.ruc}\nRazón Social: ${proveedor.razon_social}\nEmail: ${proveedor.email || "No registrado"}\nTeléfono: ${proveedor.telefono || "No registrado"}\nDirección: ${proveedor.direccion || "No registrada"}\nUbicación: ${ubicacion || "No registrada"}`;
-        alert(info);
+        setViewProveedorId(proveedor.proveedor_id);
+        setIsDetallesOpen(true);
     };
 
     const columns = [
@@ -295,7 +297,7 @@ export default function ProveedoresList() {
     return (
         <MainLayout>
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
                             Proveedores
@@ -304,10 +306,28 @@ export default function ProveedoresList() {
                             Gestiona tu cartera de proveedores
                         </p>
                     </div>
-                    <Button onClick={handleCreate} className="gap-2">
-                        <UserPlus className="h-5 w-5" />
-                        Nuevo Proveedor
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            variant="outline"
+                            className="gap-2 border-green-200 text-green-700 hover:bg-green-50"
+                            onClick={() => handleExport("excel")}
+                        >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            Excel
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="gap-2 border-red-200 text-red-700 hover:bg-red-50"
+                            onClick={() => handleExport("pdf")}
+                        >
+                            <FilePdf className="h-4 w-4" />
+                            PDF
+                        </Button>
+                        <Button onClick={handleCreate} className="gap-2">
+                            <UserPlus className="h-5 w-5" />
+                            Nuevo Proveedor
+                        </Button>
+                    </div>
                 </div>
 
                 <DataTable
@@ -319,12 +339,19 @@ export default function ProveedoresList() {
                     pageSize={10}
                 />
 
-                {/* Modal de Proveedor */}
+                {/* Modal de Crear/Editar Proveedor */}
                 <ProveedorModal
                     isOpen={isModalOpen}
                     onClose={handleModalClose}
                     proveedor={selectedProveedor}
                     onSuccess={handleModalSuccess}
+                />
+
+                {/* Modal de Detalles del Proveedor */}
+                <ProveedorDetallesModal
+                    isOpen={isDetallesOpen}
+                    onClose={() => setIsDetallesOpen(false)}
+                    proveedorId={viewProveedorId}
                 />
             </div>
         </MainLayout>

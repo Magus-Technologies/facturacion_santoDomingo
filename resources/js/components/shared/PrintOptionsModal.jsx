@@ -16,7 +16,13 @@ export default function PrintOptionsModal({
     const [formato, setFormato] = useState("ticket"); // 'ticket' o 'a4'
 
     const getPdfUrl = () => {
-        const folder = tipo === "compra" ? "reporteOC" : "reporteNV";
+        const folder =
+            tipo === "compra"
+                ? "reporteOC"
+                : tipo === "cotizacion"
+                  ? "reporteCOT"
+                  : "reporteNV";
+
         if (formato === "ticket") {
             return `/${folder}/ticket.php?id=${ventaId}`;
         } else {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     FileText,
     TrendingUp,
@@ -11,79 +11,72 @@ import {
     Clock,
     ArrowUpRight,
     ArrowDownRight,
+    Loader2,
 } from "lucide-react";
 
-export default function Dashboard() {
-    // Datos de ejemplo - después conectarás con tu API
-    const stats = [
-        {
-            id: 1,
-            title: "Ventas del Mes",
-            value: "S/ 45,680",
-            change: "+12.5%",
-            isPositive: true,
-            icon: DollarSign,
-            bgColor: "bg-green-500",
-        },
-        {
-            id: 2,
-            title: "Facturas Emitidas",
-            value: "156",
-            change: "+8.2%",
-            isPositive: true,
-            icon: FileText,
-            bgColor: "bg-primary-600",
-        },
-        {
-            id: 3,
-            title: "Clientes Activos",
-            value: "89",
-            change: "+5.1%",
-            isPositive: true,
-            icon: Users,
-            bgColor: "bg-accent-500",
-        },
-        {
-            id: 4,
-            title: "Productos",
-            value: "234",
-            change: "-2.4%",
-            isPositive: false,
-            icon: Package,
-            bgColor: "bg-purple-500",
-        },
-    ];
+const ICON_MAP = {
+    DollarSign: DollarSign,
+    FileText: FileText,
+    Users: Users,
+    Package: Package,
+};
 
-    const recentInvoices = [
-        {
-            id: "F001-00125",
-            client: "Distribuidora El Sol S.A.C.",
-            amount: "S/ 1,250.00",
-            date: "2024-01-06",
-            status: "Aceptado",
-        },
-        {
-            id: "F001-00124",
-            client: "Comercial La Luna E.I.R.L.",
-            amount: "S/ 890.50",
-            date: "2024-01-06",
-            status: "Aceptado",
-        },
-        {
-            id: "F001-00123",
-            client: "Inversiones Norte S.A.",
-            amount: "S/ 2,450.00",
-            date: "2024-01-05",
-            status: "Pendiente",
-        },
-        {
-            id: "F001-00122",
-            client: "Grupo Comercial Sur",
-            amount: "S/ 3,100.00",
-            date: "2024-01-05",
-            status: "Aceptado",
-        },
-    ];
+export default function Dashboard() {
+    const [stats, setStats] = useState([]);
+    const [recentInvoices, setRecentInvoices] = useState([]);
+    const [sunatStatus, setSunatStatus] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch("/api/dashboard/stats", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
+
+            if (!response.ok)
+                throw new Error("Error al cargar datos del dashboard");
+
+            const data = await response.json();
+            setStats(data.stats);
+            setRecentInvoices(data.recentInvoices);
+            setSunatStatus(data.sunat);
+        } catch (err) {
+            console.error("Dashboard error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-gray-500">
+                <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                <p className="text-sm font-medium animate-pulse">
+                    Analizando datos reales...
+                </p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3">
+                <AlertCircle className="h-6 w-6" />
+                <p>{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -116,7 +109,7 @@ export default function Dashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat) => {
-                    const Icon = stat.icon;
+                    const Icon = ICON_MAP[stat.icon] || Package;
                     return (
                         <div
                             key={stat.id}
@@ -146,7 +139,9 @@ export default function Dashboard() {
                                             {stat.change}
                                         </span>
                                         <span className="text-xs text-gray-500">
-                                            vs mes anterior
+                                            {stat.id === 4
+                                                ? ""
+                                                : "vs mes anterior"}
                                         </span>
                                     </div>
                                 </div>
@@ -169,14 +164,14 @@ export default function Dashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900">
-                                    Facturas Recientes
+                                    Documentos Recientes
                                 </h2>
                                 <p className="text-sm text-gray-500 mt-1">
-                                    Últimas facturas emitidas
+                                    Últimas ventas emitidas
                                 </p>
                             </div>
                             <a
-                                href="/facturas"
+                                href="/ventas"
                                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                             >
                                 Ver todas →
@@ -184,47 +179,57 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="divide-y divide-gray-100">
-                        {recentInvoices.map((invoice) => (
-                            <div
-                                key={invoice.id}
-                                className="p-4 hover:bg-gray-50 transition-colors"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-primary-50 p-2 rounded-lg">
-                                                <FileText className="h-5 w-5 text-primary-600" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">
-                                                    {invoice.id}
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                    {invoice.client}
-                                                </p>
+                        {recentInvoices.length > 0 ? (
+                            recentInvoices.map((invoice, idx) => (
+                                <div
+                                    key={invoice.id || idx}
+                                    className="p-4 hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-primary-50 p-2 rounded-lg">
+                                                    <FileText className="h-5 w-5 text-primary-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900">
+                                                        {invoice.id}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {invoice.client}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-semibold text-gray-900">
-                                            {invoice.amount}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span
-                                                className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                                    invoice.status ===
-                                                    "Aceptado"
-                                                        ? "bg-green-100 text-green-700"
-                                                        : "bg-yellow-100 text-yellow-700"
-                                                }`}
-                                            >
-                                                {invoice.status}
-                                            </span>
+                                        <div className="text-right">
+                                            <p className="font-semibold text-gray-900">
+                                                {invoice.amount}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span
+                                                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                                        invoice.status ===
+                                                        "Aceptado"
+                                                            ? "bg-green-100 text-green-700"
+                                                            : invoice.status ===
+                                                                "Anulado"
+                                                              ? "bg-red-100 text-red-700"
+                                                              : "bg-yellow-100 text-yellow-700"
+                                                    }`}
+                                                >
+                                                    {invoice.status}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            ))
+                        ) : (
+                            <div className="p-8 text-center text-gray-500">
+                                <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                <p>No hay ventas registradas recientemente.</p>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
 
@@ -236,24 +241,31 @@ export default function Dashboard() {
                             Acciones Rápidas
                         </h2>
                         <div className="space-y-3">
-                            <button className="w-full flex items-center gap-3 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                            <a
+                                href="/ventas/productos"
+                                className="w-full flex items-center gap-3 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors no-underline"
+                            >
                                 <ShoppingCart className="h-5 w-5" />
+                                <span className="font-medium">Nueva Venta</span>
+                            </a>
+                            <a
+                                href="/productos"
+                                className="w-full flex items-center gap-3 px-4 py-3 bg-accent-500 hover:bg-accent-600 text-gray-900 rounded-lg transition-colors no-underline"
+                            >
+                                <Package className="h-5 w-5" />
                                 <span className="font-medium">
-                                    Nueva Venta
+                                    Ver Inventario
                                 </span>
-                            </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 bg-accent-500 hover:bg-accent-600 text-gray-900 rounded-lg transition-colors">
-                                <FileText className="h-5 w-5" />
-                                <span className="font-medium">
-                                    Nueva Factura
-                                </span>
-                            </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                            </a>
+                            <a
+                                href="/clientes"
+                                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors no-underline"
+                            >
                                 <Users className="h-5 w-5" />
                                 <span className="font-medium">
                                     Nuevo Cliente
                                 </span>
-                            </button>
+                            </a>
                         </div>
                     </div>
 
@@ -270,18 +282,30 @@ export default function Dashboard() {
                                         Conexión activa
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        Último envío: Hace 5 min
+                                        Última sincronización:{" "}
+                                        {sunatStatus?.ultima_conexion
+                                            ? new Date(
+                                                  sunatStatus.ultima_conexion,
+                                              ).toLocaleTimeString()
+                                            : "---"}
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <Clock className="h-5 w-5 text-yellow-500" />
+                                {sunatStatus?.pendientes > 0 ? (
+                                    <Clock className="h-5 w-5 text-yellow-500" />
+                                ) : (
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                )}
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-700">
-                                        3 documentos pendientes
+                                        {sunatStatus?.pendientes || 0}{" "}
+                                        documentos pendientes
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        En cola de envío
+                                        {sunatStatus?.pendientes > 0
+                                            ? "En cola de envío"
+                                            : "Al día con SUNAT"}
                                     </p>
                                 </div>
                             </div>

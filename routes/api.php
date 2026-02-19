@@ -14,7 +14,7 @@ use App\Http\Controllers\CotizacionController;
 */
 
 // Rutas públicas (sin autenticación)
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('web')->post('/login', [AuthController::class, 'login']);
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware('auth:sanctum')->group(function () {
@@ -26,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Usuarios
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
+
+    // Dashboard
+    Route::get('/dashboard/stats', [\App\Http\Controllers\Api\DashboardController::class, 'getStats']);
 
     // Clientes
     Route::apiResource('clientes', \App\Http\Controllers\Api\ClienteController::class);
@@ -45,8 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('productos', \App\Http\Controllers\ProductoController::class);
 
     // Proveedores
-    Route::get('proveedores/estadisticas', [\App\Http\Controllers\ProveedorController::class, 'estadisticas']);
-    Route::get('proveedores/buscar-ruc', [\App\Http\Controllers\ProveedorController::class, 'buscarPorRuc']);
+    Route::get('proveedores/{id}/detalles', [\App\Http\Controllers\ProveedorController::class, 'getDetalles']);
     Route::apiResource('proveedores', \App\Http\Controllers\ProveedorController::class);
 
     // Unidades - CRUD completo

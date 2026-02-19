@@ -1,15 +1,35 @@
-import { Plus, FileText, Loader2 } from "lucide-react";
+import { useState } from "react";
+import {
+    Plus,
+    FileText,
+    Loader2,
+    FileSpreadsheet,
+    FileText as FilePdf,
+} from "lucide-react";
 import MainLayout from "../Layout/MainLayout";
 import { Button } from "../ui/button";
 import { DataTable } from "../ui/data-table";
 import { useCompras } from "./hooks/useCompras";
 import { getComprasColumns } from "./columns/comprasColumns";
+import CompraDetallesModal from "./CompraDetallesModal";
 
 export default function ComprasList() {
+    const [viewCompraId, setViewCompraId] = useState(null);
+    const [isDetallesOpen, setIsDetallesOpen] = useState(false);
     const { compras, loading, handleAnular } = useCompras();
 
+    const handleView = (id) => {
+        setViewCompraId(id);
+        setIsDetallesOpen(true);
+    };
+
+    const handleExport = (tipo) => {
+        const url = `/compras/descargar-${tipo}`;
+        window.open(url, "_blank");
+    };
+
     // Generar columnas con los handlers
-    const columns = getComprasColumns({ handleAnular });
+    const columns = getComprasColumns({ handleAnular, handleView });
 
     // Estado de carga
     if (loading) {
@@ -40,22 +60,30 @@ export default function ComprasList() {
                             Gestiona las órdenes de compra a proveedores
                         </p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Button
                             variant="outline"
-                            onClick={() =>
-                                (window.location.href = "/compras/reporte")
-                            }
+                            className="gap-2 border-green-200 text-green-700 hover:bg-green-50"
+                            onClick={() => handleExport("excel")}
                         >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Exportar Reporte
+                            <FileSpreadsheet className="h-4 w-4" />
+                            Excel
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="gap-2 border-red-200 text-red-700 hover:bg-red-50"
+                            onClick={() => handleExport("pdf")}
+                        >
+                            <FilePdf className="h-4 w-4" />
+                            PDF
                         </Button>
                         <Button
                             onClick={() =>
                                 (window.location.href = "/compras/nueva")
                             }
+                            className="gap-2"
                         >
-                            <Plus className="h-4 w-4 mr-2" />
+                            <Plus className="h-4 w-4" />
                             Nueva Compra
                         </Button>
                     </div>
@@ -69,6 +97,13 @@ export default function ComprasList() {
                 searchPlaceholder="Buscar por documento, proveedor..."
                 pagination={true}
                 pageSize={10}
+            />
+
+            {/* Modal de Detalles de Compra */}
+            <CompraDetallesModal
+                isOpen={isDetallesOpen}
+                onClose={() => setIsDetallesOpen(false)}
+                compraId={viewCompraId}
             />
         </MainLayout>
     );

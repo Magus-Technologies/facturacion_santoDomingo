@@ -105,8 +105,9 @@ class ProductoImportController extends Controller
             foreach ($lista as $index => $item) {
                 try {
                     $codigo = $item['codigoProd'];
+                    $otroAlmacen = $almacenDestino === '1' ? '2' : '1';
                     
-                    // Verificar si el producto existe
+                    // Verificar si el producto existe en el almacén destino
                     $producto = DB::table('productos')
                         ->where('codigo', $codigo)
                         ->where('id_empresa', $user->id_empresa)
@@ -114,35 +115,50 @@ class ProductoImportController extends Controller
                         ->first();
                     
                     $datos = [
-                        'nombre' => $item['producto'],
-                        'descripcion' => $item['descripcicon'] ?? '',
-                        'precio' => floatval($item['precio_unidad'] ?? 0),
+                        'nombre'        => $item['producto'],
+                        'descripcion'   => $item['descripcicon'] ?? '',
+                        'precio'        => floatval($item['precio_unidad'] ?? 0),
                         'precio_unidad' => floatval($item['precio_unidad'] ?? 0),
-                        'precio_mayor' => floatval($item['precio_mayor'] ?? 0),
-                        'precio_menor' => floatval($item['precio_menor'] ?? 0),
-                        'precio2' => floatval($item['precio_menor'] ?? 0),
-                        'almacen' => $almacenDestino,
-                        'costo' => floatval($item['costo'] ?? 0),
-                        'cantidad' => intval($item['cantidad'] ?? 0),
-                        'estado' => '1',
-                        'moneda' => 'PEN',
+                        'precio_mayor'  => floatval($item['precio_mayor'] ?? 0),
+                        'precio_menor'  => floatval($item['precio_menor'] ?? 0),
+                        'precio2'       => floatval($item['precio_menor'] ?? 0),
+                        'almacen'       => $almacenDestino,
+                        'costo'         => floatval($item['costo'] ?? 0),
+                        'cantidad'      => intval($item['cantidad'] ?? 0),
+                        'estado'        => '1',
+                        'moneda'        => 'PEN',
                     ];
                     
                     if ($producto) {
-                        // Actualizar producto existente
+                        // Actualizar producto existente en almacén destino
                         DB::table('productos')
                             ->where('id_producto', $producto->id_producto)
                             ->update($datos);
                         $actualizados++;
                     } else {
-                        // Insertar nuevo producto
-                        $datos['codigo'] = $codigo;
-                        $datos['id_empresa'] = $user->id_empresa;
+                        // Insertar nuevo producto en almacén destino
+                        $datos['codigo']         = $codigo;
+                        $datos['id_empresa']     = $user->id_empresa;
                         $datos['fecha_registro'] = now();
-                        $datos['codsunat'] = '51121703';
+                        $datos['codsunat']       = '51121703';
                         
                         DB::table('productos')->insert($datos);
                         $importados++;
+
+                        // ─── IGUAL QUE store(): crear copia en el OTRO almacén ───
+                        $productoEnOtroAlmacen = DB::table('productos')
+                            ->where('codigo', $codigo)
+                            ->where('id_empresa', $user->id_empresa)
+                            ->where('almacen', $otroAlmacen)
+                            ->exists();
+
+                        if (!$productoEnOtroAlmacen) {
+                            $dataCopia             = $datos;
+                            $dataCopia['almacen']  = $otroAlmacen;
+                            $dataCopia['cantidad'] = 0; // Stock 0 en almacén secundario
+                            DB::table('productos')->insert($dataCopia);
+                        }
+                        // ────────────────────────────────────────────────────────
                     }
                 } catch (\Exception $e) {
                     $errores[] = "Fila " . ($index + 1) . ": " . $e->getMessage();

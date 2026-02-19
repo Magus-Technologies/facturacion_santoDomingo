@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, User, Building2 } from 'lucide-react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { consultarDocumento } from '@/services/apisPeru';
-import { toast } from '@/lib/sweetalert';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Search, Loader2, User, Building2 } from "lucide-react";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { consultarDocumento } from "@/services/apisPeru";
+import { toast } from "@/lib/sweetalert";
 
 /**
  * Componente de autocompletado de clientes
@@ -11,10 +11,10 @@ import { toast } from '@/lib/sweetalert';
  */
 export default function ClienteAutocomplete({
     onClienteSelect,
-    value = '',
-    placeholder = 'Buscar cliente por nombre o documento...',
-    className = '',
-    showConsultarButton = true
+    value = "",
+    placeholder = "Buscar cliente por nombre o documento...",
+    className = "",
+    showConsultarButton = true,
 }) {
     const [searchTerm, setSearchTerm] = useState(value);
     const [clientes, setClientes] = useState([]);
@@ -24,14 +24,23 @@ export default function ClienteAutocomplete({
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const inputRef = useRef(null);
     const dropdownRef = useRef(null);
+    // Flag para evitar que la actualización de value externo dispare una búsqueda nueva
+    const isExternalUpdate = useRef(false);
 
-    // Actualizar searchTerm cuando cambia el value externo
+    // Actualizar searchTerm cuando cambia el value externo (sin disparar búsqueda)
     useEffect(() => {
+        isExternalUpdate.current = true;
         setSearchTerm(value);
     }, [value]);
 
-    // Búsqueda de clientes
+    // Búsqueda de clientes (solo si el cambio vino del usuario, no de un value externo)
     useEffect(() => {
+        // Si el cambio fue por una actualización externa (cliente ya seleccionado), saltar
+        if (isExternalUpdate.current) {
+            isExternalUpdate.current = false;
+            return;
+        }
+
         if (searchTerm.length < 2) {
             setClientes([]);
             setShowDropdown(false);
@@ -48,16 +57,16 @@ export default function ClienteAutocomplete({
     const buscarClientes = async (term) => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = localStorage.getItem("auth_token");
 
             const response = await fetch(
                 `/api/clientes?search=${encodeURIComponent(term)}`,
                 {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                }
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                },
             );
 
             const data = await response.json();
@@ -71,7 +80,7 @@ export default function ClienteAutocomplete({
                 setShowDropdown(false);
             }
         } catch (error) {
-            console.error('Error buscando clientes:', error);
+            console.error("Error buscando clientes:", error);
             setClientes([]);
         } finally {
             setLoading(false);
@@ -80,7 +89,9 @@ export default function ClienteAutocomplete({
 
     const handleSelectCliente = (cliente) => {
         onClienteSelect(cliente);
-        setSearchTerm(cliente.datos || `${cliente.documento} - ${cliente.datos}`);
+        setSearchTerm(
+            cliente.datos || `${cliente.documento} - ${cliente.datos}`,
+        );
         setClientes([]);
         setShowDropdown(false);
     };
@@ -89,12 +100,14 @@ export default function ClienteAutocomplete({
         const doc = searchTerm.trim();
 
         if (!doc) {
-            toast.warning('Ingrese un número de documento');
+            toast.warning("Ingrese un número de documento");
             return;
         }
 
         if (doc.length !== 8 && doc.length !== 11) {
-            toast.warning('El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)');
+            toast.warning(
+                "El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)",
+            );
             return;
         }
 
@@ -109,40 +122,40 @@ export default function ClienteAutocomplete({
                 // Crear objeto de cliente temporal
                 let clienteTemp = {
                     documento: doc,
-                    datos: '',
-                    direccion: '',
-                    ubigeo: '',
-                    departamento: '',
-                    provincia: '',
-                    distrito: '',
-                    telefono: '',
-                    email: ''
+                    datos: "",
+                    direccion: "",
+                    ubigeo: "",
+                    departamento: "",
+                    provincia: "",
+                    distrito: "",
+                    telefono: "",
+                    email: "",
                 };
 
                 // Si es DNI (8 dígitos)
                 if (doc.length === 8) {
                     clienteTemp.datos = data.nombreCompleto;
-                    toast.success('DNI encontrado');
+                    toast.success("DNI encontrado");
                 }
                 // Si es RUC (11 dígitos)
                 else if (doc.length === 11) {
                     clienteTemp.datos = data.razonSocial;
-                    clienteTemp.direccion = data.direccion || '';
-                    clienteTemp.ubigeo = data.ubigeo || '';
-                    clienteTemp.departamento = data.departamento || '';
-                    clienteTemp.provincia = data.provincia || '';
-                    clienteTemp.distrito = data.distrito || '';
-                    toast.success('RUC encontrado');
+                    clienteTemp.direccion = data.direccion || "";
+                    clienteTemp.ubigeo = data.ubigeo || "";
+                    clienteTemp.departamento = data.departamento || "";
+                    clienteTemp.provincia = data.provincia || "";
+                    clienteTemp.distrito = data.distrito || "";
+                    toast.success("RUC encontrado");
                 }
 
                 onClienteSelect(clienteTemp);
                 setSearchTerm(clienteTemp.datos);
             } else {
-                toast.error(result.message || 'No se encontró el documento');
+                toast.error(result.message || "No se encontró el documento");
             }
         } catch (error) {
-            console.error('Error consultando documento:', error);
-            toast.error('Error al consultar el documento');
+            console.error("Error consultando documento:", error);
+            toast.error("Error al consultar el documento");
         } finally {
             setConsultando(false);
         }
@@ -152,7 +165,7 @@ export default function ClienteAutocomplete({
     const handleKeyDown = (e) => {
         if (!showDropdown || clientes.length === 0) {
             // Si presiona Enter sin dropdown, consultar API
-            if (e.key === 'Enter' && showConsultarButton) {
+            if (e.key === "Enter" && showConsultarButton) {
                 e.preventDefault();
                 handleConsultarDocumento();
             }
@@ -160,23 +173,23 @@ export default function ClienteAutocomplete({
         }
 
         switch (e.key) {
-            case 'ArrowDown':
+            case "ArrowDown":
                 e.preventDefault();
-                setSelectedIndex(prev =>
-                    prev < clientes.length - 1 ? prev + 1 : prev
+                setSelectedIndex((prev) =>
+                    prev < clientes.length - 1 ? prev + 1 : prev,
                 );
                 break;
-            case 'ArrowUp':
+            case "ArrowUp":
                 e.preventDefault();
-                setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+                setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
                 break;
-            case 'Enter':
+            case "Enter":
                 e.preventDefault();
                 if (selectedIndex >= 0 && clientes[selectedIndex]) {
                     handleSelectCliente(clientes[selectedIndex]);
                 }
                 break;
-            case 'Escape':
+            case "Escape":
                 setShowDropdown(false);
                 setSelectedIndex(-1);
                 break;
@@ -186,21 +199,25 @@ export default function ClienteAutocomplete({
     // Cerrar dropdown al hacer click fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
                 setShowDropdown(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const getTipoDocumento = (documento) => {
-        if (!documento) return 'Otro';
+        if (!documento) return "Otro";
         const len = documento.length;
-        if (len === 8) return 'DNI';
-        if (len === 11) return 'RUC';
-        return 'Otro';
+        if (len === 8) return "DNI";
+        if (len === 11) return "RUC";
+        return "Otro";
     };
 
     return (
@@ -243,7 +260,7 @@ export default function ClienteAutocomplete({
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[400px] overflow-y-auto">
                     {clientes.map((cliente, index) => {
                         const tipoDoc = getTipoDocumento(cliente.documento);
-                        const isDNI = tipoDoc === 'DNI';
+                        const isDNI = tipoDoc === "DNI";
 
                         return (
                             <div
@@ -253,14 +270,16 @@ export default function ClienteAutocomplete({
                                 className={`
                                     flex items-start gap-3 p-3 cursor-pointer transition-colors
                                     hover:bg-orange-50 border-b border-gray-100 last:border-b-0
-                                    ${selectedIndex === index ? 'bg-orange-50 border-l-4 border-l-orange-500' : ''}
+                                    ${selectedIndex === index ? "bg-orange-50 border-l-4 border-l-orange-500" : ""}
                                 `}
                             >
                                 {/* Icono según tipo */}
-                                <div className={`
+                                <div
+                                    className={`
                                     w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-                                    ${isDNI ? 'bg-blue-100' : 'bg-green-100'}
-                                `}>
+                                    ${isDNI ? "bg-blue-100" : "bg-green-100"}
+                                `}
+                                >
                                     {isDNI ? (
                                         <User className="h-5 w-5 text-blue-600" />
                                     ) : (
@@ -294,16 +313,21 @@ export default function ClienteAutocomplete({
             )}
 
             {/* No hay resultados */}
-            {showDropdown && !loading && clientes.length === 0 && searchTerm.length >= 2 && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center">
-                    <p className="text-gray-500 text-sm">No se encontraron clientes</p>
-                    {showConsultarButton && (
-                        <p className="text-gray-400 text-xs mt-1">
-                            Intente consultar con el botón "Consultar"
+            {showDropdown &&
+                !loading &&
+                clientes.length === 0 &&
+                searchTerm.length >= 2 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center">
+                        <p className="text-gray-500 text-sm">
+                            No se encontraron clientes
                         </p>
-                    )}
-                </div>
-            )}
+                        {showConsultarButton && (
+                            <p className="text-gray-400 text-xs mt-1">
+                                Intente consultar con el botón "Consultar"
+                            </p>
+                        )}
+                    </div>
+                )}
         </div>
     );
 }

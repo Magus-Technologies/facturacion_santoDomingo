@@ -192,9 +192,7 @@ export const getComprasColumns = (handlers) => [
                     <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() =>
-                            (window.location.href = `/compras/${compra.id_compra}`)
-                        }
+                        onClick={() => handlers.handleView(compra.id_compra)}
                         title="Ver detalle"
                     >
                         <Eye className="h-4 w-4 text-blue-600" />

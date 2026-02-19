@@ -6,6 +6,7 @@ import MainLayout from "../../Layout/MainLayout";
 import VentasActionButtons from "./VentasActionButtons";
 import { useVentas } from "./hooks/useVentas";
 import { getVentasColumns } from "./columns/ventasColumns";
+import DetallesVentaModal from "./DetallesVentaModal";
 
 export default function VentasList() {
     const {
@@ -14,12 +15,13 @@ export default function VentasList() {
         error,
         fetchVentas,
         handleAnular,
-        handleView,
         handlePrint,
         handleNuevaVenta,
     } = useVentas();
 
     const [filtroTipo, setFiltroTipo] = useState(null);
+    const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Leer parámetro 'tipo' de la URL para filtrar
     useEffect(() => {
@@ -49,6 +51,11 @@ export default function VentasList() {
         if (filtroTipo === "2") return "Facturas";
         if (filtroTipo === "6") return "Notas de Venta";
         return "Ventas";
+    };
+
+    const handleView = (venta) => {
+        setVentaSeleccionada(venta);
+        setIsModalOpen(true);
     };
 
     // Generar columnas con los handlers
@@ -104,6 +111,12 @@ export default function VentasList() {
                     />
                 )}
             </div>
+
+            <DetallesVentaModal
+                venta={ventaSeleccionada}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </MainLayout>
     );
 }

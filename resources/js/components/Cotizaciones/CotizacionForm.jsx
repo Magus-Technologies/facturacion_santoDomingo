@@ -1,7 +1,8 @@
+import { useState } from "react";
 import MainLayout from "../Layout/MainLayout";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Printer } from "lucide-react";
 
 // Componentes compartidos
 import ProductMultipleSearch from "../shared/ProductMultipleSearch";
@@ -9,6 +10,7 @@ import PaymentSchedule from "../shared/PaymentSchedule";
 import FormSidebar from "../shared/FormSidebar";
 import ProductosTable from "../shared/ProductosTable";
 import ProductoFormSection from "../shared/ProductoFormSection";
+import PrintOptionsModal from "../shared/PrintOptionsModal";
 
 // Hook personalizado
 import { useCotizacionForm } from "./hooks/useCotizacionForm";
@@ -43,8 +45,9 @@ export default function CotizacionForm({ cotizacionId = null }) {
 
     const totales = calcularTotales();
     const monedaSimbolo = getSimboloMoneda(formData.moneda);
+    const [showPrint, setShowPrint] = useState(false);
 
-    const handlePrecioSelect = (tipoPrecio, precio) => {
+    const handlePrecioSelect = ({ tipo: tipoPrecio, valor: precio }) => {
         setProductoActual((prev) => ({
             ...prev,
             precio_mostrado: precio,
@@ -92,6 +95,17 @@ export default function CotizacionForm({ cotizacionId = null }) {
                         </h1>
                     </div>
                     <div className="flex gap-3">
+                        {/* Botón Imprimir — solo cuando es edición y ya tiene ID */}
+                        {isEditing && cotizacionId && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowPrint(true)}
+                                className="flex items-center gap-2"
+                            >
+                                <Printer className="h-4 w-4" />
+                                Imprimir
+                            </Button>
+                        )}
                         <Button onClick={handleSubmit} disabled={saving}>
                             {saving ? "Guardando..." : "Guardar"}
                         </Button>
@@ -111,7 +125,7 @@ export default function CotizacionForm({ cotizacionId = null }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Columna principal - Productos */}
                 <div className="lg:col-span-8">
-                    <div className="bg-white rounded-lg shadow border p-6">
+                    <div className="bg-white rounded-lg shadow  p-6">
                         <ProductoFormSection
                             productoActual={productoActual}
                             setProductoActual={setProductoActual}
@@ -256,6 +270,17 @@ export default function CotizacionForm({ cotizacionId = null }) {
                 tieneInicial={false}
                 montoInicial={0}
             />
+
+            {/* Modal de impresión PDF */}
+            {isEditing && cotizacionId && (
+                <PrintOptionsModal
+                    isOpen={showPrint}
+                    onClose={() => setShowPrint(false)}
+                    ventaId={cotizacionId}
+                    numeroCompleto={`COT-${String(cotizacionId).padStart(6, "0")}`}
+                    tipo="cotizacion"
+                />
+            )}
         </MainLayout>
     );
 }

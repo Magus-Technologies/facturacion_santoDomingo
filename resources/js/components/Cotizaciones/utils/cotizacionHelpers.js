@@ -148,7 +148,14 @@ export const validarCuotas = (tipoPago, cuotas) => {
  * Prepara los datos para enviar al backend
  */
 export const prepararDatosCotizacion = (cliente, formData, productos, user, totales) => {
-    const moneda = formData.moneda || 'PEN';
+    // Normalizar moneda: puede venir como 'PEN'/'USD' o como '1'/'2' (legacy)
+    const normalizarMoneda = (m) => {
+        if (m === '1' || m === 1) return 'PEN';
+        if (m === '2' || m === 2) return 'USD';
+        if (m === 'PEN' || m === 'USD') return m;
+        return 'PEN'; // Soles por defecto
+    };
+    const moneda = normalizarMoneda(formData.moneda || formData.tipo_moneda);
     
     return {
         fecha: formData.fecha,
@@ -158,8 +165,8 @@ export const prepararDatosCotizacion = (cliente, formData, productos, user, tota
         direccion: formData.dir_cli,
         moneda: moneda,
         tipo_cambio: formData.tipo_cambio,
-        aplicar_igv: formData.aplicar_igv === '1',
-        descuento: formData.descuento_activado ? formData.descuento_general : 0,
+        aplicar_igv: formData.aplicar_igv === '1' || formData.aplicar_igv === true,
+        descuento: formData.descuento_activado ? parseFloat(formData.descuento_general || 0) : 0,
         asunto: formData.asunto,
         observaciones: '',
         subtotal: totales.subtotal,
@@ -168,9 +175,12 @@ export const prepararDatosCotizacion = (cliente, formData, productos, user, tota
         estado: 'pendiente',
         productos: productos.map(p => ({
             producto_id: p.id_producto,
+            codigo: p.codigo || '',
+            nombre: p.descripcion || p.nombre || '',  // Backend espera 'nombre'
+            descripcion: p.descripcion || '',
             cantidad: parseFloat(p.cantidad),
-            precio_unitario: parseFloat(p.precioVenta),
-            precio_especial: parseFloat(p.precioEspecial || 0)
+            precio_unitario: parseFloat(p.precioVenta || p.precio || 0),
+            precio_especial: p.precioEspecial ? parseFloat(p.precioEspecial) : null
         })),
         cuotas: formData.tipo_pago === '2' ? formData.cuotas.map((c) => ({
             monto: parseFloat(c.monto),

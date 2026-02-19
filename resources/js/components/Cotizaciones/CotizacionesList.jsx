@@ -20,6 +20,7 @@ export default function CotizacionesList() {
         handleView,
         handleCreate,
         handlePrint,
+        handleConvertir,
     } = useCotizaciones();
 
     // Generar columnas con los handlers
@@ -27,7 +28,7 @@ export default function CotizacionesList() {
         handleView,
         handleEdit,
         handleDelete,
-        // Pasamos callback para abrir el modal con la cotizacion seleccionada
+        handleConvertir,
         handlePrint: (cotizacion) =>
             handlePrint(cotizacion, setPrintCotizacion),
     });

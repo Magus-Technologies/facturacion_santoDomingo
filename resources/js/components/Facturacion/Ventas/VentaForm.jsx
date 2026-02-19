@@ -26,6 +26,8 @@ export default function VentaForm({ ventaId = null }) {
         showMultipleSearch,
         showPrintModal,
         ventaGuardada,
+        setCliente,
+        setProductos,
         setProductoActual,
         setFormData,
         setShowMultipleSearch,
@@ -43,40 +45,76 @@ export default function VentaForm({ ventaId = null }) {
     } = useVentaForm(ventaId);
 
     // Leer parámetro 'tipo' de la URL y configurar el tipo de documento
+    // También cargar borrador de cotización si se viene de un "convertir a venta"
     useEffect(() => {
         if (!isEditing) {
             const urlParams = new URLSearchParams(window.location.search);
             const tipoParam = urlParams.get("tipo");
 
-            if (tipoParam) {
-                const tipoMap = {
-                    boleta: "1",
-                    factura: "2",
-                    nota: "6", // Nota de Venta
-                };
+            const tipoMap = { boleta: "1", factura: "2", nota: "6" };
+            const serieMap = { boleta: "B001", factura: "F001", nota: "NV01" };
 
-                const serieMap = {
-                    boleta: "B001",
-                    factura: "F001",
-                    nota: "NV01",
-                };
+            const idTido = tipoParam ? tipoMap[tipoParam] : "1";
+            const serie = tipoParam ? serieMap[tipoParam] : "B001";
 
-                const idTido = tipoMap[tipoParam];
-                const serie = serieMap[tipoParam];
+            // Leer borrador de cotización (si existe)
+            const draftRaw = sessionStorage.getItem("cotizacion_draft");
+            let draftCliente = null;
+            let draftProductos = null;
+            let draftExtra = {};
 
-                if (idTido && serie) {
-                    setFormData((prev) => ({
-                        ...prev,
-                        id_tido: idTido,
-                        serie: serie,
-                        _tipoFijo: true, // Marcar que el tipo está fijo
-                    }));
-
-                    // Obtener número para la serie correcta
-                    obtenerProximoNumero(serie);
+            if (draftRaw) {
+                try {
+                    const draft = JSON.parse(draftRaw);
+                    sessionStorage.removeItem("cotizacion_draft");
+                    draftCliente = draft.cliente || null;
+                    draftProductos = draft.productos || null;
+                    draftExtra = {
+                        tipo_moneda: draft.moneda || "PEN",
+                        aplicar_igv: draft.aplicar_igv ?? true,
+                    };
+                } catch (e) {
+                    console.error("Error leyendo cotizacion_draft:", e);
                 }
-            } else {
-                // Si no hay parámetro tipo, obtener número para la serie por defecto (B001)
+            }
+
+            // Aplicar tipo de documento + datos del draft en un solo setFormData
+            if (idTido && serie) {
+                setFormData((prev) => ({
+                    ...prev,
+                    id_tido: idTido,
+                    serie: serie,
+                    _tipoFijo: !!tipoParam,
+                    ...(draftCliente && {
+                        num_doc: draftCliente.documento || "",
+                        nom_cli: draftCliente.datos || "",
+                        dir_cli: draftCliente.direccion || "",
+                    }),
+                    ...draftExtra,
+                }));
+                obtenerProximoNumero(serie);
+            }
+
+            // Aplicar cliente y productos del draft
+            if (draftCliente) {
+                setCliente(draftCliente);
+            }
+            if (draftProductos && draftProductos.length > 0) {
+                setProductos(
+                    draftProductos.map((p) => ({
+                        id_producto: p.id_producto,
+                        codigo: p.codigo || "",
+                        descripcion: p.descripcion,
+                        cantidad: p.cantidad,
+                        precioVenta: p.precioVenta,
+                        precio_mostrado: p.precio_mostrado,
+                        tipo_precio: p.tipo_precio || "precio",
+                        moneda: p.moneda || "PEN",
+                    })),
+                );
+            }
+
+            if (!tipoParam) {
                 obtenerProximoNumero("B001");
             }
         }

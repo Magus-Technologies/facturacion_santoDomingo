@@ -6,9 +6,16 @@ import {
     CheckCircle,
     XCircle,
     Clock,
+    MoreHorizontal,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "../../../ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../../ui/dropdown-menu";
 import {
     formatMonto,
     getEstadoBadge,
@@ -227,40 +234,104 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
         },
         {
             id: "actions",
-            header: "Acción",
+            header: () => <span className="hidden md:inline">Acciones</span>,
             cell: ({ row }) => {
                 const venta = row.original;
                 const estaAnulada =
                     venta.estado === "2" || venta.estado === "A";
 
                 return (
-                    <div className="flex items-center gap-1">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlers.handleView(venta)}
-                            title="Ver detalle"
-                        >
-                            <Eye className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlers.handlePrint(venta)}
-                            title="Imprimir PDF"
-                        >
-                            <Printer className="h-4 w-4 text-red-600" />
-                        </Button>
-                        {!estaAnulada && (
+                    <div className="flex items-center gap-1 justify-end md:justify-start">
+                        {/* Escritorio */}
+                        <div className="hidden md:flex items-center gap-1">
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handlers.handleAnular(venta)}
-                                title="Anular venta"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlers.handleView(venta);
+                                }}
+                                title="Ver detalle"
                             >
-                                <Trash2 className="h-4 w-4 text-red-600" />
+                                <Eye className="h-4 w-4 text-blue-600" />
                             </Button>
-                        )}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlers.handlePrint(venta);
+                                }}
+                                title="Imprimir PDF"
+                            >
+                                <Printer className="h-4 w-4 text-gray-600" />
+                            </Button>
+                            {!estaAnulada && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleAnular(venta);
+                                    }}
+                                    title="Anular venta"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                        {/* Móvil */}
+                        <div className="md:hidden">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <span className="sr-only">
+                                            Abrir menú
+                                        </span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-48"
+                                >
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlers.handleView(venta);
+                                        }}
+                                    >
+                                        <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                                        Ver detalle
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlers.handlePrint(venta);
+                                        }}
+                                    >
+                                        <Printer className="mr-2 h-4 w-4 text-gray-600" />
+                                        Imprimir PDF
+                                    </DropdownMenuItem>
+                                    {!estaAnulada && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleAnular(venta);
+                                            }}
+                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Anular venta
+                                        </DropdownMenuItem>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 );
             },

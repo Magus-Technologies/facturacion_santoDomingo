@@ -8,8 +8,15 @@ import {
     XCircle,
     Clock,
     ShoppingCart,
+    MoreHorizontal,
 } from "lucide-react";
 import { Button } from "../../ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../ui/dropdown-menu";
 import {
     formatNumeroCotizacion,
     formatFecha,
@@ -122,69 +129,132 @@ export const getCotizacionesColumns = (handlers) => [
     },
     {
         id: "actions",
-        header: "Acciones",
+        header: () => <span className="hidden md:inline">Acciones</span>,
         enableSorting: false,
         cell: ({ row }) => {
             const cotizacion = row.original;
             return (
-                <div className="flex items-center gap-1">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleView(cotizacion);
-                        }}
-                        title="Ver cotización"
-                    >
-                        <Eye className="h-4 w-4 text-blue-600" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleEdit(cotizacion);
-                        }}
-                        title="Editar cotización"
-                    >
-                        <Edit className="h-4 w-4 text-accent-600" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleConvertir(cotizacion);
-                        }}
-                        title="Convertir a venta electrónica (boleta/factura)"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                    >
-                        <ShoppingCart className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handlePrint(cotizacion);
-                        }}
-                        title="Imprimir"
-                    >
-                        <Printer className="h-4 w-4 text-gray-600" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleDelete(cotizacion);
-                        }}
-                        title="Eliminar cotización"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center gap-1 justify-end md:justify-start">
+                    {/* Botones horizontales - Solo visibles en PC */}
+                    <div className="hidden md:flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleView(cotizacion);
+                            }}
+                            title="Ver cotización"
+                        >
+                            <Eye className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleEdit(cotizacion);
+                            }}
+                            title="Editar cotización"
+                        >
+                            <Edit className="h-4 w-4 text-accent-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleConvertir(cotizacion);
+                            }}
+                            title="Convertir a venta electrónica (boleta/factura)"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                            <ShoppingCart className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handlePrint(cotizacion);
+                            }}
+                            title="Imprimir"
+                        >
+                            <Printer className="h-4 w-4 text-gray-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleDelete(cotizacion);
+                            }}
+                            title="Eliminar cotización"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+
+                    {/* Menú Desplegable - Solo visible en Móviles */}
+                    <div className="md:hidden">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Abrir menú</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleView(cotizacion);
+                                    }}
+                                >
+                                    <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                                    Ver cotización
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleEdit(cotizacion);
+                                    }}
+                                >
+                                    <Edit className="mr-2 h-4 w-4 text-accent-600" />
+                                    Editar cotización
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleConvertir(cotizacion);
+                                    }}
+                                >
+                                    <ShoppingCart className="mr-2 h-4 w-4 text-green-600" />
+                                    Convertir a venta
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handlePrint(cotizacion);
+                                    }}
+                                >
+                                    <Printer className="mr-2 h-4 w-4 text-gray-600" />
+                                    Imprimir
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleDelete(cotizacion);
+                                    }}
+                                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Eliminar
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             );
         },

@@ -11,7 +11,14 @@ import {
     Loader2,
     Tag,
     Image as ImageIcon,
+    MoreHorizontal,
 } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import MainLayout from "../Layout/MainLayout";
 
 export default function ProductosList() {
@@ -256,35 +263,78 @@ export default function ProductosList() {
         },
         {
             id: "actions",
-            header: "Acciones",
+            header: () => <span className="hidden md:inline">Acciones</span>,
             enableSorting: false,
             cell: ({ row }) => {
                 const producto = row.original;
                 return (
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(producto);
-                            }}
-                            title="Editar producto"
-                        >
-                            <Edit className="h-4 w-4 text-accent-600" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(producto);
-                            }}
-                            title="Eliminar producto"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                    <div className="flex items-center gap-1 justify-end md:justify-start">
+                        {/* PC */}
+                        <div className="hidden md:flex items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(producto);
+                                }}
+                                title="Editar producto"
+                            >
+                                <Edit className="h-4 w-4 text-accent-600" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(producto);
+                                }}
+                                title="Eliminar producto"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        {/* Móvil */}
+                        <div className="md:hidden">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <span className="sr-only">
+                                            Abrir menú
+                                        </span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-48"
+                                >
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(producto);
+                                        }}
+                                    >
+                                        <Edit className="mr-2 h-4 w-4 text-accent-600" />
+                                        Editar producto
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(producto);
+                                        }}
+                                        className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Eliminar producto
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 );
             },
@@ -450,9 +500,9 @@ export default function ProductosList() {
                                 {/* Precio */}
                                 <div className="text-xl font-bold text-primary-600 mb-4">
                                     {producto.moneda === "USD" ? "$" : "S/"}{" "}
-                                    {parseFloat(
-                                        producto.precio || 0,
-                                    ).toFixed(2)}
+                                    {parseFloat(producto.precio || 0).toFixed(
+                                        2,
+                                    )}
                                 </div>
 
                                 {/* Acciones - al final */}

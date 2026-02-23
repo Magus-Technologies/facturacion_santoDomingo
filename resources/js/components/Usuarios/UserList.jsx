@@ -11,7 +11,14 @@ import {
     Calendar,
     Shield,
     Loader2,
+    MoreHorizontal,
 } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import MainLayout from "../Layout/MainLayout";
 import { confirmDelete, toast } from "@/lib/sweetalert";
 import UserModal from "./UserModal";
@@ -201,7 +208,7 @@ export default function UserList() {
         },
         {
             id: "actions",
-            header: "Acciones",
+            header: () => <span className="hidden md:inline">Acciones</span>,
             enableSorting: false,
             cell: ({ row }) => {
                 const user = row.original;
@@ -211,50 +218,104 @@ export default function UserList() {
                 const isCurrentUser = user.id === currentUserId;
 
                 return (
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleView(user);
-                            }}
-                            title="Ver detalles"
-                        >
-                            <Eye className="h-4 w-4 text-primary-600" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(user);
-                            }}
-                            title="Editar usuario"
-                        >
-                            <Edit className="h-4 w-4 text-accent-600" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(user);
-                            }}
-                            disabled={isCurrentUser}
-                            title={
-                                isCurrentUser
-                                    ? "No puedes eliminarte a ti mismo"
-                                    : "Eliminar usuario"
-                            }
-                            className={
-                                isCurrentUser
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "text-red-600 hover:text-red-700 hover:bg-red-50"
-                            }
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                    <div className="flex items-center gap-1 justify-end md:justify-start">
+                        {/* PC */}
+                        <div className="hidden md:flex items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleView(user);
+                                }}
+                                title="Ver detalles"
+                            >
+                                <Eye className="h-4 w-4 text-primary-600" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(user);
+                                }}
+                                title="Editar usuario"
+                            >
+                                <Edit className="h-4 w-4 text-accent-600" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(user);
+                                }}
+                                disabled={isCurrentUser}
+                                title={
+                                    isCurrentUser
+                                        ? "No puedes eliminarte a ti mismo"
+                                        : "Eliminar usuario"
+                                }
+                                className={
+                                    isCurrentUser
+                                        ? "text-gray-300"
+                                        : "text-red-600 hover:text-red-700 hover:bg-red-50"
+                                }
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        {/* Móvil */}
+                        <div className="md:hidden">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <span className="sr-only">
+                                            Abrir menú
+                                        </span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-48"
+                                >
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleView(user);
+                                        }}
+                                    >
+                                        <Eye className="mr-2 h-4 w-4 text-primary-600" />
+                                        Ver detalles
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(user);
+                                        }}
+                                    >
+                                        <Edit className="mr-2 h-4 w-4 text-accent-600" />
+                                        Editar usuario
+                                    </DropdownMenuItem>
+                                    {!isCurrentUser && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(user);
+                                            }}
+                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar usuario
+                                        </DropdownMenuItem>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 );
             },

@@ -1,6 +1,19 @@
-import { Eye, Edit, Trash2, Printer, FileBadge } from "lucide-react";
+import {
+    Eye,
+    Edit,
+    Trash2,
+    Printer,
+    FileBadge,
+    MoreHorizontal,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "../../ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../ui/dropdown-menu";
 import {
     formatDocumentoCompra,
     formatMonto,
@@ -184,56 +197,118 @@ export const getComprasColumns = (handlers) => [
     },
     {
         id: "acciones",
-        header: "Acciones",
+        header: () => <span className="hidden md:inline">Acciones</span>,
         cell: ({ row }) => {
             const compra = row.original;
             return (
-                <div className="flex gap-2">
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handlers.handleView(compra.id_compra)}
-                        title="Ver detalle"
-                    >
-                        <Eye className="h-4 w-4 text-blue-600" />
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() =>
-                            window.open(
-                                `/reporteOC/a4.php?id=${compra.id_compra}`,
-                                "_blank",
-                            )
-                        }
-                        title="Imprimir A4"
-                    >
-                        <Printer className="h-4 w-4 text-red-600" />
-                    </Button>
-                    {compra.estado === "1" && (
-                        <>
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() =>
-                                    (window.location.href = `/compras/editar/${compra.id_compra}`)
-                                }
-                                title="Editar"
-                            >
-                                <Edit className="h-4 w-4 text-yellow-600" />
-                            </Button>
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() =>
-                                    handlers.handleAnular(compra.id_compra)
-                                }
-                                title="Anular"
-                            >
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                        </>
-                    )}
+                <div className="flex gap-1 items-center justify-end md:justify-start">
+                    {/* PC */}
+                    <div className="hidden md:flex gap-1">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                                handlers.handleView(compra.id_compra)
+                            }
+                            title="Ver detalle"
+                        >
+                            <Eye className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                                window.open(
+                                    `/reporteOC/a4.php?id=${compra.id_compra}`,
+                                    "_blank",
+                                )
+                            }
+                            title="Imprimir A4"
+                        >
+                            <Printer className="h-4 w-4 text-red-600" />
+                        </Button>
+                        {compra.estado === "1" && (
+                            <>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() =>
+                                        (window.location.href = `/compras/editar/${compra.id_compra}`)
+                                    }
+                                    title="Editar"
+                                >
+                                    <Edit className="h-4 w-4 text-yellow-600" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() =>
+                                        handlers.handleAnular(compra.id_compra)
+                                    }
+                                    title="Anular"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Móvil */}
+                    <div className="md:hidden">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Abrir menú</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        handlers.handleView(compra.id_compra)
+                                    }
+                                >
+                                    <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                                    Ver detalle
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        window.open(
+                                            `/reporteOC/a4.php?id=${compra.id_compra}`,
+                                            "_blank",
+                                        )
+                                    }
+                                >
+                                    <Printer className="mr-2 h-4 w-4 text-red-600" />
+                                    Imprimir A4
+                                </DropdownMenuItem>
+                                {compra.estado === "1" && (
+                                    <>
+                                        <DropdownMenuItem
+                                            onClick={() =>
+                                                (window.location.href = `/compras/editar/${compra.id_compra}`)
+                                            }
+                                        >
+                                            <Edit className="mr-2 h-4 w-4 text-yellow-600" />
+                                            Editar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() =>
+                                                handlers.handleAnular(
+                                                    compra.id_compra,
+                                                )
+                                            }
+                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Anular
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             );
         },

@@ -1,6 +1,23 @@
-import { Eye, Edit, Trash2, Phone, Calendar } from 'lucide-react';
-import { Button } from '../../ui/button';
-import { getTipoDocumento, formatFecha, formatTotalVentas } from '../utils/clienteHelpers';
+import {
+    Eye,
+    Edit,
+    Trash2,
+    Phone,
+    Calendar,
+    MoreHorizontal,
+} from "lucide-react";
+import { Button } from "../../ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../ui/dropdown-menu";
+import {
+    getTipoDocumento,
+    formatFecha,
+    formatTotalVentas,
+} from "../utils/clienteHelpers";
 
 /**
  * Definición de columnas para la tabla de clientes
@@ -8,19 +25,19 @@ import { getTipoDocumento, formatFecha, formatTotalVentas } from '../utils/clien
  */
 export const getClientesColumns = (handlers) => [
     {
-        accessorKey: 'id_cliente',
-        header: 'ID',
+        accessorKey: "id_cliente",
+        header: "ID",
         cell: ({ row }) => (
             <span className="font-mono text-gray-600">
-                #{row.getValue('id_cliente')}
+                #{row.getValue("id_cliente")}
             </span>
         ),
     },
     {
-        accessorKey: 'documento',
-        header: 'Documento',
+        accessorKey: "documento",
+        header: "Documento",
         cell: ({ row }) => {
-            const doc = row.getValue('documento');
+            const doc = row.getValue("documento");
             const tipo = getTipoDocumento(doc);
             return (
                 <div className="flex items-center gap-2">
@@ -33,12 +50,12 @@ export const getClientesColumns = (handlers) => [
         },
     },
     {
-        accessorKey: 'datos',
-        header: 'Cliente',
+        accessorKey: "datos",
+        header: "Cliente",
         cell: ({ row }) => (
             <div>
                 <p className="font-medium text-gray-900">
-                    {row.getValue('datos')}
+                    {row.getValue("datos")}
                 </p>
                 {row.original.email && (
                     <p className="text-sm text-gray-500">
@@ -49,10 +66,10 @@ export const getClientesColumns = (handlers) => [
         ),
     },
     {
-        accessorKey: 'telefono',
-        header: 'Contacto',
+        accessorKey: "telefono",
+        header: "Contacto",
         cell: ({ row }) => {
-            const telefono = row.getValue('telefono');
+            const telefono = row.getValue("telefono");
             return telefono ? (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Phone className="h-3 w-3 text-gray-400" />
@@ -64,10 +81,10 @@ export const getClientesColumns = (handlers) => [
         },
     },
     {
-        accessorKey: 'total_venta',
-        header: 'Total Ventas',
+        accessorKey: "total_venta",
+        header: "Total Ventas",
         cell: ({ row }) => {
-            const total = row.getValue('total_venta');
+            const total = row.getValue("total_venta");
             return (
                 <span className="font-semibold text-green-700">
                     {formatTotalVentas(total)}
@@ -76,10 +93,10 @@ export const getClientesColumns = (handlers) => [
         },
     },
     {
-        accessorKey: 'ultima_venta',
-        header: 'Última Venta',
+        accessorKey: "ultima_venta",
+        header: "Última Venta",
         cell: ({ row }) => {
-            const fecha = row.getValue('ultima_venta');
+            const fecha = row.getValue("ultima_venta");
             if (!fecha) {
                 return (
                     <span className="text-sm text-gray-400">Sin ventas</span>
@@ -95,47 +112,91 @@ export const getClientesColumns = (handlers) => [
         },
     },
     {
-        id: 'actions',
-        header: 'Acciones',
+        id: "actions",
+        header: () => <span className="hidden md:inline">Acciones</span>,
         enableSorting: false,
         cell: ({ row }) => {
             const cliente = row.original;
             return (
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleView(cliente);
-                        }}
-                        title="Ver detalles"
-                    >
-                        <Eye className="h-4 w-4 text-primary-600" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleEdit(cliente);
-                        }}
-                        title="Editar cliente"
-                    >
-                        <Edit className="h-4 w-4 text-accent-600" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handlers.handleDelete(cliente);
-                        }}
-                        title="Eliminar cliente"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center gap-1 justify-end md:justify-start">
+                    {/* PC */}
+                    <div className="hidden md:flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleView(cliente);
+                            }}
+                            title="Ver detalles"
+                        >
+                            <Eye className="h-4 w-4 text-primary-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleEdit(cliente);
+                            }}
+                            title="Editar cliente"
+                        >
+                            <Edit className="h-4 w-4 text-accent-600" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handlers.handleDelete(cliente);
+                            }}
+                            title="Eliminar cliente"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    {/* Móvil */}
+                    <div className="md:hidden">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Abrir menú</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleView(cliente);
+                                    }}
+                                >
+                                    <Eye className="mr-2 h-4 w-4 text-primary-600" />
+                                    Ver detalles
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleEdit(cliente);
+                                    }}
+                                >
+                                    <Edit className="mr-2 h-4 w-4 text-accent-600" />
+                                    Editar cliente
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleDelete(cliente);
+                                    }}
+                                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Eliminar cliente
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             );
         },

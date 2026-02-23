@@ -128,14 +128,16 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                             setShowEmpresaMenu(false)
                                         }
                                     />
-                                    <div className="absolute left-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                                    <div className="fixed sm:absolute top-[64px] sm:top-full left-4 right-4 sm:left-0 sm:right-auto sm:mt-2 sm:w-80 bg-white rounded-xl shadow-2xl sm:shadow-lg border border-gray-200 py-2 z-50 overflow-hidden max-h-[calc(100vh-80px)] overflow-y-auto">
                                         <div className="px-4 py-2 border-b border-gray-100">
                                             <p className="text-xs font-semibold text-gray-500 uppercase">
                                                 Cambiar empresa
                                             </p>
                                         </div>
                                         {empresas.map((empresa) => {
-                                            const isActive = empresaActiva?.id_empresa === empresa.id_empresa;
+                                            const isActive =
+                                                empresaActiva?.id_empresa ===
+                                                empresa.id_empresa;
                                             return (
                                                 <button
                                                     key={empresa.id_empresa}
@@ -146,8 +148,8 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                                     }
                                                     className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
                                                         isActive
-                                                            ? "bg-orange-50 border-l-3 border-primary-600"
-                                                            : "hover:bg-gray-50"
+                                                            ? "bg-orange-50 border-l-4 border-primary-600"
+                                                            : "hover:bg-gray-50 border-l-4 border-transparent"
                                                     }`}
                                                 >
                                                     <Building2
@@ -158,10 +160,14 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                                         }`}
                                                     />
                                                     <div className="flex-1 min-w-0">
-                                                        <p className={`text-xs font-semibold truncate ${isActive ? "text-primary-700" : "text-gray-800"}`}>
+                                                        <p
+                                                            className={`text-xs font-semibold leading-tight line-clamp-2 ${isActive ? "text-primary-700" : "text-gray-800"}`}
+                                                        >
                                                             {empresa.comercial}
                                                         </p>
-                                                        <p className={`text-[11px] ${isActive ? "text-primary-600" : "text-gray-500"}`}>
+                                                        <p
+                                                            className={`text-[11px] mt-0.5 ${isActive ? "text-primary-600" : "text-gray-500"}`}
+                                                        >
                                                             RUC: {empresa.ruc}
                                                         </p>
                                                     </div>
@@ -180,9 +186,8 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                             <Building2 className="h-5 w-5 text-primary-600" />
                             <div>
                                 <p className="text-sm font-bold text-gray-800 leading-tight">
-                                    {getNombreCorto(
-                                        empresaActiva?.comercial,
-                                    ) || "Sistema de Facturación"}
+                                    {getNombreCorto(empresaActiva?.comercial) ||
+                                        "Sistema de Facturación"}
                                 </p>
                                 {empresaActiva?.ruc && (
                                     <p className="text-[10px] text-gray-400">

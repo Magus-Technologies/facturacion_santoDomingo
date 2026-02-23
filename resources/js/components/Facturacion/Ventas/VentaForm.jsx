@@ -44,12 +44,12 @@ export default function VentaForm({ ventaId = null }) {
         calcularTotales,
     } = useVentaForm(ventaId);
 
-    // Leer parámetro 'tipo' de la URL y configurar el tipo de documento
-    // También cargar borrador de cotización si se viene de un "convertir a venta"
+    // Leer parámetros de la URL: tipo y cotizacion_id
     useEffect(() => {
         if (!isEditing) {
             const urlParams = new URLSearchParams(window.location.search);
             const tipoParam = urlParams.get("tipo");
+            const cotizacionIdParam = urlParams.get("cotizacion_id");
 
             const tipoMap = { boleta: "1", factura: "2", nota: "6" };
             const serieMap = { boleta: "B001", factura: "F001", nota: "NV01" };
@@ -57,61 +57,89 @@ export default function VentaForm({ ventaId = null }) {
             const idTido = tipoParam ? tipoMap[tipoParam] : "1";
             const serie = tipoParam ? serieMap[tipoParam] : "B001";
 
-            // Leer borrador de cotización (si existe)
-            const draftRaw = sessionStorage.getItem("cotizacion_draft");
-            let draftCliente = null;
-            let draftProductos = null;
-            let draftExtra = {};
-
-            if (draftRaw) {
-                try {
-                    const draft = JSON.parse(draftRaw);
-                    sessionStorage.removeItem("cotizacion_draft");
-                    draftCliente = draft.cliente || null;
-                    draftProductos = draft.productos || null;
-                    draftExtra = {
-                        tipo_moneda: draft.moneda || "PEN",
-                        aplicar_igv: draft.aplicar_igv ?? true,
-                    };
-                } catch (e) {
-                    console.error("Error leyendo cotizacion_draft:", e);
-                }
-            }
-
-            // Aplicar tipo de documento + datos del draft en un solo setFormData
+            // Configurar tipo de documento inicial
             if (idTido && serie) {
                 setFormData((prev) => ({
                     ...prev,
                     id_tido: idTido,
                     serie: serie,
                     _tipoFijo: !!tipoParam,
-                    ...(draftCliente && {
-                        num_doc: draftCliente.documento || "",
-                        nom_cli: draftCliente.datos || "",
-                        dir_cli: draftCliente.direccion || "",
-                    }),
-                    ...draftExtra,
+                    cotizacion_id: cotizacionIdParam || null, // Guardar ID para el guardado
                 }));
                 obtenerProximoNumero(serie);
             }
 
-            // Aplicar cliente y productos del draft
-            if (draftCliente) {
-                setCliente(draftCliente);
-            }
-            if (draftProductos && draftProductos.length > 0) {
-                setProductos(
-                    draftProductos.map((p) => ({
-                        id_producto: p.id_producto,
-                        codigo: p.codigo || "",
-                        descripcion: p.descripcion,
-                        cantidad: p.cantidad,
-                        precioVenta: p.precioVenta,
-                        precio_mostrado: p.precio_mostrado,
-                        tipo_precio: p.tipo_precio || "precio",
-                        moneda: p.moneda || "PEN",
-                    })),
-                );
+            // Si hay cotizacion_id, cargar datos desde la API
+            if (cotizacionIdParam) {
+                const fetchCotizacion = async () => {
+                    try {
+                        const token = localStorage.getItem("auth_token");
+                        const response = await fetch(
+                            `/api/cotizaciones/${cotizacionIdParam}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    Accept: "application/json",
+                                },
+                            },
+                        );
+                        const data = await response.json();
+
+                        if (data.success) {
+                            const cot = data.data;
+                            const clienteObj = cot.cliente || {};
+
+                            // Actualizar FormData con datos del cliente y moneda
+                            setFormData((prev) => ({
+                                ...prev,
+                                // Mantener id_tido y serie ya configurados
+                                id_tido: prev.id_tido,
+                                serie: prev.serie,
+                                cotizacion_id: cot.id,
+                                num_doc: clienteObj.documento || "",
+                                nom_cli: clienteObj.datos || "",
+                                dir_cli:
+                                    clienteObj.direccion || cot.direccion || "",
+                                tipo_moneda: cot.moneda || "PEN",
+                                aplicar_igv: cot.aplicar_igv ?? true,
+                            }));
+
+                            // Setear objeto cliente para el autocomplete
+                            if (clienteObj.id_cliente) {
+                                setCliente(clienteObj);
+                            }
+
+                            // Cargar productos
+                            console.log("Detalles cotización:", cot.detalles);
+                            if (cot.detalles && cot.detalles.length > 0) {
+                                setProductos(
+                                    cot.detalles.map((d) => ({
+                                        id_producto:
+                                            d.producto_id || d.id_producto, // Fix: nombre columna es producto_id
+                                        codigo:
+                                            d.codigo ||
+                                            d.producto?.codigo ||
+                                            "",
+                                        descripcion:
+                                            d.nombre ||
+                                            d.producto?.nombre ||
+                                            "",
+                                        cantidad: parseFloat(d.cantidad) || 1,
+                                        precioVenta:
+                                            parseFloat(d.precio_unitario) || 0,
+                                        precio_mostrado:
+                                            parseFloat(d.precio_unitario) || 0, // Usar precio unitario base
+                                        tipo_precio: "precio",
+                                        moneda: cot.moneda || "PEN",
+                                    })),
+                                );
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error cargando cotización:", error);
+                    }
+                };
+                fetchCotizacion();
             }
 
             if (!tipoParam) {

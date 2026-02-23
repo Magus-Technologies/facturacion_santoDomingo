@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/verify', [AuthController::class, 'verify']);
 
     // Usuarios
+    Route::get('users/roles', [\App\Http\Controllers\Api\UserController::class, 'getRoles']);
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
 
     // Dashboard

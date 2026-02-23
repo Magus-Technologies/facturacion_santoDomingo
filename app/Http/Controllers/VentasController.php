@@ -84,6 +84,7 @@ class VentasController extends Controller
                 'total' => 'required|numeric|min:0',
                 'tipo_moneda' => 'required|in:PEN,USD',
                 'afecta_stock' => 'nullable|boolean',
+                'cotizacion_id' => 'nullable|integer|exists:cotizaciones,id',
                 'empresas_ids' => 'nullable|array',
                 'empresas_ids.*' => 'integer|exists:empresas,id_empresa',
                 'productos' => 'required|array|min:1',
@@ -93,6 +94,17 @@ class VentasController extends Controller
                 'productos.*.subtotal' => 'required|numeric|min:0',
                 'productos.*.igv' => 'required|numeric|min:0',
                 'productos.*.total' => 'required|numeric|min:0',
+            ], [
+                'id_tido.required' => 'El tipo de documento es obligatorio.',
+                'cliente_documento.required_without' => 'El documento del cliente es obligatorio.',
+                'cliente_datos.required_without' => 'El nombre del cliente es obligatorio.',
+                'productos.required' => 'Debe agregar al menos un producto a la venta.',
+                'productos.min' => 'Debe agregar al menos un producto a la venta.',
+                'productos.*.id_producto.required' => 'El producto seleccionado no es válido.',
+                'productos.*.id_producto.exists' => 'El producto seleccionado no existe en la base de datos.',
+                'productos.*.cantidad.required' => 'La cantidad es obligatoria.',
+                'productos.*.cantidad.min' => 'La cantidad debe ser mayor a 0.',
+                'productos.*.precio_unitario.required' => 'El precio unitario es obligatorio.',
             ]);
 
             $user = $request->user();
@@ -143,6 +155,7 @@ class VentasController extends Controller
                     'id_usuario' => $user->id,
                     'fecha_registro' => now(),
                     'direccion' => '',
+                    'cotizacion_id' => $validated['cotizacion_id'] ?? null,
                 ]);
                 
                 $afectaStock = $validated['afecta_stock'] ?? true;
@@ -174,6 +187,13 @@ class VentasController extends Controller
                 // Guardar empresas seleccionadas en tabla pivot
                 if (!empty($validated['empresas_ids'])) {
                     $venta->empresas()->attach($validated['empresas_ids']);
+                }
+
+                // Si viene de una cotización → cambiar su estado a 'aprobada'
+                if (!empty($validated['cotizacion_id'])) {
+                    \App\Models\Cotizacion::where('id', $validated['cotizacion_id'])
+                        ->where('id_empresa', $user->id_empresa)
+                        ->update(['estado' => 'aprobada']);
                 }
 
                 return response()->json([

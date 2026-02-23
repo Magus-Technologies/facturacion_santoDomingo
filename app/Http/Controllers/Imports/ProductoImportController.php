@@ -121,7 +121,7 @@ class ProductoImportController extends Controller
                         'precio_unidad' => floatval($item['precio_unidad'] ?? 0),
                         'precio_mayor'  => floatval($item['precio_mayor'] ?? 0),
                         'precio_menor'  => floatval($item['precio_menor'] ?? 0),
-                        'precio2'       => floatval($item['precio_menor'] ?? 0),
+
                         'almacen'       => $almacenDestino,
                         'costo'         => floatval($item['costo'] ?? 0),
                         'cantidad'      => intval($item['cantidad'] ?? 0),

@@ -18,9 +18,7 @@ class Producto extends Model
         'costo',
         'precio_mayor',
         'precio_menor',
-        'precio2',
-        'precio3',
-        'precio4',
+
         'precio_unidad',
         'cantidad',
         'stock_minimo',
@@ -44,9 +42,7 @@ class Producto extends Model
         'costo' => 'decimal:2',
         'precio_mayor' => 'decimal:2',
         'precio_menor' => 'decimal:2',
-        'precio2' => 'decimal:2',
-        'precio3' => 'decimal:2',
-        'precio4' => 'decimal:2',
+
         'precio_unidad' => 'decimal:2',
         'cantidad' => 'integer',
         'stock_minimo' => 'integer',

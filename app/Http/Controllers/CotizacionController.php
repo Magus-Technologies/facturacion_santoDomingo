@@ -68,6 +68,7 @@ class CotizacionController extends Controller
             
             $validator = Validator::make($request->all(), [
                 'fecha' => 'required|date',
+                'id_empresa' => 'nullable|exists:empresas,id_empresa',
                 'id_cliente' => 'required|exists:clientes,id_cliente',
                 'direccion' => 'nullable|string|max:255',
                 'moneda' => 'required|in:PEN,USD',
@@ -98,8 +99,11 @@ class CotizacionController extends Controller
 
             DB::beginTransaction();
 
+            // Usar empresa del request o la del usuario
+            $idEmpresa = $request->id_empresa ?? $user->id_empresa;
+
             // Generar número correlativo
-            $ultimaCotizacion = Cotizacion::where('id_empresa', $user->id_empresa)
+            $ultimaCotizacion = Cotizacion::where('id_empresa', $idEmpresa)
                 ->orderBy('numero', 'desc')
                 ->first();
             $numero = $ultimaCotizacion ? $ultimaCotizacion->numero + 1 : 1;
@@ -138,7 +142,7 @@ class CotizacionController extends Controller
                 'asunto' => $request->asunto,
                 'observaciones' => $request->observaciones,
                 'estado' => 'pendiente',
-                'id_empresa' => $user->id_empresa,
+                'id_empresa' => $idEmpresa,
                 'id_usuario' => $user->id,
             ]);
 
@@ -203,6 +207,7 @@ class CotizacionController extends Controller
             
             $validator = Validator::make($request->all(), [
                 'fecha' => 'required|date',
+                'id_empresa' => 'nullable|exists:empresas,id_empresa',
                 'id_cliente' => 'required|exists:clientes,id_cliente',
                 'direccion' => 'nullable|string|max:255',
                 'moneda' => 'required|in:PEN,USD',
@@ -245,7 +250,7 @@ class CotizacionController extends Controller
             $total = $subtotalConDescuento + $igv;
 
             // Actualizar cotización
-            $cotizacion->update([
+            $datosActualizar = [
                 'fecha' => $request->fecha,
                 'id_cliente' => $request->id_cliente,
                 'direccion' => $request->direccion,
@@ -260,7 +265,13 @@ class CotizacionController extends Controller
                 'asunto' => $request->asunto,
                 'observaciones' => $request->observaciones,
                 'estado' => $request->estado ?? $cotizacion->estado,
-            ]);
+            ];
+
+            if ($request->id_empresa) {
+                $datosActualizar['id_empresa'] = $request->id_empresa;
+            }
+
+            $cotizacion->update($datosActualizar);
 
             // Eliminar detalles y cuotas anteriores
             $cotizacion->detalles()->delete();

@@ -94,8 +94,12 @@ export const useCotizaciones = () => {
     /**
      * Navega a la vista de detalle
      */
-    const handleView = (cotizacion) => {
-        window.location.href = `/cotizaciones/ver/${cotizacion.id}`;
+    const handleView = (cotizacion, setPrintCotizacionState) => {
+        if (typeof setPrintCotizacionState === 'function') {
+            setPrintCotizacionState(cotizacion);
+        } else {
+            window.open(`/reporteCOT/a4.php?id=${cotizacion.id}`, '_blank');
+        }
     };
 
     /**
@@ -109,64 +113,24 @@ export const useCotizaciones = () => {
      * Convierte una cotización en una venta electrónica (boleta/factura)
      * Lógica: RUC (11 dígitos) → Factura | DNI (8 dígitos) → Boleta
      */
-    const handleConvertir = async (cotizacion) => {
+    /**
+     * Convierte una cotización en una venta electrónica (boleta/factura)
+     * Lógica: RUC (11 dígitos) → Factura | DNI (8 dígitos) → Boleta
+     * Ahora redirige con cotizacion_id para cargar los datos en VentaForm
+     */
+    const handleConvertir = (cotizacion) => {
         try {
-            const token = localStorage.getItem('auth_token');
-
-            // Cargar detalles completos de la cotización
-            const response = await fetch(`/api/cotizaciones/${cotizacion.id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-                },
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                toast.error('Error al cargar los detalles de la cotización');
-                return;
-            }
-
-            const cot = data.data;
-
-            // Determinar tipo de comprobante según el documento del cliente
-            // La API devuelve cot.cliente como objeto anidado (relación Eloquent)
-            const clienteObj = cot.cliente || {};
-            const doc = (clienteObj.documento || '').trim();
+            // Determinar tipo según documento del cliente (si existe)
+            // Si no hay cliente o documento, por defecto boleta
+            const doc = (cotizacion.cliente?.documento || '').trim();
             const tipoVenta = doc.length === 11 ? 'factura' : 'boleta';
-
-            // Guardar borrador en sessionStorage para que VentaForm lo lea
-            sessionStorage.setItem('cotizacion_draft', JSON.stringify({
-                cotizacion_id: cot.id,
-                cotizacion_numero: cot.numero,
-                cliente: {
-                    id_cliente: clienteObj.id_cliente,
-                    datos:      clienteObj.datos      || '',
-                    documento:  clienteObj.documento  || '',
-                    direccion:  clienteObj.direccion  || cot.direccion || '',
-                },
-                productos: (cot.detalles || []).map(d => ({
-                    id_producto:    d.id_producto,
-                    codigo:         d.codigo        || d.producto?.codigo || '',
-                    descripcion:    d.nombre        || d.producto?.nombre || '',
-                    cantidad:       parseFloat(d.cantidad)      || 1,
-                    precio:         parseFloat(d.precio_unitario) || 0,
-                    precioVenta:    parseFloat(d.precio_especial ?? d.precio_unitario) || 0,
-                    precio_mostrado: parseFloat(d.precio_especial ?? d.precio_unitario) || 0,
-                    tipo_precio:    'precio',
-                    moneda:         cot.moneda || 'PEN',
-                })),
-                moneda:      cot.moneda      || 'PEN',
-                aplicar_igv: cot.aplicar_igv ?? true,
-            }));
-
-            // Navegar al formulario de nueva venta con el tipo correspondiente
-            window.location.href = `/ventas/productos?tipo=${tipoVenta}`;
+            
+            // Navegar pasando el ID de cotización
+            window.location.href = `/ventas/productos?tipo=${tipoVenta}&cotizacion_id=${cotizacion.id}`;
 
         } catch (err) {
-            toast.error('Error de conexión al servidor');
             console.error('Error handleConvertir:', err);
+            toast.error('Error al procesar la cotización');
         }
     };
 

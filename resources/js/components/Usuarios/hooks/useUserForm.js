@@ -14,6 +14,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         email: "",
         password: "",
         password_confirmation: "",
+        rol_id: "",
     });
 
     // Cargar datos del usuario si está editando
@@ -24,6 +25,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
                 email: user.email || "",
                 password: "",
                 password_confirmation: "",
+                rol_id: user.rol_id || "",
             });
         } else {
             // Resetear formulario si es nuevo
@@ -32,6 +34,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
                 email: "",
                 password: "",
                 password_confirmation: "",
+                rol_id: "",
             });
         }
         setErrors({});
@@ -47,6 +50,16 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         // Limpiar error del campo al escribir
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: null }));
+        }
+    };
+
+    /**
+     * Maneja el cambio del rol
+     */
+    const handleRoleChange = (rolId) => {
+        setFormData((prev) => ({ ...prev, rol_id: rolId }));
+        if (errors.rol_id) {
+            setErrors((prev) => ({ ...prev, rol_id: null }));
         }
     };
 
@@ -115,6 +128,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         errors,
         isEditing,
         handleChange,
+        handleRoleChange,
         handleSubmit,
     };
 };

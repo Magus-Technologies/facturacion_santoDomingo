@@ -25,7 +25,7 @@ export default function CotizacionesList() {
 
     // Generar columnas con los handlers
     const columns = getCotizacionesColumns({
-        handleView,
+        handleView: (cotizacion) => handleView(cotizacion, setPrintCotizacion),
         handleEdit,
         handleDelete,
         handleConvertir,

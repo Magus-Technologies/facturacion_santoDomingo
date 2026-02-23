@@ -16,6 +16,7 @@ import ProveedoresList from "./components/Proveedores/ProveedoresList";
 import GuiaRemision from "./components/GuiaRemision/page";
 import NotaCredito from "./components/NotaCredito/page";
 
+import "./bootstrap";
 import "../css/app.css";
 import "../css/select-custom.css";
 

@@ -49,6 +49,11 @@ class Cotizacion extends Model
         return $this->belongsTo(User::class, 'id_usuario');
     }
 
+    public function ventas()
+    {
+        return $this->hasMany(\App\Models\Venta::class, 'cotizacion_id', 'id');
+    }
+
     public function detalles()
     {
         return $this->hasMany(CotizacionDetalle::class, 'cotizacion_id');

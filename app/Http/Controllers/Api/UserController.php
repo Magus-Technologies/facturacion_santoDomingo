@@ -16,7 +16,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')
+            $users = User::select('id', 'name', 'email', 'rol_id', 'created_at', 'updated_at')
+                ->with('rol:rol_id,nombre')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -43,12 +44,14 @@ class UserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:6|confirmed',
+                'rol_id' => 'required|integer|exists:roles,rol_id',
             ]);
 
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
+                'rol_id' => $validated['rol_id'],
             ]);
 
             return response()->json([
@@ -77,7 +80,8 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $user = User::select('id', 'name', 'email', 'created_at', 'updated_at')
+            $user = User::select('id', 'name', 'email', 'rol_id', 'created_at', 'updated_at')
+                ->with('rol:rol_id,nombre')
                 ->findOrFail($id);
 
             return response()->json([
@@ -111,6 +115,7 @@ class UserController extends Controller
                     Rule::unique('users')->ignore($user->id),
                 ],
                 'password' => 'sometimes|nullable|string|min:6|confirmed',
+                'rol_id' => 'sometimes|required|integer|exists:roles,rol_id',
             ]);
 
             if (isset($validated['name'])) {
@@ -123,6 +128,10 @@ class UserController extends Controller
 
             if (isset($validated['password']) && !empty($validated['password'])) {
                 $user->password = Hash::make($validated['password']);
+            }
+
+            if (isset($validated['rol_id'])) {
+                $user->rol_id = $validated['rol_id'];
             }
 
             $user->save();
@@ -183,6 +192,27 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar usuario',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener lista de roles para el select
+     */
+    public function getRoles()
+    {
+        try {
+            $roles = \App\Models\Rol::select('rol_id', 'nombre')->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $roles
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener roles',
                 'error' => $e->getMessage()
             ], 500);
         }

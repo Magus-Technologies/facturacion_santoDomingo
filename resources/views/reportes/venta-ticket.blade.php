@@ -190,6 +190,11 @@
             <div class="client-row">
                 <span class="client-label">FECHA:</span> {{ $venta->fecha_emision->format('d/m/Y') }}
             </div>
+            @if($venta->cotizacion)
+            <div class="client-row">
+                <span class="client-label">REF. COT:</span> {{ $venta->cotizacion->serie }}-{{ str_pad($venta->cotizacion->numero, 6, '0', STR_PAD_LEFT) }}
+            </div>
+            @endif
             <div class="client-row">
                 <span class="client-label">CLIENTE:</span> {{ $venta->cliente->datos }}
             </div>

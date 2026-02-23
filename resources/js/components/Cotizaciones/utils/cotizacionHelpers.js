@@ -161,7 +161,7 @@ export const prepararDatosCotizacion = (cliente, formData, productos, user, tota
         fecha: formData.fecha,
         numero: formData.numero,
         id_cliente: cliente.id_cliente,
-        id_empresa: user.id_empresa,
+        id_empresa: formData.empresas_ids?.[0] || JSON.parse(localStorage.getItem('empresa_activa') || '{}').id_empresa || user.id_empresa,
         direccion: formData.dir_cli,
         moneda: moneda,
         tipo_cambio: formData.tipo_cambio,

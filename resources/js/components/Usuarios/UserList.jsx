@@ -141,6 +141,20 @@ export default function UserList() {
             ),
         },
         {
+            accessorKey: "rol",
+            header: "Rol",
+            cell: ({ row }) => {
+                const rol = row.original.rol;
+                return (
+                    <div className="flex items-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-accent-100 border border-primary-200">
+                            {rol?.nombre || "Sin rol"}
+                        </span>
+                    </div>
+                );
+            },
+        },
+        {
             accessorKey: "created_at",
             header: "Fecha de Registro",
             cell: ({ row }) => {

@@ -2,8 +2,9 @@ import React from "react";
 import { Modal, ModalForm, ModalField } from "../ui/modal";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Loader2, User, Mail, Calendar, Shield } from "lucide-react";
+import { Loader2, User, Mail, Calendar, Shield, Briefcase } from "lucide-react";
 import { useUserForm } from "./hooks/useUserForm";
+import SelectRol from "../ui/SelectRol";
 
 export default function UserModal({
     isOpen,
@@ -13,8 +14,15 @@ export default function UserModal({
     onSuccess,
 }) {
     const isViewOnly = mode === "view";
-    const { formData, loading, errors, isEditing, handleChange, handleSubmit } =
-        useUserForm(user, isOpen, onClose, onSuccess);
+    const {
+        formData,
+        loading,
+        errors,
+        isEditing,
+        handleChange,
+        handleRoleChange,
+        handleSubmit,
+    } = useUserForm(user, isOpen, onClose, onSuccess);
 
     const getTitle = () => {
         if (mode === "view") return "Detalles del Usuario";
@@ -75,6 +83,21 @@ export default function UserModal({
                                     Correo Electrónico
                                 </p>
                                 <p className="text-gray-900">{user?.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <Briefcase className="h-5 w-5 text-gray-400" />
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase font-semibold">
+                                    Rol en el Sistema
+                                </p>
+                                <p className="text-gray-900">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                                        {user?.rol?.nombre ||
+                                            "Sin rol asignado"}
+                                    </span>
+                                </p>
                             </div>
                         </div>
 
@@ -152,6 +175,19 @@ export default function UserModal({
                                 placeholder="correo@ejemplo.com"
                                 required
                                 icon={<Mail className="h-4 w-4" />}
+                            />
+                        </ModalField>
+
+                        {/* Rol */}
+                        <ModalField
+                            label="Rol del Usuario"
+                            required
+                            error={errors.rol_id?.[0]}
+                        >
+                            <SelectRol
+                                value={formData.rol_id}
+                                onChange={handleRoleChange}
+                                error={errors.rol_id?.[0]}
                             />
                         </ModalField>
 

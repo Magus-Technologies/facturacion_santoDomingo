@@ -50,6 +50,7 @@ class Venta extends Model
         'igv',
         'id_usuario',
         'fecha_registro',
+        'cotizacion_id',
     ];
 
     protected $casts = [
@@ -72,6 +73,11 @@ class Venta extends Model
     ];
 
     // Relaciones
+    public function cotizacion(): BelongsTo
+    {
+        return $this->belongsTo(Cotizacion::class, 'cotizacion_id', 'id');
+    }
+
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');

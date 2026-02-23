@@ -244,14 +244,22 @@
                     <td style="width: 35%; font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->direccion ?: 'N/A' }}</td>
                 </tr>
                 <tr>
+                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">SEÑOR(ES):</td>
+                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->datos }}</td>
+                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">MONEDA:</td>
+                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->tipo_moneda == 'PEN' ? 'Soles' : 'Dólares' }}</td>
+                </tr>
+                @if($venta->cotizacion)
+                <tr>
+                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">REF. COTIZACIÓN:</td>
+                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;" colspan="3">COT-{{ str_pad($venta->cotizacion->numero, 6, '0', STR_PAD_LEFT) }}</td>
+                </tr>
+                @endif
+                <tr>
                     <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">DNI/RUC:</td>
                     <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->documento }}</td>
                     <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">FORMA DE PAGO:</td>
                     <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->id_tipo_pago == 1 ? 'Contado' : 'Crédito' }}</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">CLIENTE:</td>
-                    <td colspan="3" style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->datos }}</td>
                 </tr>
             </table>
         </div>

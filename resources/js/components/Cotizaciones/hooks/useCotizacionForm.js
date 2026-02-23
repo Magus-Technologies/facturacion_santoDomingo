@@ -36,6 +36,9 @@ export const useCotizacionForm = (cotizacionId = null) => {
         moneda: 'PEN',
     });
 
+    // Pre-cargar empresa activa del localStorage
+    const empresaActiva = JSON.parse(localStorage.getItem('empresa_activa') || '{}');
+
     const [formData, setFormData] = useState({
         id_tido: '1', // 1=Boleta, 2=Factura
         tipo_pago: '1', // 1=Contado, 2=Crédito
@@ -53,7 +56,8 @@ export const useCotizacionForm = (cotizacionId = null) => {
         asunto: '',
         descuento_activado: false,
         descuento_general: '0',
-        cuotas: []
+        cuotas: [],
+        empresas_ids: empresaActiva.id_empresa ? [empresaActiva.id_empresa] : [],
     });
 
     useEffect(() => {
@@ -83,17 +87,10 @@ export const useCotizacionForm = (cotizacionId = null) => {
                 
                 if (cotizacion.cliente) {
                     setCliente(cotizacion.cliente);
-                    setFormData(prev => ({
-                        ...prev,
-                        num_doc: cotizacion.cliente.documento || '',
-                        nom_cli: cotizacion.cliente.datos || '',
-                        datos: cotizacion.cliente.datos || '',
-                        dir_cli: cotizacion.direccion || ''
-                    }));
                 }
                 
-                if (cotizacion.productos) {
-                    setProductos(cotizacion.productos.map(detalle => ({
+                if (cotizacion.detalles && cotizacion.detalles.length > 0) {
+                    setProductos(cotizacion.detalles.map(detalle => ({
                         id_producto: detalle.producto_id,
                         codigo: detalle.codigo || '',
                         descripcion: detalle.nombre || '',
@@ -101,22 +98,32 @@ export const useCotizacionForm = (cotizacionId = null) => {
                         precioVenta: detalle.precio_unitario,
                         precioEspecial: detalle.precio_especial || '',
                         descuento: detalle.descuento || '',
-                        stock: detalle.stock || 0,
+                        stock: detalle.producto?.cantidad || 0,
                         moneda: cotizacion.moneda,
                     })));
                 }
                 
+                // Formatear fecha ISO a YYYY-MM-DD
+                const fechaFormateada = cotizacion.fecha
+                    ? cotizacion.fecha.split('T')[0]
+                    : new Date().toISOString().split('T')[0];
+                
                 setFormData(prev => ({
                     ...prev,
-                    fecha: cotizacion.fecha,
+                    empresas_ids: cotizacion.id_empresa ? [cotizacion.id_empresa] : [],
+                    num_doc: cotizacion.cliente?.documento || '',
+                    nom_cli: cotizacion.cliente?.datos || '',
+                    datos: cotizacion.cliente?.datos || '',
+                    dir_cli: cotizacion.direccion || '',
+                    fecha: fechaFormateada,
                     numero: cotizacion.numero,
                     serie: cotizacion.serie || 'B001',
-                    tipo_moneda: cotizacion.moneda === 'USD' ? '2' : '1',
-                    moneda: cotizacion.moneda === 'USD' ? '2' : '1',
+                    tipo_moneda: cotizacion.moneda || 'PEN',
+                    moneda: cotizacion.moneda || 'PEN',
                     tipo_cambio: cotizacion.tipo_cambio || '1.000',
                     aplicar_igv: cotizacion.aplicar_igv ? '1' : '0',
                     asunto: cotizacion.asunto || '',
-                    descuento_activado: cotizacion.descuento > 0,
+                    descuento_activado: parseFloat(cotizacion.descuento || 0) > 0,
                     descuento_general: cotizacion.descuento || '0',
                     cuotas: cotizacion.cuotas || []
                 }));

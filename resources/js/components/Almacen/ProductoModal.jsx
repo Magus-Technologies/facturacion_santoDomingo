@@ -25,6 +25,7 @@ export default function ProductoModal({
     const [categorias, setCategorias] = useState([]);
     const [unidades, setUnidades] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
+    const [isAutoCode, setIsAutoCode] = useState(true);
 
     const [formData, setFormData] = useState({
         nombre: "",
@@ -58,12 +59,20 @@ export default function ProductoModal({
                 nombre: producto.nombre || "",
                 codigo: producto.codigo || "",
                 detalle: producto.descripcion || "",
-                categoria_id: producto.categoria_id || "",
+                categoria_id: producto.categoria_id
+                    ? producto.categoria_id.toString()
+                    : "",
                 precio: producto.precio || "0.00",
                 costo: producto.costo || "0.00",
                 cantidad: producto.cantidad || "0",
-                unidad_id: producto.unidad_id || "",
-                almacen: producto.almacen || almacen || "1",
+                unidad_id: producto.unidad_id
+                    ? producto.unidad_id.toString()
+                    : "",
+                almacen: producto.almacen
+                    ? producto.almacen.toString()
+                    : almacen
+                      ? almacen.toString()
+                      : "1",
                 moneda: producto.moneda || "PEN",
                 codsunat: producto.codsunat || "51121703",
                 iscbp: producto.iscbp || "0",
@@ -78,6 +87,8 @@ export default function ProductoModal({
             } else {
                 setImagePreview(null);
             }
+
+            setIsAutoCode(!producto.codigo);
         } else {
             setFormData({
                 nombre: "",
@@ -98,6 +109,7 @@ export default function ProductoModal({
                 imagen: null,
             });
             setImagePreview(null);
+            setIsAutoCode(true); // Por defecto nuevo producto tiene código auto
         }
         setErrors({});
     }, [producto, isOpen, almacen]);
@@ -175,7 +187,7 @@ export default function ProductoModal({
 
             // Agregar todos los campos
             formDataToSend.append("nombre", formData.nombre);
-            formDataToSend.append("codigo", formData.codigo);
+            formDataToSend.append("codigo", isAutoCode ? "" : formData.codigo);
             formDataToSend.append("descripcion", formData.detalle);
             formDataToSend.append("precio", formData.precio);
             formDataToSend.append("costo", formData.costo);
@@ -292,17 +304,42 @@ export default function ProductoModal({
                         <div className="grid grid-cols-2 gap-4">
                             <ModalField
                                 label="Cod. Producto:"
-                                required
-                                error={errors.codigo?.[0]}
+                                required={!isAutoCode}
+                                error={!isAutoCode ? errors.codigo?.[0] : null}
                             >
-                                <Input
-                                    variant="outlined"
-                                    name="codigo"
-                                    value={formData.codigo}
-                                    onChange={handleChange}
-                                    placeholder="Código"
-                                    required
-                                />
+                                <div className="space-y-2">
+                                    <Input
+                                        variant="outlined"
+                                        name="codigo"
+                                        value={
+                                            isAutoCode ? "" : formData.codigo
+                                        }
+                                        onChange={handleChange}
+                                        placeholder={
+                                            isAutoCode
+                                                ? "Generado automáticamente"
+                                                : "Código"
+                                        }
+                                        required={!isAutoCode}
+                                        disabled={isAutoCode}
+                                        className={
+                                            isAutoCode
+                                                ? "bg-gray-100 text-gray-500 italic"
+                                                : ""
+                                        }
+                                    />
+                                    <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 cursor-pointer pl-1">
+                                        <input
+                                            type="checkbox"
+                                            checked={isAutoCode}
+                                            onChange={(e) =>
+                                                setIsAutoCode(e.target.checked)
+                                            }
+                                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 h-3.5 w-3.5"
+                                        />
+                                        Automático
+                                    </label>
+                                </div>
                             </ModalField>
 
                             <ModalField
@@ -382,7 +419,12 @@ export default function ProductoModal({
                                 error={errors.categoria_id?.[0]}
                             >
                                 <Select
-                                    value={formData.categoria_id}
+                                    key={`cat-${categorias.length}-${formData.categoria_id}`}
+                                    value={
+                                        formData.categoria_id
+                                            ? String(formData.categoria_id)
+                                            : undefined
+                                    }
                                     onValueChange={(value) =>
                                         setFormData((prev) => ({
                                             ...prev,
@@ -412,7 +454,12 @@ export default function ProductoModal({
                                 error={errors.unidad_id?.[0]}
                             >
                                 <Select
-                                    value={formData.unidad_id}
+                                    key={`uni-${unidades.length}-${formData.unidad_id}`}
+                                    value={
+                                        formData.unidad_id
+                                            ? String(formData.unidad_id)
+                                            : undefined
+                                    }
                                     onValueChange={(value) =>
                                         setFormData((prev) => ({
                                             ...prev,
@@ -555,44 +602,7 @@ export default function ProductoModal({
                             </ModalField>
                         </div>
 
-                        {/* Fila 3: Cod Sunat al lado de Afecta ICBP */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <ModalField
-                                label="Cod. SUNAT"
-                                error={errors.codsunat?.[0]}
-                            >
-                                <Input
-                                    variant="outlined"
-                                    name="codsunat"
-                                    value={formData.codsunat}
-                                    onChange={handleChange}
-                                    placeholder="51121703"
-                                />
-                            </ModalField>
-
-                            <ModalField
-                                label="Afecto ICBP"
-                                error={errors.iscbp?.[0]}
-                            >
-                                <Select
-                                    value={formData.iscbp}
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            iscbp: value,
-                                        }))
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccione" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="0">No</SelectItem>
-                                        <SelectItem value="1">Sí</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </ModalField>
-                        </div>
+                        {/* Fila 3 eliminada (Cod Sunat y Afecto ICBP) */}
 
                         {/* Precios Adicionales - Debajo en la columna 2 */}
                         <div className="pt-2">

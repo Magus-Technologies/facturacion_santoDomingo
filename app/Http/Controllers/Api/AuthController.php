@@ -45,6 +45,23 @@ class AuthController extends Controller
         // Generar token con Sanctum (válido por 8 horas)
         $token = $user->createToken('auth_token', ['*'], now()->addHours(8))->plainTextToken;
 
+        // Cargar datos de empresa(s)
+        $empresas = [];
+        if ($user->rol_id == 1) {
+            // Admin: todas las empresas
+            $empresas = \App\Models\Empresa::where('estado', '1')
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->get();
+        } elseif ($user->id_empresa) {
+            // Usuario normal: solo su empresa
+            $empresa = \App\Models\Empresa::where('id_empresa', $user->id_empresa)
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->first();
+            if ($empresa) {
+                $empresas = [$empresa];
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Login exitoso',
@@ -53,7 +70,10 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-            ]
+                'rol_id' => $user->rol_id,
+                'id_empresa' => $user->id_empresa,
+            ],
+            'empresas' => $empresas,
         ]);
     }
 
@@ -83,13 +103,30 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        $empresas = [];
+        if ($user->rol_id == 1) {
+            $empresas = \App\Models\Empresa::where('estado', '1')
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->get();
+        } elseif ($user->id_empresa) {
+            $empresa = \App\Models\Empresa::where('id_empresa', $user->id_empresa)
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->first();
+            if ($empresa) {
+                $empresas = [$empresa];
+            }
+        }
+
         return response()->json([
             'success' => true,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-            ]
+                'rol_id' => $user->rol_id,
+                'id_empresa' => $user->id_empresa,
+            ],
+            'empresas' => $empresas,
         ]);
     }
 
@@ -124,6 +161,8 @@ class AuthController extends Controller
                 'id' => $request->user()->id,
                 'name' => $request->user()->name,
                 'email' => $request->user()->email,
+                'rol_id' => $request->user()->rol_id,
+                'id_empresa' => $request->user()->id_empresa,
             ]
         ]);
     }

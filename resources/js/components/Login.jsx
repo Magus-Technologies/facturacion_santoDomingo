@@ -97,6 +97,17 @@ export default function Login({ onLoginSuccess }) {
                 localStorage.setItem("auth_token", data.token);
                 localStorage.setItem("user", JSON.stringify(data.user));
 
+                // Guardar empresas disponibles
+                if (data.empresas) {
+                    localStorage.setItem("empresas", JSON.stringify(data.empresas));
+                }
+
+                // Establecer empresa activa (la primera disponible o la del usuario)
+                if (!localStorage.getItem("empresa_activa") && data.empresas?.length > 0) {
+                    const empresaDefault = data.empresas.find(e => e.id_empresa === data.user.id_empresa) || data.empresas[0];
+                    localStorage.setItem("empresa_activa", JSON.stringify(empresaDefault));
+                }
+
                 // Redirigir al dashboard
                 window.location.href = "/dashboard";
 

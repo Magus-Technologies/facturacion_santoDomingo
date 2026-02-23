@@ -113,27 +113,19 @@ export default function ProductosList() {
 
     const handleModalSuccess = (productoActualizado) => {
         if (productoActualizado) {
-            // Formatear el producto para que coincida con la estructura de la vista
-            const productoFormateado = {
-                ...productoActualizado,
-                categoria: productoActualizado.categoria?.nombre || null,
-                unidad: productoActualizado.unidad?.nombre || null,
-                unidad_codigo: productoActualizado.unidad?.codigo || null,
-            };
-
             // Si es actualización, actualizar el producto en el estado
             if (selectedProducto) {
                 setProductos((prevProductos) =>
                     prevProductos.map((p) =>
-                        p.id_producto === productoFormateado.id_producto
-                            ? productoFormateado
+                        p.id_producto === productoActualizado.id_producto
+                            ? productoActualizado
                             : p,
                     ),
                 );
             } else {
                 // Si es nuevo producto, agregarlo al inicio
                 setProductos((prevProductos) => [
-                    productoFormateado,
+                    productoActualizado,
                     ...prevProductos,
                 ]);
             }
@@ -181,22 +173,34 @@ export default function ProductosList() {
                     <p className="font-medium text-gray-900">
                         {row.getValue("nombre")}
                     </p>
-                    {row.original.categoria && (
+                    {row.original.categoria?.nombre && (
                         <p className="text-xs text-gray-500">
-                            {row.original.categoria}
+                            {row.original.categoria.nombre}
                         </p>
                     )}
                 </div>
             ),
         },
         {
-            accessorKey: "unidad",
+            id: "unidad",
             header: "Unidad",
             cell: ({ row }) => {
-                const unidad = row.getValue("unidad");
+                const unidad = row.original.unidad;
                 return (
                     <span className="text-sm text-gray-600">
-                        {unidad || "N/A"}
+                        {unidad?.nombre || "N/A"}
+                    </span>
+                );
+            },
+        },
+        {
+            id: "categoria",
+            header: "Categoría",
+            cell: ({ row }) => {
+                const categoria = row.original.categoria;
+                return (
+                    <span className="text-sm text-gray-600">
+                        {categoria?.nombre || "N/A"}
                     </span>
                 );
             },
@@ -225,12 +229,10 @@ export default function ProductosList() {
             },
         },
         {
-            accessorKey: "precio_unidad",
+            accessorKey: "precio",
             header: "Precio",
             cell: ({ row }) => {
-                const precio = parseFloat(
-                    row.getValue("precio_unidad") || row.original.precio || 0,
-                );
+                const precio = parseFloat(row.original.precio || 0);
                 const moneda = row.original.moneda === "USD" ? "$" : "S/";
                 return (
                     <span className="font-semibold text-gray-900">
@@ -413,9 +415,9 @@ export default function ProductosList() {
 
                                 {/* Categoría - altura fija */}
                                 <div className="h-5 mb-3">
-                                    {producto.categoria && (
+                                    {producto.categoria?.nombre && (
                                         <p className="text-xs text-gray-500 truncate">
-                                            {producto.categoria}
+                                            {producto.categoria.nombre}
                                         </p>
                                     )}
                                 </div>
@@ -423,7 +425,7 @@ export default function ProductosList() {
                                 {/* Detalles */}
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md font-medium">
-                                        {producto.unidad || "N/A"}
+                                        {producto.unidad?.nombre || "N/A"}
                                     </span>
                                     <span
                                         className={`text-sm font-semibold px-2 py-1 rounded-md ${
@@ -449,9 +451,7 @@ export default function ProductosList() {
                                 <div className="text-xl font-bold text-primary-600 mb-4">
                                     {producto.moneda === "USD" ? "$" : "S/"}{" "}
                                     {parseFloat(
-                                        producto.precio_unidad ||
-                                            producto.precio ||
-                                            0,
+                                        producto.precio || 0,
                                     ).toFixed(2)}
                                 </div>
 

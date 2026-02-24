@@ -50,6 +50,7 @@ class VentasController extends Controller
                         'tipo_moneda' => $venta->tipo_moneda,
                         'id_tipo_pago' => $venta->id_tipo_pago,
                         'metodo_pago' => $pago ? $pago->id_tipo_pago : null,
+                        'voucher' => $pago && $pago->voucher ? $pago->voucher : null,
                         'estado' => $venta->estado,
                         'estado_sunat' => $venta->estado_sunat,
                         'afecta_stock' => $venta->afecta_stock,

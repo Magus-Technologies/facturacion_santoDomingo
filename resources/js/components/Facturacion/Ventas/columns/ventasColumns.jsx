@@ -16,6 +16,7 @@ import {
     Smartphone,
     PackageMinus,
     PackageCheck,
+    Image,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -251,6 +252,28 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                         <Icon className="h-3.5 w-3.5" />
                         {info.label}
                     </span>
+                );
+            },
+        },
+        {
+            accessorKey: "voucher",
+            header: "Voucher",
+            cell: ({ row }) => {
+                const voucher = row.getValue("voucher");
+                if (!voucher) return <span className="text-xs text-gray-400">—</span>;
+                return (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`/storage/${voucher}`, "_blank");
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-800 transition-colors"
+                        title="Ver voucher"
+                    >
+                        <Image className="h-3.5 w-3.5" />
+                        Ver
+                    </button>
                 );
             },
         },

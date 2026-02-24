@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Reportes;
 
+use App\Helpers\QrHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Venta;
 use Mpdf\Mpdf;
@@ -22,8 +23,13 @@ class VentaPdfController extends Controller
                 "productosVentas.producto",
             ])->findOrFail($id);
 
+            // Generar QR
+            $qrString = QrHelper::buildQrStringVenta($venta);
+            $qrBase64 = QrHelper::generarQrBase64($qrString);
+            $consultaUrl = config('app.consulta_url');
+
             // Renderizar vista Blade a HTML
-            $html = view("reportes.venta-a4", compact("venta"))->render();
+            $html = view("reportes.venta-a4", compact("venta", "qrBase64", "consultaUrl"))->render();
 
             // Crear PDF con mPDF
             $mpdf = new Mpdf([

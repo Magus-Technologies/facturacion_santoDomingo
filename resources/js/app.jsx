@@ -15,7 +15,10 @@ import Compras from "./components/Compras/Compras";
 import CompraForm from "./components/Compras/CompraForm";
 import ProveedoresList from "./components/Proveedores/ProveedoresList";
 import GuiaRemision from "./components/GuiaRemision/page";
+import GuiaRemisionForm from "./components/GuiaRemision/GuiaRemisionForm";
 import NotaCredito from "./components/NotaCredito/page";
+import NotaCreditoForm from "./components/NotaCredito/NotaCreditoForm";
+import ConsultaComprobante from "./components/Consulta/ConsultaComprobante";
 
 import "./bootstrap";
 import "../css/app.css";
@@ -39,7 +42,10 @@ const components = {
     CompraForm,
     ProveedoresList,
     GuiaRemision,
+    GuiaRemisionForm,
     NotaCredito,
+    NotaCreditoForm,
+    ConsultaComprobante,
 };
 
 // Monta cada elemento con atributo data-react-component

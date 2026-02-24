@@ -315,10 +315,30 @@
             </tr>
         </table>
 
+        <!-- QR Section -->
+        @if(!empty($qrBase64))
+        <div style="margin-top: 15px; text-align: left;">
+            <img src="{{ $qrBase64 }}" style="width: 130px; height: 130px;" alt="QR">
+        </div>
+        @endif
+
         <!-- Footer -->
-        <div class="footer">
-            <p>¡Gracias por su preferencia!</p>
-            <p style="margin-top: 4px;">{{ $venta->empresa->razon_social ?? '' }} | RUC: {{ $venta->empresa->ruc ?? '' }}</p>
+        <div style="clear: both; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd;">
+            <p style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center;">
+                <strong>{{ $venta->empresa->propaganda ?? 'DIOS NUNCA SE CANSARA DE CUIDARTE Y BENDECIRTE DE PELEAR TUS BATALLAS Y DE CUMPLIR TUS SUEÑOS' }}</strong>
+            </p>
+            <p style="font-size: 7pt; color: #555; text-align: center;">
+                USUARIO: {{ $venta->usuario->name ?? 'Sistema' }} {{ now()->format('d/m/Y H:i') }}
+            </p>
+            <p style="font-size: 7pt; color: #555; text-align: center; margin-top: 2px;">
+                Representación impresa de la {{ strtoupper($venta->tipoDocumento->nombre ?? 'FACTURA ELECTRÓNICA') }}.
+                Autorizado mediante resolución N° 054-006-0001490 /SUNAT. Consulte su comprobante en www.smartclic.pe
+            </p>
+            @if(!empty($consultaUrl))
+            <p style="font-size: 7pt; color: #555; text-align: center; margin-top: 2px;">
+                Para consultar su comprobante visite: <strong>{{ $consultaUrl }}</strong>
+            </p>
+            @endif
         </div>
     </div>
 </body>

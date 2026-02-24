@@ -1,0 +1,1194 @@
+import { useState, useEffect } from "react";
+import MainLayout from "../Layout/MainLayout";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../ui/select";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+    CardFooter,
+} from "../ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../ui/table";
+import { Badge } from "../ui/badge";
+import {
+    Loader2,
+    ArrowLeft,
+    Plus,
+    Trash2,
+    Truck,
+    MapPin,
+    User,
+    Package,
+    Building2,
+    Search,
+    CheckCircle,
+    FileText,
+} from "lucide-react";
+import { toast } from "@/lib/sweetalert";
+import ClienteAutocomplete from "../shared/ClienteAutocomplete";
+import { consultarDNI, consultarRUC } from "@/services/apisPeru";
+
+const getAuthHeaders = () => {
+    const token = localStorage.getItem("auth_token");
+    return {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+    };
+};
+
+export default function GuiaRemisionForm() {
+    const [submitting, setSubmitting] = useState(false);
+    const [motivos, setMotivos] = useState([]);
+    const [empresa, setEmpresa] = useState(null);
+
+    // Búsqueda de venta
+    const [serie, setSerie] = useState("");
+    const [numero, setNumero] = useState("");
+    const [buscando, setBuscando] = useState(false);
+    const [venta, setVenta] = useState(null);
+    const [errorBusqueda, setErrorBusqueda] = useState(null);
+
+    // Destinatario (via ClienteAutocomplete)
+    const [clienteNombre, setClienteNombre] = useState("");
+    const [destinatario, setDestinatario] = useState({
+        tipo_doc: "6",
+        documento: "",
+        nombre: "",
+        direccion: "",
+        ubigeo: "",
+    });
+
+    const [form, setForm] = useState({
+        motivo_traslado: "01",
+        descripcion_motivo: "",
+        mod_transporte: "01",
+        fecha_traslado: new Date().toISOString().split("T")[0],
+        peso_total: "",
+        und_peso_total: "KGM",
+        transportista_tipo_doc: "6",
+        transportista_documento: "",
+        transportista_nombre: "",
+        transportista_nro_mtc: "",
+        conductor_tipo_doc: "1",
+        conductor_documento: "",
+        conductor_nombres: "",
+        conductor_apellidos: "",
+        conductor_licencia: "",
+        vehiculo_placa: "",
+        observaciones: "",
+    });
+
+    const [detalles, setDetalles] = useState([
+        { codigo: "", descripcion: "", cantidad: "1", unidad: "NIU" },
+    ]);
+
+    const [consultandoTransportista, setConsultandoTransportista] =
+        useState(false);
+    const [consultandoConductor, setConsultandoConductor] = useState(false);
+
+    const handleConsultarTransportista = async () => {
+        const ruc = form.transportista_documento.trim();
+        if (ruc.length !== 11) {
+            toast.warning("Ingrese un RUC válido (11 dígitos)");
+            return;
+        }
+        setConsultandoTransportista(true);
+        try {
+            const result = await consultarRUC(ruc);
+            if (result.success) {
+                setForm((prev) => ({
+                    ...prev,
+                    transportista_nombre: result.data.razonSocial || "",
+                }));
+                toast.success("RUC encontrado");
+            } else {
+                toast.error(result.message || "RUC no encontrado");
+            }
+        } catch {
+            toast.error("Error al consultar RUC");
+        }
+        setConsultandoTransportista(false);
+    };
+
+    const handleConsultarConductor = async () => {
+        const dni = form.conductor_documento.trim();
+        if (dni.length !== 8) {
+            toast.warning("Ingrese un DNI válido (8 dígitos)");
+            return;
+        }
+        setConsultandoConductor(true);
+        try {
+            const result = await consultarDNI(dni);
+            if (result.success) {
+                setForm((prev) => ({
+                    ...prev,
+                    conductor_nombres: result.data.nombres || "",
+                    conductor_apellidos:
+                        `${result.data.apellidoPaterno || ""} ${result.data.apellidoMaterno || ""}`.trim(),
+                }));
+                toast.success("DNI encontrado");
+            } else {
+                toast.error(result.message || "DNI no encontrado");
+            }
+        } catch {
+            toast.error("Error al consultar DNI");
+        }
+        setConsultandoConductor(false);
+    };
+
+    useEffect(() => {
+        fetchMotivos();
+        fetchEmpresa();
+    }, []);
+
+    const fetchMotivos = async () => {
+        try {
+            const res = await fetch("/api/guias-remision/motivos", {
+                headers: getAuthHeaders(),
+            });
+            const data = await res.json();
+            setMotivos(data || []);
+        } catch (err) {
+            console.error("Error cargando motivos:", err);
+        }
+    };
+
+    const fetchEmpresa = async () => {
+        try {
+            const res = await fetch("/api/guias-remision/empresa", {
+                headers: getAuthHeaders(),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setEmpresa(data.data);
+            }
+        } catch (err) {
+            console.error("Error cargando empresa:", err);
+        }
+    };
+
+    const handleBuscarVenta = async () => {
+        if (!serie.trim() || !numero.trim()) return;
+        setBuscando(true);
+        setErrorBusqueda(null);
+
+        try {
+            const params = new URLSearchParams({
+                serie: serie.trim(),
+                numero: numero.trim(),
+            });
+            const res = await fetch(
+                `/api/notas-credito/buscar-venta?${params}`,
+                { headers: getAuthHeaders() }
+            );
+            const data = await res.json();
+
+            if (data.success && data.venta) {
+                setVenta(data.venta);
+                const cliente = data.venta.cliente;
+                if (cliente) {
+                    const doc = cliente.documento || "";
+                    setDestinatario({
+                        tipo_doc: doc.length === 11 ? "6" : "1",
+                        documento: doc,
+                        nombre: cliente.datos || "",
+                        direccion: cliente.direccion || "",
+                        ubigeo: cliente.ubigeo || "",
+                    });
+                    setClienteNombre(cliente.datos || "");
+                }
+                // Cargar productos de la venta como detalles
+                const prods = data.venta.productos_ventas || [];
+                if (prods.length > 0) {
+                    setDetalles(
+                        prods.map((p) => ({
+                            id_producto: p.id_producto || null,
+                            codigo:
+                                p.producto?.codigo || p.codigo_producto || "",
+                            descripcion:
+                                p.producto?.nombre || p.descripcion || "Producto",
+                            cantidad: String(p.cantidad || 1),
+                            unidad: p.unidad_medida || "NIU",
+                        }))
+                    );
+                }
+            } else {
+                setErrorBusqueda(data.message || "Venta no encontrada");
+            }
+        } catch {
+            setErrorBusqueda("Error de conexión");
+        }
+        setBuscando(false);
+    };
+
+    const handleKeyDownVenta = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleBuscarVenta();
+        }
+    };
+
+    const handleClienteSelect = (cliente) => {
+        const doc = cliente.documento || "";
+        setDestinatario({
+            tipo_doc: doc.length === 11 ? "6" : "1",
+            documento: doc,
+            nombre: cliente.datos || "",
+            direccion: cliente.direccion || "",
+            ubigeo: cliente.ubigeo || "",
+        });
+        setClienteNombre(cliente.datos || "");
+    };
+
+    const handleChange = (field, value) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleDetalleChange = (index, field, value) => {
+        setDetalles((prev) => {
+            const copy = [...prev];
+            copy[index] = { ...copy[index], [field]: value };
+            return copy;
+        });
+    };
+
+    const addDetalle = () => {
+        setDetalles((prev) => [
+            ...prev,
+            { codigo: "", descripcion: "", cantidad: "1", unidad: "NIU" },
+        ]);
+    };
+
+    const removeDetalle = (index) => {
+        if (detalles.length <= 1) return;
+        setDetalles((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const limpiarVenta = () => {
+        setVenta(null);
+        setSerie("");
+        setNumero("");
+        setErrorBusqueda(null);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!destinatario.documento || !destinatario.nombre) {
+            toast.error("Seleccione un destinatario");
+            return;
+        }
+        if (!form.peso_total || parseFloat(form.peso_total) <= 0) {
+            toast.error("Ingrese el peso total");
+            return;
+        }
+
+        const detallesValidos = detalles.filter(
+            (d) => d.descripcion && parseFloat(d.cantidad) > 0
+        );
+        if (detallesValidos.length === 0) {
+            toast.error("Agregue al menos un item");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const res = await fetch("/api/guias-remision", {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    ...form,
+                    id_venta: venta?.id_venta || null,
+                    destinatario_tipo_doc: destinatario.tipo_doc,
+                    destinatario_documento: destinatario.documento,
+                    destinatario_nombre: destinatario.nombre,
+                    destinatario_direccion: destinatario.direccion,
+                    destinatario_ubigeo: destinatario.ubigeo,
+                    peso_total: parseFloat(form.peso_total),
+                    detalles: detallesValidos.map((d) => ({
+                        ...d,
+                        cantidad: parseFloat(d.cantidad),
+                    })),
+                }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success("Guía de remisión creada exitosamente");
+                window.location.href = "/guia-remision";
+            } else {
+                toast.error(data.message || "Error al crear la guía");
+            }
+        } catch {
+            toast.error("Error de conexión");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const tipoDocVenta = venta?.tipo_documento?.abreviatura || "DOC";
+
+    return (
+        <MainLayout>
+            {/* Header */}
+            <div className="mb-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <nav className="text-sm text-gray-500 mb-2">
+                            <a
+                                href="/guia-remision"
+                                className="hover:text-primary-600"
+                            >
+                                Guías de Remisión
+                            </a>
+                            <span className="mx-2">/</span>
+                            <span className="text-gray-900">Nueva</span>
+                        </nav>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            Nueva Guía de Remisión
+                        </h1>
+                    </div>
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={submitting}
+                            className="gap-2"
+                        >
+                            {submitting && (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            )}
+                            Crear Guía
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() =>
+                                (window.location.href = "/guia-remision")
+                            }
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Regresar
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                {/* Columna principal */}
+                <div className="lg:col-span-8 space-y-4">
+                    {/* Cargar desde Venta (factura o boleta) */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Search className="h-4 w-4 text-primary-600" />
+                                Cargar desde Venta
+                            </CardTitle>
+                            <CardDescription>
+                                Busca una factura o boleta para autocompletar
+                                destinatario e items (opcional)
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-end gap-3">
+                                <div className="w-32">
+                                    <Label className="text-xs text-gray-500 mb-1 block">
+                                        Serie
+                                    </Label>
+                                    <Input
+                                        value={serie}
+                                        onChange={(e) =>
+                                            setSerie(
+                                                e.target.value
+                                                    .toUpperCase()
+                                                    .slice(0, 4)
+                                            )
+                                        }
+                                        onKeyDown={handleKeyDownVenta}
+                                        placeholder="F001"
+                                        maxLength={4}
+                                    />
+                                </div>
+                                <div className="w-32">
+                                    <Label className="text-xs text-gray-500 mb-1 block">
+                                        Número
+                                    </Label>
+                                    <Input
+                                        value={numero}
+                                        onChange={(e) =>
+                                            setNumero(
+                                                e.target.value.replace(
+                                                    /\D/g,
+                                                    ""
+                                                )
+                                            )
+                                        }
+                                        onKeyDown={handleKeyDownVenta}
+                                        placeholder="1"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    onClick={handleBuscarVenta}
+                                    disabled={
+                                        buscando ||
+                                        !serie.trim() ||
+                                        !numero.trim()
+                                    }
+                                    className="gap-2"
+                                >
+                                    {buscando ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Search className="h-4 w-4" />
+                                    )}
+                                    Buscar
+                                </Button>
+                                {venta && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={limpiarVenta}
+                                        className="text-gray-400 hover:text-red-500"
+                                    >
+                                        Limpiar
+                                    </Button>
+                                )}
+                            </div>
+                            {errorBusqueda && (
+                                <p className="text-sm text-red-500 mt-2">
+                                    {errorBusqueda}
+                                </p>
+                            )}
+                            {venta && (
+                                <div className="mt-3 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                                    <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                                    <span className="text-sm text-green-700">
+                                        {tipoDocVenta} {venta.serie}-
+                                        {venta.numero} cargada — Cliente:{" "}
+                                        {venta.cliente?.datos}
+                                    </span>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Destinatario con ClienteAutocomplete */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <User className="h-4 w-4 text-blue-600" />
+                                Destinatario
+                            </CardTitle>
+                            <CardDescription>
+                                Busca por nombre o ingresa RUC/DNI y presiona el
+                                botón para consultar
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <ClienteAutocomplete
+                                onClienteSelect={handleClienteSelect}
+                                value={clienteNombre}
+                                placeholder="Buscar por nombre, RUC o DNI..."
+                            />
+
+                            {destinatario.documento && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 rounded-lg p-3">
+                                    <div>
+                                        <p className="text-xs text-gray-500">
+                                            Tipo Doc.
+                                        </p>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {destinatario.tipo_doc === "6"
+                                                ? "RUC"
+                                                : "DNI"}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">
+                                            N° Documento
+                                        </p>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {destinatario.documento}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">
+                                            Razón Social / Nombre
+                                        </p>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {destinatario.nombre}
+                                        </p>
+                                    </div>
+                                    {destinatario.direccion && (
+                                        <div className="md:col-span-3">
+                                            <p className="text-xs text-gray-500">
+                                                Dirección (punto de llegada)
+                                            </p>
+                                            <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                                                <MapPin className="h-3 w-3 text-red-500" />
+                                                {destinatario.direccion}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Punto de partida (solo lectura, desde empresa) */}
+                    {empresa && (
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-sm">
+                                    <Building2 className="h-4 w-4 text-orange-600" />
+                                    Punto de Partida
+                                    <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                    >
+                                        Empresa
+                                    </Badge>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="bg-gray-50 rounded-lg p-3">
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {empresa.razon_social}
+                                    </p>
+                                    <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                                        <MapPin className="h-3 w-3 text-orange-500" />
+                                        {empresa.direccion || "Sin dirección registrada"}
+                                    </p>
+                                    {empresa.departamento && (
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            {empresa.distrito},{" "}
+                                            {empresa.provincia},{" "}
+                                            {empresa.departamento}
+                                        </p>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Transporte */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Truck className="h-4 w-4 text-purple-600" />
+                                {form.mod_transporte === "01"
+                                    ? "Transportista (Público)"
+                                    : "Conductor y Vehículo (Privado)"}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {form.mod_transporte === "01" ? (
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            RUC Transportista
+                                        </Label>
+                                        <div className="flex gap-1">
+                                            <Input
+                                                value={
+                                                    form.transportista_documento
+                                                }
+                                                onChange={(e) =>
+                                                    handleChange(
+                                                        "transportista_documento",
+                                                        e.target.value.replace(
+                                                            /\D/g,
+                                                            ""
+                                                        )
+                                                    )
+                                                }
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleConsultarTransportista();
+                                                    }
+                                                }}
+                                                placeholder="20xxxxxxxxx"
+                                                maxLength={11}
+                                            />
+                                            <Button
+                                                type="button"
+                                                size="icon"
+                                                onClick={
+                                                    handleConsultarTransportista
+                                                }
+                                                disabled={
+                                                    consultandoTransportista ||
+                                                    form.transportista_documento
+                                                        .trim().length !== 11
+                                                }
+                                                className="shrink-0"
+                                            >
+                                                {consultandoTransportista ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Search className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            Razón Social
+                                        </Label>
+                                        <Input
+                                            value={form.transportista_nombre}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "transportista_nombre",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Transportes SAC"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            N° MTC
+                                        </Label>
+                                        <Input
+                                            value={form.transportista_nro_mtc}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "transportista_nro_mtc",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Habilitación MTC"
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            DNI Conductor
+                                        </Label>
+                                        <div className="flex gap-1">
+                                            <Input
+                                                value={
+                                                    form.conductor_documento
+                                                }
+                                                onChange={(e) =>
+                                                    handleChange(
+                                                        "conductor_documento",
+                                                        e.target.value.replace(
+                                                            /\D/g,
+                                                            ""
+                                                        )
+                                                    )
+                                                }
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleConsultarConductor();
+                                                    }
+                                                }}
+                                                placeholder="xxxxxxxx"
+                                                maxLength={8}
+                                            />
+                                            <Button
+                                                type="button"
+                                                size="icon"
+                                                onClick={
+                                                    handleConsultarConductor
+                                                }
+                                                disabled={
+                                                    consultandoConductor ||
+                                                    form.conductor_documento
+                                                        .trim().length !== 8
+                                                }
+                                                className="shrink-0"
+                                            >
+                                                {consultandoConductor ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Search className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            Nombres
+                                        </Label>
+                                        <Input
+                                            value={form.conductor_nombres}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "conductor_nombres",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            Apellidos
+                                        </Label>
+                                        <Input
+                                            value={form.conductor_apellidos}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "conductor_apellidos",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            N° Licencia
+                                        </Label>
+                                        <Input
+                                            value={form.conductor_licencia}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "conductor_licencia",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            Placa Vehículo
+                                        </Label>
+                                        <Input
+                                            value={form.vehiculo_placa}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    "vehiculo_placa",
+                                                    e.target.value.toUpperCase()
+                                                )
+                                            }
+                                            placeholder="ABC-123"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Items a trasladar */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <Package className="h-4 w-4 text-amber-600" />
+                                    Items a Trasladar
+                                    <Badge
+                                        variant="outline"
+                                        className="ml-2"
+                                    >
+                                        {detalles.length}{" "}
+                                        {detalles.length === 1
+                                            ? "item"
+                                            : "items"}
+                                    </Badge>
+                                </CardTitle>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={addDetalle}
+                                    className="gap-1"
+                                >
+                                    <Plus className="h-3 w-3" />
+                                    Agregar
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[40px]">
+                                            #
+                                        </TableHead>
+                                        <TableHead className="w-[90px]">
+                                            Código
+                                        </TableHead>
+                                        <TableHead>Descripción</TableHead>
+                                        <TableHead className="w-[90px]">
+                                            Cant.
+                                        </TableHead>
+                                        <TableHead className="w-[80px]">
+                                            Und.
+                                        </TableHead>
+                                        <TableHead className="w-[40px]"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {detalles.map((det, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell className="text-gray-400 font-mono text-xs">
+                                                {String(i + 1).padStart(
+                                                    2,
+                                                    "0"
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input
+                                                    value={det.codigo}
+                                                    onChange={(e) =>
+                                                        handleDetalleChange(
+                                                            i,
+                                                            "codigo",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="P001"
+                                                    className="h-8 text-xs"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input
+                                                    value={det.descripcion}
+                                                    onChange={(e) =>
+                                                        handleDetalleChange(
+                                                            i,
+                                                            "descripcion",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Descripción del producto"
+                                                    className="h-8 text-xs"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input
+                                                    type="number"
+                                                    step="0.001"
+                                                    min="0.001"
+                                                    value={det.cantidad}
+                                                    onChange={(e) =>
+                                                        handleDetalleChange(
+                                                            i,
+                                                            "cantidad",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="h-8 text-xs"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Select
+                                                    value={det.unidad}
+                                                    onValueChange={(v) =>
+                                                        handleDetalleChange(
+                                                            i,
+                                                            "unidad",
+                                                            v
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="NIU">
+                                                            UND
+                                                        </SelectItem>
+                                                        <SelectItem value="KGM">
+                                                            KG
+                                                        </SelectItem>
+                                                        <SelectItem value="LTR">
+                                                            LT
+                                                        </SelectItem>
+                                                        <SelectItem value="MTR">
+                                                            MT
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </TableCell>
+                                            <TableCell>
+                                                {detalles.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            removeDetalle(i)
+                                                        }
+                                                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Sidebar derecho */}
+                <div className="lg:col-span-4">
+                    <Card className="sticky top-4">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <FileText className="h-4 w-4 text-primary-600" />
+                                Datos del Traslado
+                            </CardTitle>
+                            <CardDescription>
+                                Configure motivo, transporte y peso
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label className="text-xs text-gray-500 mb-1.5 block">
+                                    Motivo de Traslado{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Select
+                                    value={form.motivo_traslado}
+                                    onValueChange={(v) =>
+                                        handleChange("motivo_traslado", v)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccione motivo" />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-60">
+                                        {motivos.map((m) => (
+                                            <SelectItem
+                                                key={m.codigo}
+                                                value={m.codigo}
+                                            >
+                                                {m.codigo} - {m.descripcion}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label className="text-xs text-gray-500 mb-1.5 block">
+                                    Modalidad de Transporte{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Select
+                                    value={form.mod_transporte}
+                                    onValueChange={(v) =>
+                                        handleChange("mod_transporte", v)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="01">
+                                            Transporte público
+                                        </SelectItem>
+                                        <SelectItem value="02">
+                                            Transporte privado
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label className="text-xs text-gray-500 mb-1.5 block">
+                                    Fecha de Traslado{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    type="date"
+                                    value={form.fecha_traslado}
+                                    onChange={(e) =>
+                                        handleChange(
+                                            "fecha_traslado",
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <Label className="text-xs text-gray-500 mb-1.5 block">
+                                        Peso Total{" "}
+                                        <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        step="0.001"
+                                        min="0.001"
+                                        value={form.peso_total}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                "peso_total",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="0.000"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs text-gray-500 mb-1.5 block">
+                                        Unidad
+                                    </Label>
+                                    <Select
+                                        value={form.und_peso_total}
+                                        onValueChange={(v) =>
+                                            handleChange("und_peso_total", v)
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="KGM">
+                                                KG
+                                            </SelectItem>
+                                            <SelectItem value="TNE">
+                                                TN
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label className="text-xs text-gray-500 mb-1.5 block">
+                                    Descripción motivo{" "}
+                                    <span className="text-gray-400 font-normal">
+                                        (opcional)
+                                    </span>
+                                </Label>
+                                <Input
+                                    value={form.descripcion_motivo}
+                                    onChange={(e) =>
+                                        handleChange(
+                                            "descripcion_motivo",
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Detalle adicional"
+                                />
+                            </div>
+
+                            <div>
+                                <Label className="text-xs text-gray-500 mb-1.5 block">
+                                    Observaciones{" "}
+                                    <span className="text-gray-400 font-normal">
+                                        (opcional)
+                                    </span>
+                                </Label>
+                                <textarea
+                                    value={form.observaciones}
+                                    onChange={(e) =>
+                                        handleChange(
+                                            "observaciones",
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Notas adicionales"
+                                    rows={2}
+                                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                />
+                            </div>
+
+                            {/* Resumen */}
+                            <div className="border-t border-gray-200 pt-4 space-y-2">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Resumen
+                                </h4>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">
+                                        Items
+                                    </span>
+                                    <span className="font-medium text-gray-900">
+                                        {
+                                            detalles.filter(
+                                                (d) => d.descripcion
+                                            ).length
+                                        }
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Peso</span>
+                                    <span className="font-medium text-gray-900">
+                                        {form.peso_total || "0"}{" "}
+                                        {form.und_peso_total}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">
+                                        Transporte
+                                    </span>
+                                    <span className="font-medium text-gray-900">
+                                        {form.mod_transporte === "01"
+                                            ? "Público"
+                                            : "Privado"}
+                                    </span>
+                                </div>
+                                {destinatario.nombre && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">
+                                            Destinatario
+                                        </span>
+                                        <span
+                                            className="font-medium text-gray-900 text-right max-w-[160px] truncate"
+                                            title={destinatario.nombre}
+                                        >
+                                            {destinatario.nombre}
+                                        </span>
+                                    </div>
+                                )}
+                                {venta && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">
+                                            Venta ref.
+                                        </span>
+                                        <span className="font-mono font-medium text-gray-900">
+                                            {venta.serie}-{venta.numero}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={submitting}
+                                className="w-full gap-2"
+                            >
+                                {submitting && (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                )}
+                                Crear Guía de Remisión
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            </div>
+        </MainLayout>
+    );
+}

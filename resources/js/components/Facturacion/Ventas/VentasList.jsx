@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "../../Layout/MainLayout";
 import VentasActionButtons from "./VentasActionButtons";
 import { useVentas } from "./hooks/useVentas";
+import { useSunat } from "./hooks/useSunat";
 import { getVentasColumns } from "./columns/ventasColumns";
 import DetallesVentaModal from "./DetallesVentaModal";
 
@@ -18,6 +19,8 @@ export default function VentasList() {
         handlePrint,
         handleNuevaVenta,
     } = useVentas();
+
+    const { handleGenerarYEnviar, sunatLoading } = useSunat(fetchVentas);
 
     const [filtroTipo, setFiltroTipo] = useState(null);
     const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
@@ -58,12 +61,36 @@ export default function VentasList() {
         setIsModalOpen(true);
     };
 
+    const handleVerXml = async (venta) => {
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/comprobantes/xml/${venta.id_venta}`, {
+                headers: { Authorization: `Bearer ${token}`, Accept: "application/xml" },
+            });
+            const xmlText = await res.text();
+            const blob = new Blob([xmlText], { type: "application/xml" });
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank");
+        } catch {
+            const { toast } = await import("@/lib/sweetalert");
+            toast.error("Error al obtener el XML");
+        }
+    };
+
+    const handleGenerarGuia = (venta) => {
+        // Placeholder - se implementará cuando se haga el módulo de Guía de Remisión
+        window.location.href = `/guia-remision?venta_id=${venta.id_venta}`;
+    };
+
     // Generar columnas con los handlers
     const columns = getVentasColumns(
         {
             handleView,
             handlePrint,
             handleAnular,
+            handleGenerarYEnviar,
+            handleVerXml,
+            handleGenerarGuia,
         },
         filtroTipo === "6",
     ); // Ocultar columna Sunat si es nota de venta

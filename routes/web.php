@@ -104,14 +104,22 @@ Route::get('/proveedores', function () {
 })->name('proveedores');
 
 // Guía de Remisión
-Route::get('/guia-remision', function () { 
-    return view('guiaRemision.guia-remision'); 
+Route::get('/guia-remision', function () {
+    return view('guiaRemision.guia-remision');
 })->name('guia-remision');
 
+Route::get('/guia-remision/add', function () {
+    return view('guiaRemision.guia-remision-add');
+})->name('guia-remision.add');
+
 // Nota de Crédito
-Route::get('/nota-credito', function () { 
-    return view('notaCredito.nota-credito'); 
+Route::get('/nota-credito', function () {
+    return view('notaCredito.nota-credito');
 })->name('nota-credito');
+
+Route::get('/nota-credito/add', function () {
+    return view('notaCredito.nota-credito-add');
+})->name('nota-credito.add');
 
 // --- REPORTES Y EXPORTACIONES ---
 // Estas rutas cargan sesión automáticamente por estar en web.php.
@@ -147,3 +155,12 @@ Route::get('compras/descargar-excel', [\App\Http\Controllers\Exports\CompraExpor
 Route::get('compras/descargar-pdf', [\App\Http\Controllers\Exports\CompraExportController::class, 'exportPdf']);
 Route::get('proveedores/descargar-excel', [\App\Http\Controllers\Exports\ProveedorExportController::class, 'exportExcel']);
 Route::get('proveedores/descargar-pdf', [\App\Http\Controllers\Exports\ProveedorExportController::class, 'exportPdf']);
+
+// PDFs de guías de remisión
+Route::get('/reporteGR/a4.php', function (Request $request) {
+    return app(\App\Http\Controllers\Reportes\GuiaRemisionPdfController::class)->generarA4($request->get('id'));
+});
+
+// Página pública de consulta de comprobante
+Route::get('/consulta', [\App\Http\Controllers\ConsultaComprobanteController::class, 'index']);
+Route::post('/consulta/buscar', [\App\Http\Controllers\ConsultaComprobanteController::class, 'consultar']);

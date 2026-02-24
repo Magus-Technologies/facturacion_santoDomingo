@@ -97,6 +97,10 @@ export const getSunatBadge = (estadoSunat) => {
             color: 'bg-yellow-100 text-yellow-800',
             text: 'Pendiente',
         },
+        '2': {
+            color: 'bg-red-100 text-red-800',
+            text: 'Anulado (NC)',
+        },
     };
 
     return badges[estadoSunat] || badges['0'];

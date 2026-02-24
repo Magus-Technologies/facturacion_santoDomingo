@@ -108,8 +108,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('compras/{id}', [\App\Http\Controllers\CompraController::class, 'destroy'])->middleware('permission:compras.delete');
     Route::post('compras/{id}/anular', [\App\Http\Controllers\CompraController::class, 'anular'])->middleware('permission:compras.delete');
 
-    // Aquí agregarás más rutas protegidas
-    // Route::apiResource('/conductores', ConductorController::class);
+    // Comprobantes Electrónicos (SUNAT)
+    Route::post('comprobantes/generar-xml/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'generarXml']);
+    Route::post('comprobantes/enviar/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'enviar']);
+    Route::get('comprobantes/xml/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'xml']);
+    Route::get('comprobantes/estado/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'estado']);
+
+    // Notas de Crédito
+    Route::get('notas-credito/motivos', [\App\Http\Controllers\NotaCreditoController::class, 'motivos']);
+    Route::get('notas-credito/buscar-venta', [\App\Http\Controllers\NotaCreditoController::class, 'buscarVenta']);
+    Route::get('notas-credito', [\App\Http\Controllers\NotaCreditoController::class, 'index']);
+    Route::post('notas-credito', [\App\Http\Controllers\NotaCreditoController::class, 'store']);
+    Route::get('notas-credito/{id}', [\App\Http\Controllers\NotaCreditoController::class, 'show']);
+    Route::post('notas-credito/{id}/enviar', [\App\Http\Controllers\NotaCreditoController::class, 'enviar']);
+    Route::get('notas-credito/{id}/xml', [\App\Http\Controllers\NotaCreditoController::class, 'xml']);
+
+    // Notas de Débito
+    Route::get('notas-debito/motivos', [\App\Http\Controllers\NotaDebitoController::class, 'motivos']);
+    Route::get('notas-debito', [\App\Http\Controllers\NotaDebitoController::class, 'index']);
+    Route::post('notas-debito', [\App\Http\Controllers\NotaDebitoController::class, 'store']);
+    Route::get('notas-debito/{id}', [\App\Http\Controllers\NotaDebitoController::class, 'show']);
+    Route::post('notas-debito/{id}/enviar', [\App\Http\Controllers\NotaDebitoController::class, 'enviar']);
+
+    // Guías de Remisión
+    Route::get('guias-remision/motivos', [\App\Http\Controllers\GuiaRemisionController::class, 'motivos']);
+    Route::get('guias-remision/empresa', [\App\Http\Controllers\GuiaRemisionController::class, 'empresaActiva']);
+    Route::get('guias-remision/ubigeos', [\App\Http\Controllers\GuiaRemisionController::class, 'ubigeos']);
+    Route::get('guias-remision', [\App\Http\Controllers\GuiaRemisionController::class, 'index']);
+    Route::post('guias-remision', [\App\Http\Controllers\GuiaRemisionController::class, 'store']);
+    Route::get('guias-remision/{id}', [\App\Http\Controllers\GuiaRemisionController::class, 'show']);
+    Route::post('guias-remision/{id}/enviar', [\App\Http\Controllers\GuiaRemisionController::class, 'enviar']);
+    Route::get('guias-remision/{id}/ticket', [\App\Http\Controllers\GuiaRemisionController::class, 'consultarTicket']);
+    Route::get('guias-remision/{id}/xml', [\App\Http\Controllers\GuiaRemisionController::class, 'xml']);
 });
 
 Route::get('/departamentos' ,[UbicacionesControlller::class,'obtenerDepartamentos']);

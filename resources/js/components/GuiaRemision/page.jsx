@@ -3,145 +3,138 @@ import {
     Loader2,
     Plus,
     FileSpreadsheet,
-    FileBadge,
-    CheckCircle,
-    Clock,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import MainLayout from "../Layout/MainLayout";
+import { useGuiasRemision } from "./hooks/useGuiasRemision";
+import { getGuiaRemisionColumns } from "./columns/guiaRemisionColumns";
 
 export default function GuiaRemisionPage() {
-    const [loading] = useState(false);
+    const {
+        guias,
+        loading,
+        error,
+        fetchGuias,
+        enviarGuia,
+        consultarTicket,
+    } = useGuiasRemision();
 
-    // Datos de ejemplo (Mock Data)
-    const data = [
-        {
-            id: 1,
-            serie: "T001",
-            numero: 1,
-            fecha: "2026-02-05",
-            destinatario: "CLIENTE EJEMPLO SAC",
-            documento: "20123456789",
-            estado: "Enviado",
-            punto_partida: "Av. Las Gardenias 123",
-            punto_llegada: "Jr. Los Olivos 456",
-        },
-    ];
+    const [enviandoId, setEnviandoId] = useState(null);
 
-    const columns = [
-        {
-            accessorKey: "serie",
-            header: "Documento",
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    <FileBadge className="h-4 w-4 text-primary-600" />
-                    <span className="font-mono text-sm font-medium">
-                        GR {row.original.serie}-
-                        {String(row.original.numero).padStart(6, "0")}
-                    </span>
-                </div>
-            ),
+    const handleVerXml = async (guia) => {
+        if (!guia.nombre_xml) return;
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/guias-remision/${guia.id}/xml`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/xml",
+                },
+            });
+
+            if (!res.ok) {
+                const { toast } = await import("@/lib/sweetalert");
+                toast.error("XML no encontrado");
+                return;
+            }
+
+            const xmlText = await res.text();
+            const blob = new Blob([xmlText], { type: "application/xml" });
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank");
+        } catch {
+            const { toast } = await import("@/lib/sweetalert");
+            toast.error("Error al obtener el XML");
+        }
+    };
+
+    const handleEnviar = async (guia) => {
+        setEnviandoId(guia.id);
+        await enviarGuia(guia.id);
+        setEnviandoId(null);
+    };
+
+    const handleConsultarTicket = async (guia) => {
+        setEnviandoId(guia.id);
+        await consultarTicket(guia.id);
+        setEnviandoId(null);
+    };
+
+    const handleVerPdf = (guia) => {
+        window.open(`/reporteGR/a4.php?id=${guia.id}`, "_blank");
+    };
+
+    const handlers = {
+        handleView: (guia) => {
+            // TODO: Implementar modal de detalle
         },
-        {
-            accessorKey: "fecha",
-            header: "Fecha",
-            cell: ({ row }) => (
-                <span className="text-sm text-gray-600">
-                    {row.original.fecha}
-                </span>
-            ),
-        },
-        {
-            accessorKey: "destinatario",
-            header: "Destinatario",
-            cell: ({ row }) => (
-                <div>
-                    <p className="font-medium text-sm text-gray-900">
-                        {row.original.destinatario}
-                    </p>
-                    <p className="text-[10px] text-gray-500">
-                        {row.original.documento}
-                    </p>
-                </div>
-            ),
-        },
-        {
-            accessorKey: "puntos",
-            header: "Ruta",
-            cell: ({ row }) => (
-                <div className="max-w-[200px] truncate">
-                    <p className="text-[10px] text-gray-500 italic">
-                        Desde: {row.original.punto_partida}
-                    </p>
-                    <p className="text-[10px] text-gray-500 italic">
-                        Hacia: {row.original.punto_llegada}
-                    </p>
-                </div>
-            ),
-        },
-        {
-            accessorKey: "estado",
-            header: "Estado",
-            cell: ({ row }) => (
-                <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        row.original.estado === "Enviado"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-amber-100 text-amber-700"
-                    }`}
-                >
-                    {row.original.estado === "Enviado" ? (
-                        <CheckCircle className="h-3 w-3" />
-                    ) : (
-                        <Clock className="h-3 w-3" />
-                    )}
-                    {row.original.estado}
-                </span>
-            ),
-        },
-    ];
+        handleVerPdf,
+        handleEnviar,
+        handleVerXml,
+        handleConsultarTicket,
+    };
+
+    const columns = getGuiaRemisionColumns(handlers, enviandoId);
 
     return (
         <MainLayout>
             <div className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-                            Guías de Remisión
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                            Gestiona y emite tus guías de remisión electrónicas
-                            de remitente.
-                        </p>
-                    </div>
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">
+                        Guías de Remisión
+                    </h2>
+                    <p className="text-muted-foreground">
+                        Gestiona y emite tus guías de remisión electrónicas
+                    </p>
+                </div>
+
+                <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" className="gap-2">
-                            <FileSpreadsheet className="h-4 w-4 text-green-600" />
-                            Excel
-                        </Button>
-                        <Button className="gap-2 bg-primary-600 hover:bg-primary-700">
-                            <Plus className="h-4 w-4" />
-                            Nueva Guía
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                        >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            <span className="hidden sm:inline">Exportar</span>
                         </Button>
                     </div>
+                    <Button
+                        onClick={() =>
+                            (window.location.href = "/guia-remision/add")
+                        }
+                        className="gap-2 ml-auto"
+                    >
+                        <Plus className="h-5 w-5" />
+                        Nueva Guía
+                    </Button>
                 </div>
 
                 {loading ? (
                     <div className="flex items-center justify-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
                     </div>
-                ) : (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <DataTable
-                            columns={columns}
-                            data={data}
-                            searchable={true}
-                            searchPlaceholder="Buscar por destinatario o documento..."
-                            pagination={true}
-                            pageSize={10}
-                        />
+                ) : error ? (
+                    <div className="text-center text-red-600 p-8">
+                        <p>{error}</p>
+                        <Button
+                            onClick={fetchGuias}
+                            variant="outline"
+                            className="mt-4"
+                        >
+                            Reintentar
+                        </Button>
                     </div>
+                ) : (
+                    <DataTable
+                        columns={columns}
+                        data={guias}
+                        searchable={true}
+                        searchPlaceholder="Buscar por destinatario, documento..."
+                        pagination={true}
+                        pageSize={10}
+                    />
                 )}
             </div>
         </MainLayout>

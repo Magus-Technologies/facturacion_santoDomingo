@@ -24,7 +24,6 @@ class VentasController extends Controller
 
             $ventas = Venta::with(['cliente', 'tipoDocumento'])
                 ->where('id_empresa', $user->id_empresa)
-                ->where('estado', '!=', '2') // Excluir anuladas
                 ->orderBy('fecha_emision', 'desc')
                 ->orderBy('numero', 'desc')
                 ->get()

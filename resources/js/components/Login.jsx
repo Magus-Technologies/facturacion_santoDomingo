@@ -73,6 +73,7 @@ export default function Login({ onLoginSuccess }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        e.stopPropagation(); // Prevenir propagación del evento
         setLoading(true);
         setError("");
 
@@ -122,11 +123,11 @@ export default function Login({ onLoginSuccess }) {
                     onLoginSuccess(data);
                 }
             } else {
-                setError(data.message || "Error al iniciar sesión");
+                setError(data.message || "Credenciales incorrectas");
             }
         } catch (err) {
-            setError("Error de conexión. Intente nuevamente.");
             console.error("Login error:", err);
+            setError("Error de conexión. Intente nuevamente.");
         } finally {
             setLoading(false);
         }

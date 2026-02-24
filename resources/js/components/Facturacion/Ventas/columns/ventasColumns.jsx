@@ -7,6 +7,9 @@ import {
     XCircle,
     Clock,
     MoreHorizontal,
+    FileCode,
+    Send,
+    Truck,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "../../../ui/button";
@@ -266,6 +269,48 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                             >
                                 <Printer className="h-4 w-4 text-gray-600" />
                             </Button>
+                            {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleGenerarYEnviar(venta);
+                                    }}
+                                    title="Generar XML y enviar a SUNAT"
+                                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                >
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            )}
+                            {!ocultarSunat && venta.estado_sunat === "1" && handlers.handleVerXml && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleVerXml(venta);
+                                    }}
+                                    title="Ver XML"
+                                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                >
+                                    <FileCode className="h-4 w-4" />
+                                </Button>
+                            )}
+                            {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleGenerarGuia(venta);
+                                    }}
+                                    title="Generar Guía de Remisión"
+                                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                >
+                                    <Truck className="h-4 w-4" />
+                                </Button>
+                            )}
                             {!estaAnulada && (
                                 <Button
                                     variant="ghost"
@@ -317,6 +362,42 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                         <Printer className="mr-2 h-4 w-4 text-gray-600" />
                                         Imprimir PDF
                                     </DropdownMenuItem>
+                                    {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleGenerarYEnviar(venta);
+                                            }}
+                                            className="text-orange-600 focus:bg-orange-50 focus:text-orange-700"
+                                        >
+                                            <Send className="mr-2 h-4 w-4" />
+                                            Enviar a SUNAT
+                                        </DropdownMenuItem>
+                                    )}
+                                    {!ocultarSunat && venta.estado_sunat === "1" && handlers.handleVerXml && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleVerXml(venta);
+                                            }}
+                                            className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700"
+                                        >
+                                            <FileCode className="mr-2 h-4 w-4" />
+                                            Ver XML
+                                        </DropdownMenuItem>
+                                    )}
+                                    {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleGenerarGuia(venta);
+                                            }}
+                                            className="text-purple-600 focus:bg-purple-50 focus:text-purple-700"
+                                        >
+                                            <Truck className="mr-2 h-4 w-4" />
+                                            Guía de Remisión
+                                        </DropdownMenuItem>
+                                    )}
                                     {!estaAnulada && (
                                         <DropdownMenuItem
                                             onClick={(e) => {

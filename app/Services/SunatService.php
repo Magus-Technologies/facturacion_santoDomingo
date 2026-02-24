@@ -1,0 +1,944 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Empresa;
+use App\Models\Venta;
+use App\Models\NotaCredito;
+use App\Models\NotaDebito;
+use App\Models\GuiaRemision;
+use Greenter\Model\Client\Client;
+use Greenter\Model\Company\Address;
+use Greenter\Model\Company\Company;
+use Greenter\Model\Sale\Invoice;
+use Greenter\Model\Sale\Legend;
+use Greenter\Model\Sale\Note;
+use Greenter\Model\Sale\SaleDetail;
+use Greenter\Model\Sale\FormaPagos\FormaPagoContado;
+use Greenter\Model\Sale\FormaPagos\FormaPagoCredito;
+use Greenter\Model\Sale\Cuota;
+use Greenter\Model\Despatch\Despatch;
+use Greenter\Model\Despatch\DespatchDetail;
+use Greenter\Model\Despatch\Direction;
+use Greenter\Model\Despatch\Driver;
+use Greenter\Model\Despatch\Shipment;
+use Greenter\Model\Despatch\Transportist;
+use Greenter\Model\Despatch\Vehicle;
+use Greenter\See;
+use Greenter\Ws\Services\SunatEndpoints;
+use Greenter\Sunat\GRE\Api\AuthApi;
+use Greenter\Sunat\GRE\Api\CpeApi;
+use Greenter\Sunat\GRE\Configuration;
+use Greenter\Sunat\GRE\Model\CpeDocument;
+use Greenter\Sunat\GRE\Model\CpeDocumentArchivo;
+use Illuminate\Support\Facades\Storage;
+
+class SunatService
+{
+    public function getSee(Empresa $empresa, string $tipoDoc = 'facturacion'): See
+    {
+        $see = new See();
+        $endpoint = $this->getEndpoint($empresa, $tipoDoc);
+        $see->setService($endpoint);
+
+        $certificate = $this->getCertificate($empresa);
+        $see->setCertificate($certificate);
+
+        if ($empresa->modo === 'beta') {
+            $beta = config('sunat.beta');
+            $see->setClaveSOL($beta['ruc'], $beta['usuario_sol'], $beta['clave_sol']);
+        } else {
+            $see->setClaveSOL($empresa->ruc, $empresa->user_sol, $empresa->clave_sol);
+        }
+
+        return $see;
+    }
+
+    public function getEndpoint(Empresa $empresa, string $tipoDoc = 'facturacion'): string
+    {
+        $modo = $empresa->modo === 'beta' ? 'beta' : 'production';
+        return config("sunat.endpoints.{$tipoDoc}.{$modo}");
+    }
+
+    public function getCertificate(Empresa $empresa): string
+    {
+        $certPath = storage_path("app/sunat/certificados/{$empresa->ruc}-cert.pem");
+
+        if (file_exists($certPath)) {
+            return file_get_contents($certPath);
+        }
+
+        $globalCert = config('sunat.certificado_prueba');
+        if (file_exists($globalCert)) {
+            return file_get_contents($globalCert);
+        }
+
+        throw new \RuntimeException('No se encontró certificado PEM para la empresa ' . $empresa->ruc);
+    }
+
+    public function buildCompany(Empresa $empresa): Company
+    {
+        $company = new Company();
+        $company->setRuc($empresa->modo === 'beta' ? config('sunat.beta.ruc') : $empresa->ruc)
+            ->setNombreComercial($empresa->razon_social)
+            ->setRazonSocial($empresa->razon_social)
+            ->setAddress((new Address())
+                ->setUbigueo($empresa->ubigeo ?? '150101')
+                ->setDistrito($empresa->distrito ?? '-')
+                ->setProvincia($empresa->provincia ?? '-')
+                ->setDepartamento($empresa->departamento ?? '-')
+                ->setUrbanizacion('-')
+                ->setCodLocal('0000')
+                ->setDireccion($empresa->direccion ?? '-'));
+
+        return $company;
+    }
+
+    public function buildClient(object $cliente): Client
+    {
+        $documento = $cliente->documento ?? '';
+        $tipoDoc = '0';
+        $numDoc = '00000000';
+
+        if (strlen($documento) === 11) {
+            $tipoDoc = '6';
+            $numDoc = $documento;
+        } elseif (strlen($documento) === 8) {
+            $tipoDoc = '1';
+            $numDoc = $documento;
+        }
+
+        $client = new Client();
+        $client->setTipoDoc($tipoDoc)
+            ->setNumDoc($numDoc)
+            ->setRznSocial($cliente->datos ?? 'cliente');
+
+        if (!empty($cliente->direccion)) {
+            $client->setAddress((new Address())->setDireccion($cliente->direccion));
+        }
+
+        return $client;
+    }
+
+    public function generarXml(Venta $venta): array
+    {
+        $venta->load(['cliente', 'empresa', 'productosVentas', 'tipoDocumento', 'cuotas']);
+        $empresa = $venta->empresa;
+        $cliente = $venta->cliente;
+
+        $codSunat = $venta->tipoDocumento->cod_sunat;
+        $igvRate = (float) ($empresa->igv ?? config('sunat.igv'));
+
+        $company = $this->buildCompany($empresa);
+        $client = $this->buildClient($cliente);
+
+        $total = (float) $venta->total;
+        $apliIgv = (float) $venta->igv > 0;
+
+        $montoGravada = $apliIgv ? round($total / ($igvRate + 1), 2) : 0;
+        $igvMonto = $apliIgv ? round($total / ($igvRate + 1) * $igvRate, 2) : 0;
+        $impVenta = round($total, 2);
+
+        $invoice = new Invoice();
+        $invoice->setUblVersion('2.1')
+            ->setTipoOperacion('0101')
+            ->setTipoDoc($codSunat)
+            ->setSerie($venta->serie)
+            ->setCorrelativo((string) $venta->numero)
+            ->setFechaEmision($venta->fecha_emision ?? new \DateTime())
+            ->setTipoMoneda($venta->tipo_moneda ?? 'PEN')
+            ->setCompany($company)
+            ->setClient($client);
+
+        if ($apliIgv) {
+            $invoice->setMtoOperGravadas($montoGravada)
+                ->setMtoIGV($igvMonto)
+                ->setTotalImpuestos($igvMonto)
+                ->setValorVenta($montoGravada)
+                ->setMtoImpVenta($impVenta)
+                ->setSubTotal($impVenta);
+        } else {
+            $invoice->setMtoOperExoneradas($impVenta)
+                ->setMtoIGV(0)
+                ->setTotalImpuestos(0)
+                ->setValorVenta($impVenta)
+                ->setMtoImpVenta($impVenta)
+                ->setSubTotal($impVenta);
+        }
+
+        $tipoPago = $venta->id_tipo_pago ?? '1';
+        $invoice->setFormaPago($tipoPago == '1' ? new FormaPagoContado() : new FormaPagoCredito($impVenta));
+
+        if ($venta->fecha_vencimiento) {
+            $invoice->setFecVencimiento($venta->fecha_vencimiento);
+        }
+
+        if ($tipoPago != '1' && $venta->cuotas && $venta->cuotas->count() > 0) {
+            $cuotasGreenter = [];
+            foreach ($venta->cuotas as $cuota) {
+                $cuotasGreenter[] = (new Cuota())
+                    ->setMonto((float) $cuota->monto)
+                    ->setFechaPago(\DateTime::createFromFormat('Y-m-d', $cuota->fecha));
+            }
+            $invoice->setCuotas($cuotasGreenter);
+        }
+
+        $details = $this->buildSaleDetails($venta, $igvRate, $apliIgv);
+        $invoice->setDetails($details);
+
+        $invoice->setLegends([
+            (new Legend())
+                ->setCode('1000')
+                ->setValue('SON ' . strtoupper($this->numberToWords($total)) . ' SOLES')
+        ]);
+
+        $see = $this->getSee($empresa);
+        $xmlContent = $see->getXmlSigned($invoice);
+        $nombreArchivo = $invoice->getName();
+
+        $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+
+        $hash = $this->getHashFromXml($xmlContent);
+
+        $ruc = $this->getRuc($empresa);
+
+        return [
+            'success' => true,
+            'nombre_archivo' => $nombreArchivo,
+            'hash' => $hash,
+            'xml_url' => "sunat/xml/{$ruc}/{$nombreArchivo}.xml",
+        ];
+    }
+
+    public function enviarComprobante(Venta $venta): array
+    {
+        $venta->load(['empresa', 'tipoDocumento']);
+        $empresa = $venta->empresa;
+        $ruc = $this->getRuc($empresa);
+
+        if ($venta->xml_url) {
+            $xmlPath = storage_path("app/{$venta->xml_url}");
+        } else {
+            $codSunat = $venta->tipoDocumento->cod_sunat ?? '01';
+            $posibleNombre = "{$ruc}-{$codSunat}-{$venta->serie}-{$venta->numero}";
+            $xmlPath = storage_path("app/sunat/xml/{$ruc}/{$posibleNombre}.xml");
+        }
+
+        if (!file_exists($xmlPath)) {
+            return ['success' => false, 'message' => 'XML no encontrado. Genere el XML primero.'];
+        }
+
+        $xmlContent = file_get_contents($xmlPath);
+        $nombreArchivo = pathinfo($xmlPath, PATHINFO_FILENAME);
+
+        $see = $this->getSee($empresa);
+        $result = $see->sendXml(Invoice::class, $nombreArchivo, $xmlContent);
+
+        if ($result->isSuccess()) {
+            $cdr = $result->getCdrResponse();
+            $cdrZip = $result->getCdrZip();
+
+            $cdrDir = storage_path("app/sunat/cdr/{$ruc}");
+            if (!is_dir($cdrDir)) {
+                mkdir($cdrDir, 0755, true);
+            }
+            file_put_contents("{$cdrDir}/R-{$nombreArchivo}.zip", $cdrZip);
+
+            $venta->update([
+                'estado_sunat' => '1',
+                'hash_cpe' => $venta->hash_cpe,
+                'cdr_url' => "sunat/cdr/{$ruc}/R-{$nombreArchivo}.zip",
+                'codigo_sunat' => $cdr->getCode(),
+                'mensaje_sunat' => $cdr->getDescription(),
+            ]);
+
+            return [
+                'success' => true,
+                'codigo' => $cdr->getCode(),
+                'mensaje' => $cdr->getDescription(),
+                'cdr_url' => "sunat/cdr/{$ruc}/R-{$nombreArchivo}.zip",
+            ];
+        }
+
+        $error = $result->getError();
+        $venta->update([
+            'estado_sunat' => '2',
+            'codigo_sunat' => $error->getCode(),
+            'mensaje_sunat' => $error->getMessage(),
+            'intentos' => ($venta->intentos ?? 0) + 1,
+        ]);
+
+        return [
+            'success' => false,
+            'codigo' => $error->getCode(),
+            'message' => $error->getMessage(),
+        ];
+    }
+
+    public function generarNotaCreditoXml(NotaCredito $nota): array
+    {
+        $nota->load(['venta.cliente', 'venta.empresa', 'venta.productosVentas', 'motivo']);
+        $empresa = $nota->venta->empresa;
+        $cliente = $nota->venta->cliente;
+        $igvRate = (float) ($empresa->igv ?? config('sunat.igv'));
+
+        $company = $this->buildCompany($empresa);
+        $client = $this->buildClient($cliente);
+
+        $total = (float) $nota->monto_total;
+        $montoGravada = round($total / ($igvRate + 1), 2);
+        $igvMonto = round($total / ($igvRate + 1) * $igvRate, 2);
+
+        $note = new Note();
+        $note->setUblVersion('2.1')
+            ->setTipoDoc('07')
+            ->setSerie($nota->serie)
+            ->setCorrelativo((string) $nota->numero)
+            ->setFechaEmision($nota->fecha_emision ?? new \DateTime())
+            ->setTipDocAfectado($nota->tipo_doc_afectado)
+            ->setNumDocfectado($nota->serie_num_afectado)
+            ->setCodMotivo($nota->motivo->codigo_sunat)
+            ->setDesMotivo($nota->descripcion_motivo ?? $nota->motivo->descripcion)
+            ->setTipoMoneda($nota->moneda ?? 'PEN')
+            ->setCompany($company)
+            ->setClient($client)
+            ->setMtoOperGravadas($montoGravada)
+            ->setMtoIGV($igvMonto)
+            ->setTotalImpuestos($igvMonto)
+            ->setMtoImpVenta(round($total, 2));
+
+        $details = $this->buildSaleDetailsFromVenta($nota->venta, $igvRate);
+        $note->setDetails($details);
+
+        $note->setLegends([
+            (new Legend())
+                ->setCode('1000')
+                ->setValue('SON ' . strtoupper($this->numberToWords($total)) . ' SOLES')
+        ]);
+
+        $see = $this->getSee($empresa);
+        $xmlContent = $see->getXmlSigned($note);
+        $nombreArchivo = $note->getName();
+
+        $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+
+        $hash = $this->getHashFromXml($xmlContent);
+
+        $nota->update([
+            'hash_cpe' => $hash,
+            'xml_url' => "sunat/xml/{$this->getRuc($empresa)}/{$nombreArchivo}.xml",
+            'nombre_xml' => $nombreArchivo,
+        ]);
+
+        return [
+            'success' => true,
+            'nombre_archivo' => $nombreArchivo,
+            'hash' => $hash,
+        ];
+    }
+
+    public function enviarNotaCredito(NotaCredito $nota): array
+    {
+        $nota->load(['venta.empresa']);
+        $empresa = $nota->venta->empresa;
+        $ruc = $this->getRuc($empresa);
+
+        $xmlPath = storage_path("app/sunat/xml/{$ruc}/{$nota->nombre_xml}.xml");
+
+        if (!file_exists($xmlPath)) {
+            return ['success' => false, 'message' => 'XML no encontrado. Genere el XML primero.'];
+        }
+
+        $xmlContent = file_get_contents($xmlPath);
+        $see = $this->getSee($empresa);
+        $result = $see->sendXml(Note::class, $nota->nombre_xml, $xmlContent);
+
+        if ($result->isSuccess()) {
+            $cdr = $result->getCdrResponse();
+            $cdrZip = $result->getCdrZip();
+
+            $cdrDir = storage_path("app/sunat/cdr/{$ruc}");
+            if (!is_dir($cdrDir)) {
+                mkdir($cdrDir, 0755, true);
+            }
+            file_put_contents("{$cdrDir}/R-{$nota->nombre_xml}.zip", $cdrZip);
+
+            $nota->update([
+                'estado' => 'aceptado',
+                'cdr_url' => "sunat/cdr/{$ruc}/R-{$nota->nombre_xml}.zip",
+                'codigo_sunat' => $cdr->getCode(),
+                'mensaje_sunat' => $cdr->getDescription(),
+            ]);
+
+            // Marcar la venta original como anulada
+            $nota->venta->update([
+                'estado' => '2',
+                'estado_sunat' => '2',
+            ]);
+
+            return [
+                'success' => true,
+                'codigo' => $cdr->getCode(),
+                'mensaje' => $cdr->getDescription(),
+            ];
+        }
+
+        $error = $result->getError();
+        $nota->update([
+            'estado' => 'rechazado',
+            'codigo_sunat' => $error->getCode(),
+            'mensaje_sunat' => $error->getMessage(),
+        ]);
+
+        return [
+            'success' => false,
+            'codigo' => $error->getCode(),
+            'message' => $error->getMessage(),
+        ];
+    }
+
+    public function generarNotaDebitoXml(NotaDebito $nota): array
+    {
+        $nota->load(['venta.cliente', 'venta.empresa', 'venta.productosVentas', 'motivo']);
+        $empresa = $nota->venta->empresa;
+        $cliente = $nota->venta->cliente;
+        $igvRate = (float) ($empresa->igv ?? config('sunat.igv'));
+
+        $company = $this->buildCompany($empresa);
+        $client = $this->buildClient($cliente);
+
+        $total = (float) $nota->monto_total;
+        $montoGravada = round($total / ($igvRate + 1), 2);
+        $igvMonto = round($total / ($igvRate + 1) * $igvRate, 2);
+
+        $note = new Note();
+        $note->setUblVersion('2.1')
+            ->setTipoDoc('08')
+            ->setSerie($nota->serie)
+            ->setCorrelativo((string) $nota->numero)
+            ->setFechaEmision($nota->fecha_emision ?? new \DateTime())
+            ->setTipDocAfectado($nota->tipo_doc_afectado)
+            ->setNumDocfectado($nota->serie_num_afectado)
+            ->setCodMotivo($nota->motivo->codigo_sunat)
+            ->setDesMotivo($nota->descripcion_motivo ?? $nota->motivo->descripcion)
+            ->setTipoMoneda($nota->moneda ?? 'PEN')
+            ->setCompany($company)
+            ->setClient($client)
+            ->setMtoOperGravadas($montoGravada)
+            ->setMtoIGV($igvMonto)
+            ->setTotalImpuestos($igvMonto)
+            ->setMtoImpVenta(round($total, 2));
+
+        $details = $this->buildSaleDetailsFromVenta($nota->venta, $igvRate);
+        $note->setDetails($details);
+
+        $note->setLegends([
+            (new Legend())
+                ->setCode('1000')
+                ->setValue('SON ' . strtoupper($this->numberToWords($total)) . ' SOLES')
+        ]);
+
+        $see = $this->getSee($empresa);
+        $xmlContent = $see->getXmlSigned($note);
+        $nombreArchivo = $note->getName();
+
+        $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+
+        $hash = $this->getHashFromXml($xmlContent);
+
+        $nota->update([
+            'hash_cpe' => $hash,
+            'xml_url' => "sunat/xml/{$this->getRuc($empresa)}/{$nombreArchivo}.xml",
+            'nombre_xml' => $nombreArchivo,
+        ]);
+
+        return [
+            'success' => true,
+            'nombre_archivo' => $nombreArchivo,
+            'hash' => $hash,
+        ];
+    }
+
+    public function enviarNotaDebito(NotaDebito $nota): array
+    {
+        $nota->load(['venta.empresa']);
+        $empresa = $nota->venta->empresa;
+        $ruc = $this->getRuc($empresa);
+
+        $xmlPath = storage_path("app/sunat/xml/{$ruc}/{$nota->nombre_xml}.xml");
+
+        if (!file_exists($xmlPath)) {
+            return ['success' => false, 'message' => 'XML no encontrado. Genere el XML primero.'];
+        }
+
+        $xmlContent = file_get_contents($xmlPath);
+        $see = $this->getSee($empresa);
+        $result = $see->sendXml(Note::class, $nota->nombre_xml, $xmlContent);
+
+        if ($result->isSuccess()) {
+            $cdr = $result->getCdrResponse();
+            $cdrZip = $result->getCdrZip();
+
+            $cdrDir = storage_path("app/sunat/cdr/{$ruc}");
+            if (!is_dir($cdrDir)) {
+                mkdir($cdrDir, 0755, true);
+            }
+            file_put_contents("{$cdrDir}/R-{$nota->nombre_xml}.zip", $cdrZip);
+
+            $nota->update([
+                'estado' => 'aceptado',
+                'cdr_url' => "sunat/cdr/{$ruc}/R-{$nota->nombre_xml}.zip",
+                'codigo_sunat' => $cdr->getCode(),
+                'mensaje_sunat' => $cdr->getDescription(),
+            ]);
+
+            return [
+                'success' => true,
+                'codigo' => $cdr->getCode(),
+                'mensaje' => $cdr->getDescription(),
+            ];
+        }
+
+        $error = $result->getError();
+        $nota->update([
+            'estado' => 'rechazado',
+            'codigo_sunat' => $error->getCode(),
+            'mensaje_sunat' => $error->getMessage(),
+        ]);
+
+        return [
+            'success' => false,
+            'codigo' => $error->getCode(),
+            'message' => $error->getMessage(),
+        ];
+    }
+
+    public function generarGuiaRemisionXml(GuiaRemision $guia): array
+    {
+        $guia->load(['empresa', 'detalles']);
+        $empresa = $guia->empresa;
+
+        $company = $this->buildCompany($empresa);
+
+        $destinatario = (new Client())
+            ->setTipoDoc($guia->destinatario_tipo_doc)
+            ->setNumDoc($guia->destinatario_documento)
+            ->setRznSocial($guia->destinatario_nombre);
+
+        $shipment = (new Shipment())
+            ->setCodTraslado($guia->motivo_traslado)
+            ->setDesTraslado($guia->descripcion_motivo)
+            ->setModTraslado($guia->mod_transporte)
+            ->setFecTraslado(new \DateTime($guia->fecha_traslado->format('Y-m-d')))
+            ->setPesoTotal((float) $guia->peso_total)
+            ->setUndPesoTotal($guia->und_peso_total ?? 'KGM')
+            ->setPartida(new Direction($guia->ubigeo_partida, $guia->dir_partida))
+            ->setLlegada(new Direction($guia->ubigeo_llegada, $guia->dir_llegada));
+
+        if ($guia->mod_transporte === '01' && $guia->transportista_documento) {
+            $transportista = (new Transportist())
+                ->setTipoDoc($guia->transportista_tipo_doc)
+                ->setNumDoc($guia->transportista_documento)
+                ->setRznSocial($guia->transportista_nombre)
+                ->setNroMtc($guia->transportista_nro_mtc);
+            $shipment->setTransportista($transportista);
+        }
+
+        if ($guia->mod_transporte === '02') {
+            if ($guia->conductor_documento) {
+                $driver = (new Driver())
+                    ->setTipo('Principal')
+                    ->setTipoDoc($guia->conductor_tipo_doc)
+                    ->setNroDoc($guia->conductor_documento)
+                    ->setNombres($guia->conductor_nombres)
+                    ->setApellidos($guia->conductor_apellidos)
+                    ->setLicencia($guia->conductor_licencia);
+                $shipment->setChoferes([$driver]);
+            }
+            if ($guia->vehiculo_placa) {
+                $shipment->setVehiculo((new Vehicle())->setPlaca($guia->vehiculo_placa));
+            }
+        }
+
+        $details = [];
+        foreach ($guia->detalles as $item) {
+            $details[] = (new DespatchDetail())
+                ->setCodigo($item->codigo ?? 'P001')
+                ->setDescripcion($item->descripcion)
+                ->setUnidad($item->unidad ?? 'NIU')
+                ->setCantidad((float) $item->cantidad);
+        }
+
+        $despatch = (new Despatch())
+            ->setVersion('2022')
+            ->setTipoDoc('09')
+            ->setSerie($guia->serie)
+            ->setCorrelativo((string) $guia->numero)
+            ->setFechaEmision(new \DateTime($guia->fecha_emision->format('Y-m-d')))
+            ->setCompany($company)
+            ->setDestinatario($destinatario)
+            ->setEnvio($shipment)
+            ->setDetails($details);
+
+        if ($guia->observaciones) {
+            $despatch->setObservacion($guia->observaciones);
+        }
+
+        $see = $this->getSee($empresa, 'guia');
+        $xmlContent = $see->getXmlSigned($despatch);
+        $nombreArchivo = $despatch->getName();
+
+        $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+
+        $hash = $this->getHashFromXml($xmlContent);
+
+        $guia->update([
+            'hash_cpe' => $hash,
+            'xml_url' => "sunat/xml/{$this->getRuc($empresa)}/{$nombreArchivo}.xml",
+            'nombre_xml' => $nombreArchivo,
+        ]);
+
+        return [
+            'success' => true,
+            'nombre_archivo' => $nombreArchivo,
+            'hash' => $hash,
+        ];
+    }
+
+    public function enviarGuiaRemision(GuiaRemision $guia): array
+    {
+        $guia->load(['empresa']);
+        $empresa = $guia->empresa;
+        $ruc = $this->getRuc($empresa);
+
+        $xmlPath = storage_path("app/sunat/xml/{$ruc}/{$guia->nombre_xml}.xml");
+
+        if (!file_exists($xmlPath)) {
+            return ['success' => false, 'message' => 'XML no encontrado. Genere el XML primero.'];
+        }
+
+        $xmlContent = file_get_contents($xmlPath);
+
+        // GRE 2022 usa API REST
+        $authConfig = new Configuration();
+        $authConfig->setHost(config('sunat.endpoints.gre.auth'));
+        $authApi = new AuthApi(null, $authConfig);
+
+        $username = $empresa->modo === 'beta'
+            ? config('sunat.beta.ruc') . config('sunat.beta.usuario_sol')
+            : $empresa->ruc . $empresa->user_sol;
+        $password = $empresa->modo === 'beta'
+            ? config('sunat.beta.clave_sol')
+            : $empresa->clave_sol;
+
+        $token = $authApi->getToken(
+            'password',
+            'https://api-cpe.sunat.gob.pe',
+            config('sunat.endpoints.gre.client_id'),
+            config('sunat.endpoints.gre.client_secret'),
+            $username,
+            $password
+        );
+
+        $cpeConfig = new Configuration();
+        $cpeConfig->setHost(config('sunat.endpoints.gre.cpe'));
+        $cpeConfig->setAccessToken($token->getAccessToken());
+        $cpeApi = new CpeApi(null, $cpeConfig);
+
+        $archivo = new CpeDocumentArchivo();
+        $archivo->setNomArchivo($guia->nombre_xml . '.zip');
+        $archivo->setArcGreZip(base64_encode($this->createZip($guia->nombre_xml . '.xml', $xmlContent)));
+        $archivo->setHashZip(hash('sha256', $xmlContent));
+
+        $cpeDoc = new CpeDocument();
+        $cpeDoc->setArchivo($archivo);
+
+        $response = $cpeApi->enviarCpe($guia->nombre_xml, $cpeDoc);
+        $ticket = $response->getNumTicket();
+
+        $guia->update([
+            'estado' => 'enviado',
+            'ticket_sunat' => $ticket,
+        ]);
+
+        return [
+            'success' => true,
+            'ticket' => $ticket,
+            'message' => 'Guía enviada. Use el ticket para consultar el estado.',
+        ];
+    }
+
+    public function consultarTicketGuia(GuiaRemision $guia): array
+    {
+        $guia->load(['empresa']);
+        $empresa = $guia->empresa;
+        $ruc = $this->getRuc($empresa);
+
+        if (!$guia->ticket_sunat) {
+            return ['success' => false, 'message' => 'No hay ticket para consultar.'];
+        }
+
+        $authConfig = new Configuration();
+        $authConfig->setHost(config('sunat.endpoints.gre.auth'));
+        $authApi = new AuthApi(null, $authConfig);
+
+        $username = $empresa->modo === 'beta'
+            ? config('sunat.beta.ruc') . config('sunat.beta.usuario_sol')
+            : $empresa->ruc . $empresa->user_sol;
+        $password = $empresa->modo === 'beta'
+            ? config('sunat.beta.clave_sol')
+            : $empresa->clave_sol;
+
+        $token = $authApi->getToken(
+            'password',
+            'https://api-cpe.sunat.gob.pe',
+            config('sunat.endpoints.gre.client_id'),
+            config('sunat.endpoints.gre.client_secret'),
+            $username,
+            $password
+        );
+
+        $cpeConfig = new Configuration();
+        $cpeConfig->setHost(config('sunat.endpoints.gre.cpe'));
+        $cpeConfig->setAccessToken($token->getAccessToken());
+        $cpeApi = new CpeApi(null, $cpeConfig);
+
+        $status = $cpeApi->consultarEnvio($guia->ticket_sunat);
+        $codRespuesta = $status->getCodRespuesta();
+
+        if ($codRespuesta === '0') {
+            $cdrBase64 = $status->getArcCdr();
+            if ($cdrBase64) {
+                $cdrContent = base64_decode($cdrBase64);
+                $cdrDir = storage_path("app/sunat/cdr/{$ruc}");
+                if (!is_dir($cdrDir)) {
+                    mkdir($cdrDir, 0755, true);
+                }
+                file_put_contents("{$cdrDir}/R-{$guia->nombre_xml}.zip", $cdrContent);
+
+                $guia->update([
+                    'estado' => 'aceptado',
+                    'cdr_url' => "sunat/cdr/{$ruc}/R-{$guia->nombre_xml}.zip",
+                    'codigo_sunat' => $codRespuesta,
+                    'mensaje_sunat' => 'Aceptado por SUNAT',
+                ]);
+            } else {
+                $guia->update([
+                    'estado' => 'aceptado',
+                    'codigo_sunat' => $codRespuesta,
+                    'mensaje_sunat' => 'Aceptado por SUNAT',
+                ]);
+            }
+
+            return [
+                'success' => true,
+                'codigo' => $codRespuesta,
+                'mensaje' => 'Guía aceptada por SUNAT.',
+            ];
+        }
+
+        if ($codRespuesta === '98') {
+            return [
+                'success' => true,
+                'codigo' => '98',
+                'mensaje' => 'En proceso. Intente nuevamente en unos segundos.',
+                'en_proceso' => true,
+            ];
+        }
+
+        $error = $status->getError();
+        $guia->update([
+            'estado' => 'rechazado',
+            'codigo_sunat' => $error ? $error->getCodError() : $codRespuesta,
+            'mensaje_sunat' => $error ? $error->getDesError() : 'Error desconocido',
+        ]);
+
+        return [
+            'success' => false,
+            'codigo' => $error ? $error->getCodError() : $codRespuesta,
+            'message' => $error ? $error->getDesError() : 'Error desconocido',
+        ];
+    }
+
+    private function createZip(string $filename, string $content): string
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'gre');
+        $zip = new \ZipArchive();
+        $zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFromString($filename, $content);
+        $zip->close();
+        $zipContent = file_get_contents($tmpFile);
+        unlink($tmpFile);
+        return $zipContent;
+    }
+
+    private function buildSaleDetails(Venta $venta, float $igvRate, bool $apliIgv): array
+    {
+        $details = [];
+
+        foreach ($venta->productosVentas as $item) {
+            $precio = (float) $item->precio_unitario;
+            $cantidad = (float) $item->cantidad;
+
+            $detail = new SaleDetail();
+            $detail->setCodProducto($item->codigo_producto ?? 'P001')
+                ->setCodProdSunat('10000000')
+                ->setUnidad($item->unidad_medida ?? 'NIU')
+                ->setDescripcion($item->descripcion ?? 'Producto')
+                ->setCantidad($cantidad);
+
+            if ($apliIgv) {
+                $valorUnitario = round($precio / ($igvRate + 1), 2);
+                $valorVenta = round($precio * $cantidad / ($igvRate + 1), 2);
+                $igvItem = round($precio * $cantidad / ($igvRate + 1) * $igvRate, 2);
+
+                $detail->setMtoValorUnitario($valorUnitario)
+                    ->setMtoValorVenta($valorVenta)
+                    ->setMtoBaseIgv($valorVenta)
+                    ->setPorcentajeIgv($igvRate * 100)
+                    ->setIgv($igvItem)
+                    ->setTipAfeIgv($item->tipo_afectacion_igv ?? '10')
+                    ->setTotalImpuestos($igvItem)
+                    ->setMtoPrecioUnitario($precio);
+            } else {
+                $detail->setMtoValorUnitario($precio)
+                    ->setMtoValorVenta(round($precio * $cantidad, 2))
+                    ->setMtoBaseIgv(round($precio * $cantidad, 2))
+                    ->setPorcentajeIgv(0)
+                    ->setIgv(0)
+                    ->setTipAfeIgv('20')
+                    ->setTotalImpuestos(0)
+                    ->setMtoPrecioUnitario($precio);
+            }
+
+            $details[] = $detail;
+        }
+
+        return $details;
+    }
+
+    private function buildSaleDetailsFromVenta(Venta $venta, float $igvRate): array
+    {
+        $details = [];
+
+        foreach ($venta->productosVentas as $item) {
+            $precio = (float) $item->precio_unitario;
+            $cantidad = (float) $item->cantidad;
+            $valorUnitario = round($precio / ($igvRate + 1), 2);
+            $valorVenta = round($precio * $cantidad / ($igvRate + 1), 2);
+            $igvItem = round($precio * $cantidad / ($igvRate + 1) * $igvRate, 2);
+
+            $detail = new SaleDetail();
+            $detail->setCodProducto($item->codigo_producto ?? 'P001')
+                ->setCodProdSunat('10000000')
+                ->setUnidad($item->unidad_medida ?? 'NIU')
+                ->setDescripcion($item->descripcion ?? 'Producto')
+                ->setCantidad($cantidad)
+                ->setMtoValorUnitario($valorUnitario)
+                ->setMtoValorVenta($valorVenta)
+                ->setMtoBaseIgv($valorVenta)
+                ->setPorcentajeIgv($igvRate * 100)
+                ->setIgv($igvItem)
+                ->setTipAfeIgv($item->tipo_afectacion_igv ?? '10')
+                ->setTotalImpuestos($igvItem)
+                ->setMtoPrecioUnitario(round($precio, 2));
+
+            $details[] = $detail;
+        }
+
+        return $details;
+    }
+
+    private function guardarXml(Empresa $empresa, string $nombreArchivo, string $xmlContent): void
+    {
+        $ruc = $this->getRuc($empresa);
+        $dir = storage_path("app/sunat/xml/{$ruc}");
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        file_put_contents("{$dir}/{$nombreArchivo}.xml", $xmlContent);
+    }
+
+    private function getRuc(Empresa $empresa): string
+    {
+        return $empresa->modo === 'beta' ? config('sunat.beta.ruc') : $empresa->ruc;
+    }
+
+    private function getHashFromXml(string $xml): ?string
+    {
+        if (class_exists(\Greenter\Report\XmlUtils::class)) {
+            return (new \Greenter\Report\XmlUtils())->getHashSign($xml);
+        }
+
+        preg_match('/<ds:DigestValue>([^<]+)<\/ds:DigestValue>/', $xml, $matches);
+        return $matches[1] ?? null;
+    }
+
+    private function numberToWords(float $number): string
+    {
+        $entero = (int) $number;
+        $decimales = round(($number - $entero) * 100);
+
+        $unidades = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+        $decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+        $especiales = [11 => 'ONCE', 12 => 'DOCE', 13 => 'TRECE', 14 => 'CATORCE', 15 => 'QUINCE'];
+        $centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+
+        $convertir = function ($n) use ($unidades, $decenas, $especiales, $centenas) {
+            if ($n == 0) return 'CERO';
+            if ($n == 100) return 'CIEN';
+
+            $resultado = '';
+
+            if ($n >= 100) {
+                $resultado .= $centenas[(int)($n / 100)] . ' ';
+                $n %= 100;
+            }
+
+            if (isset($especiales[$n])) {
+                $resultado .= $especiales[$n];
+            } elseif ($n >= 10) {
+                $resultado .= $decenas[(int)($n / 10)];
+                $resto = $n % 10;
+                if ($resto > 0) {
+                    if ((int)($n / 10) == 2) {
+                        $resultado = rtrim($resultado) . 'I' . $unidades[$resto];
+                    } else {
+                        $resultado .= ' Y ' . $unidades[$resto];
+                    }
+                }
+            } else {
+                $resultado .= $unidades[$n];
+            }
+
+            return trim($resultado);
+        };
+
+        $resultado = '';
+
+        if ($entero >= 1000000) {
+            $millones = (int) ($entero / 1000000);
+            $resultado .= ($millones == 1 ? 'UN MILLON' : $convertir($millones) . ' MILLONES') . ' ';
+            $entero %= 1000000;
+        }
+
+        if ($entero >= 1000) {
+            $miles = (int) ($entero / 1000);
+            $resultado .= ($miles == 1 ? 'MIL' : $convertir($miles) . ' MIL') . ' ';
+            $entero %= 1000;
+        }
+
+        if ($entero > 0) {
+            $resultado .= $convertir($entero);
+        }
+
+        $resultado = trim($resultado);
+        if (empty($resultado)) {
+            $resultado = 'CERO';
+        }
+
+        return $resultado . ' CON ' . str_pad((string) (int) $decimales, 2, '0', STR_PAD_LEFT) . '/100';
+    }
+}

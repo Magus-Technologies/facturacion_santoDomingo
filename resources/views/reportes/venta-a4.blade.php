@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{ $venta->tipoDocumento->nombre }} - {{ $venta->serie }}-{{ str_pad($venta->numero, 6, '0', STR_PAD_LEFT) }}</title>
+    <title>{{ $venta->tipoDocumento->nombre ?? 'Venta' }} - {{ $venta->serie }}-{{ str_pad($venta->numero, 6, '0', STR_PAD_LEFT) }}</title>
     <style>
         * {
             margin: 0;
@@ -14,74 +14,6 @@
             font-size: 9pt;
             color: #333;
         }
-        /* Header */
-        .header-table {
-            width: 100%;
-            margin-bottom: 20px;
-            border-collapse: collapse;
-        }
-        .header-left {
-            width: 60%;
-            vertical-align: top;
-            text-align: center;
-            padding-right: 5px;
-        }
-        .header-right {
-            width: 40%;
-            vertical-align: top;
-            text-align: center;
-        }
-        .logos {
-            margin-bottom: 10px;
-        }
-        .logos img {
-            height: 45px;
-            max-height: 45px;
-            width: auto;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        .company-name {
-            font-size: 14pt;
-            font-weight: bold;
-            color: #000;
-            margin-bottom: 5px;
-        }
-        .company-info {
-            font-size: 8pt;
-            color: #666;
-            line-height: 1.4;
-        }
-
-        /* Document Box */
-        .doc-box {
-            border: 2px solid #fabd1e;
-            display: inline-block;
-            min-width: 200px;
-        }
-        .doc-ruc {
-            padding: 8px;
-            background: #fff;
-            font-weight: bold;
-            font-size: 10pt;
-            border-bottom: 2px solid #fabd1e;
-        }
-        .doc-type {
-            padding: 10px;
-            background: #fabd1e;
-            font-weight: bold;
-            font-size: 11pt;
-            color: #000;
-            border-bottom: 2px solid #fabd1e;
-        }
-        .doc-number {
-            padding: 10px;
-            background: #fff;
-            font-weight: bold;
-            font-size: 14pt;
-            color: #000;
-        }
-
         /* Client Info */
         .client-section {
             background: #f8f9fa;
@@ -89,53 +21,38 @@
             border-radius: 5px;
             margin-bottom: 15px;
         }
-        .info-row {
-            display: table;
-            width: 100%;
-            margin-bottom: 8px;
-        }
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
-        .info-col {
-            display: table-cell;
-            width: 50%;
-            padding-right: 10px;
-        }
-        .info-label {
-            font-weight: bold;
-            font-size: 8pt;
-            color: #666;
-            margin-bottom: 2px;
-        }
-        .info-value {
-            font-size: 9pt;
-            color: #000;
-        }
 
         /* Products Table */
         .products-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
+            border: 2px solid #999;
+            border-radius: 6px;
         }
         .products-table thead {
-            background: #fabd1e;
+            background: #e5e7eb;
+            color: #000;
         }
         .products-table th {
-            padding: 8px;
-            text-align: left;
-            font-size: 8pt;
+            padding: 6px 4px;
+            font-size: 7.5pt;
             font-weight: bold;
-            border: 1px solid #ddd;
+            border: 1px solid #999;
+            text-align: center;
         }
         .products-table td {
-            padding: 8px;
+            padding: 6px 4px;
             font-size: 8pt;
-            border: 1px solid #ddd;
+            border-left: 1px solid #999;
+            border-right: 1px solid #999;
+            vertical-align: top;
         }
-        .products-table tbody tr:nth-child(even) {
-            background: #f8f9fa;
+        .products-table tbody tr {
+            border-bottom: none;
+        }
+        .products-table tbody tr:last-child td {
+            border-bottom: 1px solid #999;
         }
         .text-center {
             text-align: center;
@@ -143,37 +60,8 @@
         .text-right {
             text-align: right;
         }
-
-        /* Totals */
-        .totals-section {
-            width: 100%;
-            margin-top: 20px;
-        }
-        .totals-box {
-            float: right;
-            width: 250px;
-        }
-        .total-row {
-            padding: 8px 12px;
-            border-bottom: 1px solid #ddd;
-            display: table;
-            width: 100%;
-        }
-        .total-label {
-            display: table-cell;
-            font-weight: bold;
-            font-size: 9pt;
-        }
-        .total-value {
-            display: table-cell;
-            text-align: right;
-            font-size: 9pt;
-        }
-        .total-final {
-            background: #fabd1e;
-            font-weight: bold;
-            font-size: 11pt;
-            border: none;
+        .text-left {
+            text-align: left;
         }
 
         /* Footer */
@@ -193,40 +81,40 @@
         <!-- Header -->
         <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
             <tr>
-                <td style="width: 60%; vertical-align: top; text-align: center; padding-right: 10px;">
-                    <div class="logos">
-                        @php
-                            $empresasConLogo = $venta->empresas->count() > 0
-                                ? $venta->empresas->filter(fn($e) => $e->logo && file_exists(public_path('storage/' . $e->logo)))
-                                : collect([$venta->empresa])->filter(fn($e) => $e && $e->logo && file_exists(public_path('storage/' . $e->logo)));
-                        @endphp
-                        @foreach($empresasConLogo as $empresa)
-                            <img src="{{ public_path('storage/' . $empresa->logo) }}" alt="Logo" height="45">
-                        @endforeach
-                    </div>
-                    <div class="company-name">{{ $venta->empresa->razon_social }}</div>
-                    <div class="company-info">
-                        {{ $venta->empresa->direccion }}<br>
-                        Tel: {{ $venta->empresa->telefono }} | Email: {{ $venta->empresa->email }}
-                    </div>
+                <td style="width: 63%; vertical-align: top; text-align: left; padding-right: 15px;">
+                    <!-- Logo and Slogan Header -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2px;">
+                        <tr>
+                            <td style="width: 45%; vertical-align: top; text-align: left; padding-right: 5px;">
+                                @if($venta->empresa && $venta->empresa->logo && file_exists(public_path('storage/' . $venta->empresa->logo)))
+                                    <img src="{{ public_path('storage/' . $venta->empresa->logo) }}" alt="Logo" style="max-width: 100%; height: auto; max-height: 90px;">
+                                @endif
+                            </td>
+                            <td style="width: 55%; vertical-align: top; text-align: left;">
+                                <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">ILIDESAVA & DESAVA<br>S.R.L.</div>
+                                <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
+                                    VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
+                                    DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
+                                    CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
+                                    PARA TU EMPRENDIMIENTO
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
-
-                        <!-- Líneas divisorias (van ENCIMA del fondo) -->
-                        <line x1="0" y1="35" x2="220" y2="35" stroke="#fabd1e" stroke-width="2"/>
-                        <line x1="0" y1="72" x2="220" y2="72" stroke="#fabd1e" stroke-width="2"/>
-
-                        <!-- Texto RUC -->
-                        <text x="110" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#000">
-                            R.U.C. {{ $venta->empresa->ruc }}
+                <td style="width: 37%; vertical-align: top; text-align: right; padding: 0;">
+                    <svg width="240" height="124" xmlns="http://www.w3.org/2000/svg" style="display: inline-block;">
+                        <rect x="0" y="0" width="238" height="122" rx="10" ry="10" fill="white" stroke="#fabd1e" stroke-width="2"/>
+                        <rect x="0" y="40" width="238" height="42" fill="#fabd1e"/>
+                        <line x1="0" y1="40" x2="238" y2="40" stroke="#fabd1e" stroke-width="2"/>
+                        <line x1="0" y1="82" x2="238" y2="82" stroke="#fabd1e" stroke-width="2"/>
+                        <text x="119" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000">
+                            R.U.C. {{ $venta->empresa->ruc ?? '' }}
                         </text>
-
-                        <!-- Texto NOTA DE VENTA -->
-                        <text x="110" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000">
-                            {{ strtoupper($venta->tipoDocumento->nombre) }}
+                        <text x="119" y="66" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000">
+                            {{ strtoupper($venta->tipoDocumento->nombre ?? 'VENTA') }}
                         </text>
-
-                        <!-- Texto Número -->
-                        <text x="110" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#000">
+                        <text x="119" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#000">
                             {{ $venta->serie }}-{{ str_pad($venta->numero, 6, '0', STR_PAD_LEFT) }}
                         </text>
                     </svg>
@@ -234,85 +122,203 @@
             </tr>
         </table>
 
+        <!-- Company Dynamic Details (Full Width) -->
+        <table style="width: 100%; border-collapse: collapse; margin-top: -5px; margin-bottom: 10px;">
+            <tr>
+                <td style="text-align: left; padding: 0;">
+                    <div style="font-weight: bold; font-size: 9pt; color: #000; margin-bottom: 3px; text-transform: uppercase;">
+                        {{ $venta->empresa->razon_social ?? 'EMPRESA' }}
+                    </div>
+                    <div style="font-size: 8pt; color: #000; margin-bottom: 2px; font-weight: bold;">
+                        {{ $venta->empresa->direccion ?? '' }}
+                    </div>
+                    <div style="font-size: 8pt; color: #000; margin-bottom: 2px;">
+                        <span style="font-weight: bold;">TELEF.:</span> {{ $venta->empresa->telefono ?? '' }}
+                    </div>
+                    <div style="font-size: 8pt; color: #000;">
+                        <span style="font-weight: bold;">Correo:</span> {{ $venta->empresa->email ?? '' }}
+                    </div>
+                </td>
+            </tr>
+        </table>
+
         <!-- Client Info -->
-        <div class="client-section" style="padding: 10px 15px;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="width: 18%; font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">FECHA DE EMISIÓN:</td>
-                    <td style="width: 32%; font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->fecha_emision->format('d/m/Y') }}</td>
-                    <td style="width: 15%; font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">DIRECCIÓN:</td>
-                    <td style="width: 35%; font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->direccion ?: 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">SEÑOR(ES):</td>
-                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->datos }}</td>
-                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">MONEDA:</td>
-                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->tipo_moneda == 'PEN' ? 'Soles' : 'Dólares' }}</td>
-                </tr>
-                @if($venta->cotizacion)
-                <tr>
-                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">REF. COTIZACIÓN:</td>
-                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;" colspan="3">COT-{{ str_pad($venta->cotizacion->numero, 6, '0', STR_PAD_LEFT) }}</td>
-                </tr>
-                @endif
-                <tr>
-                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">DNI/RUC:</td>
-                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->cliente->documento }}</td>
-                    <td style="font-weight: bold; color: #666; font-size: 8pt; padding: 3px 0; vertical-align: top;">FORMA DE PAGO:</td>
-                    <td style="font-size: 9pt; color: #000; padding: 3px 0; vertical-align: top;">{{ $venta->id_tipo_pago == 1 ? 'Contado' : 'Crédito' }}</td>
-                </tr>
-            </table>
-        </div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 20px;">
+            <tr>
+                <!-- Tarjeta Izquierda -->
+                <td style="width: 48%; vertical-align: top; border: 1px solid #777; border-radius: 6px; padding: 10px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; width: 22%; vertical-align: top; color: #000;">CLIENTE:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->cliente->datos ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">DNI/RUC:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->cliente->documento ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; vertical-align: top; color: #000;">DIRECCIÓN:</td>
+                            <td style="font-size: 8pt; color: #000; vertical-align: top;">{{ $venta->cliente->direccion ?? '-' }}</td>
+                        </tr>
+                        @if($venta->cotizacion)
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; vertical-align: top; color: #000; padding-top: 4px;">REF. COT.:</td>
+                            <td style="font-size: 8pt; color: #000; vertical-align: top; padding-top: 4px;">COT-{{ str_pad($venta->cotizacion->numero, 6, '0', STR_PAD_LEFT) }}</td>
+                        </tr>
+                        @endif
+                    </table>
+                </td>
+                
+                <!-- Espaciador -->
+                <td style="width: 4%;"></td>
+                
+                <!-- Tarjeta Derecha -->
+                <td style="width: 48%; vertical-align: top; border: 1px solid #777; border-radius: 6px; padding: 10px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; width: 45%; vertical-align: top; color: #000;">FECHA EMISIÓN:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->fecha_emision ? $venta->fecha_emision->format('d/m/Y') : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">MONEDA:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->tipo_moneda === 'USD' ? 'DÓLARES' : 'SOLES' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">FORMA DE PAGO:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->id_tipo_pago == 1 ? 'CONTADO' : 'CRÉDITO' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; vertical-align: top; color: #000;">VENDEDOR:</td>
+                            <td style="font-size: 8pt; color: #000; vertical-align: top;">{{ $venta->usuario->name ?? 'Sistema' }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
         <!-- Products Table -->
+        @php
+            $simbolo = $venta->tipo_moneda === 'USD' ? '$' : 'S/';
+        @endphp
         <table class="products-table">
             <thead>
                 <tr>
-                    <th width="5%" class="text-center">#</th>
-                    <th width="12%">Código</th>
-                    <th width="38%">Producto</th>
-                    <th width="10%" class="text-center">Cant.</th>
-                    <th width="10%" class="text-center">Unidad</th>
-                    <th width="12%" class="text-right">P. Unit.</th>
-                    <th width="13%" class="text-right">Total</th>
+                    <th width="4%" class="text-center">N°</th>
+                    <th width="8%" class="text-center">CANT.</th>
+                    <th width="8%" class="text-center">UNIDAD</th>
+                    <th width="12%" class="text-center">CODIGO</th>
+                    <th width="35%" class="text-left" style="padding-left: 5px;">DESCRIPCIÓN</th>
+                    <th width="8%" class="text-right">V.UNIT.</th>
+                    <th width="7%" class="text-right">IGV.</th>
+                    <th width="8%" class="text-right">P.UNIT.</th>
+                    <th width="10%" class="text-right">TOTAL</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($venta->productosVentas as $index => $item)
+                @php
+                    $precioConIgv = $item->precio_unitario;
+                    $valorUnitario = $venta->igv > 0 ? ($precioConIgv / 1.18) : $precioConIgv;
+                    $igvFila = $venta->igv > 0 ? ($item->total - ($item->total / 1.18)) : 0;
+                    $descripcion = $item->producto->descripcion ?? $item->producto->nombre ?? $item->descripcion ?? 'Sin descripción';
+                @endphp
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $item->producto->codigo ?? '-' }}</td>
-                    <td>{{ $item->producto->descripcion }}</td>
-                    <td class="text-center">{{ $item->cantidad }}</td>
-                    <td class="text-center">{{ $item->unidad_medida }}</td>
-                    <td class="text-right">{{ $venta->tipo_moneda }} {{ number_format($item->precio_unitario, 2) }}</td>
-                    <td class="text-right">{{ $venta->tipo_moneda }} {{ number_format($item->total, 2) }}</td>
+                    <td class="text-center" style="font-size: 8.5pt;">{{ number_format($item->cantidad, 3) }}</td>
+                    <td class="text-center">{{ $item->unidad_medida ?? 'UNIDAD' }}</td>
+                    <td class="text-center">{{ $item->producto->codigo ?? '-' }}</td>
+                    <td style="padding-left: 5px;">{{ $descripcion }}</td>
+                    <td class="text-right">{{ number_format($valorUnitario, 2) }}</td>
+                    <td class="text-right">{{ number_format($igvFila, 2) }}</td>
+                    <td class="text-right">{{ number_format($precioConIgv, 2) }}</td>
+                    <td class="text-right">{{ number_format($item->total, 2) }}</td>
                 </tr>
                 @endforeach
+                <!-- Fila vacía para estructura -->
+                <tr>
+                    <td style="color: transparent; border-bottom: 0;">-</td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td><td style="border-bottom: 0;"></td>
+                </tr>
             </tbody>
         </table>
 
-        <!-- Totals -->
-        <div class="totals-section">
-            <div class="totals-box">
-                <div class="total-row">
-                    <div class="total-label">SUBTOTAL:</div>
-                    <div class="total-value">{{ $venta->tipo_moneda }} {{ number_format($venta->subtotal, 2) }}</div>
-                </div>
-                <div class="total-row">
-                    <div class="total-label">IGV (18%):</div>
-                    <div class="total-value">{{ $venta->tipo_moneda }} {{ number_format($venta->igv, 2) }}</div>
-                </div>
-                <div class="total-row total-final">
-                    <div class="total-label">TOTAL:</div>
-                    <div class="total-value">{{ $venta->tipo_moneda }} {{ number_format($venta->total, 2) }}</div>
-                </div>
-            </div>
-        </div>
+        <!-- Total Letters -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; border: 2px solid #999; border-radius: 6px;">
+            <tr>
+                <td style="padding: 6px 10px; font-size: 10pt; font-weight: bold; font-style: italic; text-align: center; text-transform: uppercase;">
+                    SON: {{ number_format($venta->total, 2) }} {{ $venta->tipo_moneda === 'USD' ? 'DÓLARES AMERICANOS' : 'SOLES' }}
+                </td>
+            </tr>
+        </table>
+
+        <!-- Observaciones -->
+        @if($venta->observaciones)
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; border: 2px solid #999; border-radius: 6px;">
+            <tr>
+                <td style="width: 15%; padding: 6px 10px; font-weight: bold; font-size: 8pt; vertical-align: top;">OBSERVACIONES:</td>
+                <td style="width: 85%; padding: 6px 10px; font-size: 8pt; vertical-align: top;">{{ $venta->observaciones }}</td>
+            </tr>
+        </table>
+        @endif
+
+        <!-- Bottom Section: Banks and Totals -->
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr>
+                <!-- Cuentas Bancarias (Left side) -->
+                <td style="width: 55%; vertical-align: top; padding-right: 10px;">
+                    <div style="font-size: 7.5pt; font-weight: bold; line-height: 1.3;">
+                        @if($venta->empresa->cuentas_bancarias)
+                            {!! nl2br(e($venta->empresa->cuentas_bancarias)) !!}
+                        @else
+                            BCP Cta Cte soles: 1912490742008<br>
+                            CCI Soles: 002-19100249074200857<br>
+                            BBVA Cta cte SOLES:0011-0103-01000687-45<br>
+                            CCI: 011-103-000100068745-97<br>
+                            CÓDIGO DE RECAUDO: 17238 SOLES<br><br>
+                            BBVA Cta cte Dólares: 0011-0103-9101000788-13<br>
+                            CCI: 011-103-000100078813-91<br>
+                            CÓDIGO DE RECAUDO: 17239 DÓLARES
+                        @endif
+                    </div>
+                </td>
+
+                <!-- Totals Box (Right side) -->
+                <td style="width: 45%; vertical-align: top;">
+                    <!-- Caja Superior: Desglose de Operaciones e Impuestos -->
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; border: 2px solid #999; border-radius: 6px; margin-bottom: 5px; overflow: hidden;">
+                        @php
+                            $subtotal = $venta->subtotal;
+                            $igv = $venta->igv;
+                            $total = $venta->total;
+                        @endphp
+                        <tr>
+                            <td style="padding: 3px 10px 1px 10px; text-align: right; font-size: 8pt; width: 65%;">OP. GRAVADAS: {{ $simbolo }}</td>
+                            <td style="padding: 3px 10px 1px 10px; text-align: right; font-size: 8pt; width: 35%;">{{ number_format($subtotal, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1px 10px; text-align: right; font-size: 8pt;">SUB TOTAL: {{ $simbolo }}</td>
+                            <td style="padding: 1px 10px; text-align: right; font-size: 8pt;">{{ number_format($subtotal, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1px 10px 3px 10px; text-align: right; font-size: 8pt;">IGV 18.0%: {{ $simbolo }}</td>
+                            <td style="padding: 1px 10px 3px 10px; text-align: right; font-size: 8pt;">{{ number_format($igv, 2) }}</td>
+                        </tr>
+                    </table>
+
+                    <!-- Caja Inferior: Total -->
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; border: 2px solid #999; border-radius: 6px; background-color: #d1d5db; overflow: hidden;">
+                        <tr>
+                            <td style="padding: 6px 10px; text-align: right; font-size: 13pt; font-weight: bold; width: 65%;">TOTAL: {{ $simbolo }}</td>
+                            <td style="padding: 6px 10px; text-align: right; font-size: 13pt; font-weight: bold; width: 35%; color: #000;">{{ number_format($total, 2) }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
         <!-- Footer -->
         <div class="footer">
-            ¡Gracias por su preferencia!
+            <p>¡Gracias por su preferencia!</p>
+            <p style="margin-top: 4px;">{{ $venta->empresa->razon_social ?? '' }} | RUC: {{ $venta->empresa->ruc ?? '' }}</p>
         </div>
     </div>
 </body>

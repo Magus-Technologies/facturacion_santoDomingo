@@ -10,7 +10,9 @@ import {
     SelectValue,
 } from "../ui/select";
 import { toast } from "@/lib/sweetalert";
-import { Loader2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Image as ImageIcon, Plus } from "lucide-react";
+import CategoriaQuickModal from "./CategoriaQuickModal";
+import UnidadQuickModal from "./UnidadQuickModal";
 
 export default function ProductoModal({
     isOpen,
@@ -26,6 +28,8 @@ export default function ProductoModal({
     const [unidades, setUnidades] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
     const [isAutoCode, setIsAutoCode] = useState(true);
+    const [showCategoriaModal, setShowCategoriaModal] = useState(false);
+    const [showUnidadModal, setShowUnidadModal] = useState(false);
 
     const [formData, setFormData] = useState({
         nombre: "",
@@ -421,34 +425,46 @@ export default function ProductoModal({
                                 required
                                 error={errors.categoria_id?.[0]}
                             >
-                                <Select
-                                    key={`cat-${categorias.length}-${formData.categoria_id}`}
-                                    value={
-                                        formData.categoria_id
-                                            ? String(formData.categoria_id)
-                                            : undefined
-                                    }
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            categoria_id: value,
-                                        }))
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccione" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categorias.map((cat) => (
-                                            <SelectItem
-                                                key={cat.id}
-                                                value={cat.id.toString()}
-                                            >
-                                                {cat.nombre}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <div className="flex gap-2">
+                                    <Select
+                                        key={`cat-${categorias.length}-${formData.categoria_id}`}
+                                        value={
+                                            formData.categoria_id
+                                                ? String(formData.categoria_id)
+                                                : undefined
+                                        }
+                                        onValueChange={(value) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                categoria_id: value,
+                                            }))
+                                        }
+                                    >
+                                        <SelectTrigger className="flex-1">
+                                            <SelectValue placeholder="Seleccione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categorias.map((cat) => (
+                                                <SelectItem
+                                                    key={cat.id}
+                                                    value={cat.id.toString()}
+                                                >
+                                                    {cat.nombre}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setShowCategoriaModal(true)}
+                                        className="shrink-0"
+                                        title="Nueva categoría"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </ModalField>
 
                             <ModalField
@@ -456,34 +472,46 @@ export default function ProductoModal({
                                 required
                                 error={errors.unidad_id?.[0]}
                             >
-                                <Select
-                                    key={`uni-${unidades.length}-${formData.unidad_id}`}
-                                    value={
-                                        formData.unidad_id
-                                            ? String(formData.unidad_id)
-                                            : undefined
-                                    }
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            unidad_id: value,
-                                        }))
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccione" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {unidades.map((unidad) => (
-                                            <SelectItem
-                                                key={unidad.id}
-                                                value={unidad.id.toString()}
-                                            >
-                                                {unidad.nombre}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <div className="flex gap-2">
+                                    <Select
+                                        key={`uni-${unidades.length}-${formData.unidad_id}`}
+                                        value={
+                                            formData.unidad_id
+                                                ? String(formData.unidad_id)
+                                                : undefined
+                                        }
+                                        onValueChange={(value) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                unidad_id: value,
+                                            }))
+                                        }
+                                    >
+                                        <SelectTrigger className="flex-1">
+                                            <SelectValue placeholder="Seleccione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {unidades.map((unidad) => (
+                                                <SelectItem
+                                                    key={unidad.id}
+                                                    value={unidad.id.toString()}
+                                                >
+                                                    {unidad.nombre}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setShowUnidadModal(true)}
+                                        className="shrink-0"
+                                        title="Nueva unidad"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </ModalField>
                         </div>
 
@@ -649,6 +677,31 @@ export default function ProductoModal({
                     </div>
                 </div>
             </ModalForm>
+
+            {/* Modales rápidos */}
+            <CategoriaQuickModal
+                isOpen={showCategoriaModal}
+                onClose={() => setShowCategoriaModal(false)}
+                onSuccess={(nuevaCategoria) => {
+                    fetchCategorias();
+                    setFormData((prev) => ({
+                        ...prev,
+                        categoria_id: nuevaCategoria.id.toString(),
+                    }));
+                }}
+            />
+
+            <UnidadQuickModal
+                isOpen={showUnidadModal}
+                onClose={() => setShowUnidadModal(false)}
+                onSuccess={(nuevaUnidad) => {
+                    fetchUnidades();
+                    setFormData((prev) => ({
+                        ...prev,
+                        unidad_id: nuevaUnidad.id.toString(),
+                    }));
+                }}
+            />
         </Modal>
     );
 }

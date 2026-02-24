@@ -21,6 +21,13 @@ export const useVentaForm = (ventaId = null) => {
     const [showMultipleSearch, setShowMultipleSearch] = useState(false);
     const [showPrintModal, setShowPrintModal] = useState(false);
     const [ventaGuardada, setVentaGuardada] = useState(null);
+    const [metodoPago, setMetodoPago] = useState({
+        id_tipo_pago: '1',
+        numero_operacion: '',
+        banco: '',
+        voucher_file: null,
+        voucher_preview: null,
+    });
     
     const [productoActual, setProductoActual] = useState({
         id_producto: null,
@@ -341,20 +348,57 @@ export const useVentaForm = (ventaId = null) => {
         try {
             const token = localStorage.getItem('auth_token');
             const totales = calcularTotales();
-            
+
             const dataToSend = prepararDatosVenta(cliente, formData, productos, totales);
 
             const url = isEditing ? `/api/ventas/${ventaId}` : '/api/ventas';
             const method = isEditing ? 'PUT' : 'POST';
 
+            // Usar FormData para soportar subida de voucher
+            const formDataObj = new FormData();
+
+            // Agregar todos los campos de la venta
+            Object.keys(dataToSend).forEach(key => {
+                if (key === 'productos') {
+                    dataToSend.productos.forEach((prod, i) => {
+                        Object.keys(prod).forEach(pk => {
+                            formDataObj.append(`productos[${i}][${pk}]`, prod[pk]);
+                        });
+                    });
+                } else if (key === 'empresas_ids') {
+                    (dataToSend.empresas_ids || []).forEach((id, i) => {
+                        formDataObj.append(`empresas_ids[${i}]`, id);
+                    });
+                } else if (dataToSend[key] !== null && dataToSend[key] !== undefined) {
+                    formDataObj.append(key, dataToSend[key]);
+                }
+            });
+
+            // Agregar datos de pago
+            formDataObj.append('pago_id_tipo_pago', metodoPago.id_tipo_pago);
+            if (metodoPago.numero_operacion) {
+                formDataObj.append('pago_numero_operacion', metodoPago.numero_operacion);
+            }
+            if (metodoPago.banco) {
+                formDataObj.append('pago_banco', metodoPago.banco);
+            }
+            if (metodoPago.voucher_file) {
+                formDataObj.append('pago_voucher', metodoPago.voucher_file);
+            }
+
+            // Para PUT con FormData, usar POST + _method
+            const actualMethod = isEditing ? 'POST' : 'POST';
+            if (isEditing) {
+                formDataObj.append('_method', 'PUT');
+            }
+
             const response = await fetch(url, {
-                method,
+                method: actualMethod,
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
                     Accept: 'application/json',
                 },
-                body: JSON.stringify(dataToSend),
+                body: formDataObj,
             });
 
             const data = await response.json();
@@ -406,14 +450,16 @@ export const useVentaForm = (ventaId = null) => {
         showMultipleSearch,
         showPrintModal,
         ventaGuardada,
-        
+        metodoPago,
+
         // Setters
         setCliente,
         setProductos,
         setProductoActual,
         setFormData,
         setShowMultipleSearch,
-        
+        setMetodoPago,
+
         // Handlers
         handleClienteSelect,
         handleProductSelect,

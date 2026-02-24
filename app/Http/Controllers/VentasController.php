@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Venta;
 use App\Models\ProductoVenta;
 use App\Models\VentaServicio;
+use App\Models\VentaPago;
 use App\Models\Cliente;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class VentasController extends Controller
@@ -22,12 +24,13 @@ class VentasController extends Controller
         try {
             $user = $request->user();
 
-            $ventas = Venta::with(['cliente', 'tipoDocumento'])
+            $ventas = Venta::with(['cliente', 'tipoDocumento', 'pagos'])
                 ->where('id_empresa', $user->id_empresa)
                 ->orderBy('fecha_emision', 'desc')
                 ->orderBy('numero', 'desc')
                 ->get()
                 ->map(function ($venta) {
+                    $pago = $venta->pagos->first();
                     return [
                         'id_venta' => $venta->id_venta,
                         'id_tido' => $venta->id_tido,
@@ -45,6 +48,8 @@ class VentasController extends Controller
                         'igv' => $venta->igv,
                         'total' => $venta->total,
                         'tipo_moneda' => $venta->tipo_moneda,
+                        'id_tipo_pago' => $venta->id_tipo_pago,
+                        'metodo_pago' => $pago ? $pago->id_tipo_pago : null,
                         'estado' => $venta->estado,
                         'estado_sunat' => $venta->estado_sunat,
                     ];
@@ -71,6 +76,7 @@ class VentasController extends Controller
         try {
             $validated = $request->validate([
                 'id_tido' => 'required|integer|exists:documentos_sunat,id_tido',
+                'id_tipo_pago' => 'nullable|integer',
                 'id_cliente' => 'nullable|integer|exists:clientes,id_cliente',
                 'cliente_documento' => 'required_without:id_cliente|string|max:11',
                 'cliente_datos' => 'required_without:id_cliente|string|max:250',
@@ -84,6 +90,7 @@ class VentasController extends Controller
                 'tipo_moneda' => 'required|in:PEN,USD',
                 'afecta_stock' => 'nullable|boolean',
                 'cotizacion_id' => 'nullable|integer|exists:cotizaciones,id',
+                'nota_venta_id' => 'nullable|integer|exists:ventas,id_venta',
                 'empresas_ids' => 'nullable|array',
                 'empresas_ids.*' => 'integer|exists:empresas,id_empresa',
                 'productos' => 'required|array|min:1',
@@ -93,6 +100,10 @@ class VentasController extends Controller
                 'productos.*.subtotal' => 'required|numeric|min:0',
                 'productos.*.igv' => 'required|numeric|min:0',
                 'productos.*.total' => 'required|numeric|min:0',
+                'pago_id_tipo_pago' => 'nullable|integer',
+                'pago_numero_operacion' => 'nullable|string|max:50',
+                'pago_banco' => 'nullable|string|max:100',
+                'pago_voucher' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             ], [
                 'id_tido.required' => 'El tipo de documento es obligatorio.',
                 'cliente_documento.required_without' => 'El documento del cliente es obligatorio.',
@@ -139,6 +150,7 @@ class VentasController extends Controller
                 // Crear venta
                 $venta = Venta::create([
                     'id_tido' => $validated['id_tido'],
+                    'id_tipo_pago' => $validated['id_tipo_pago'] ?? 1,
                     'id_cliente' => $idCliente,
                     'fecha_emision' => $validated['fecha_emision'],
                     'serie' => $validated['serie'],
@@ -155,6 +167,7 @@ class VentasController extends Controller
                     'fecha_registro' => now(),
                     'direccion' => '',
                     'cotizacion_id' => $validated['cotizacion_id'] ?? null,
+                    'nota_venta_id' => $validated['nota_venta_id'] ?? null,
                 ]);
                 
                 $afectaStock = $validated['afecta_stock'] ?? true;
@@ -188,11 +201,40 @@ class VentasController extends Controller
                     $venta->empresas()->attach($validated['empresas_ids']);
                 }
 
+                // Guardar pago si viene info de método de pago
+                if ($request->has('pago_id_tipo_pago') && $request->pago_id_tipo_pago) {
+                    $voucherPath = null;
+                    if ($request->hasFile('pago_voucher')) {
+                        $file = $request->file('pago_voucher');
+                        $filename = 'voucher_' . $venta->id_venta . '_' . time() . '.' . $file->getClientOriginalExtension();
+                        $voucherPath = $file->storeAs('vouchers', $filename, 'public');
+                    }
+
+                    VentaPago::create([
+                        'id_venta' => $venta->id_venta,
+                        'id_tipo_pago' => $request->pago_id_tipo_pago,
+                        'monto' => $venta->total,
+                        'fecha_pago' => $venta->fecha_emision,
+                        'numero_operacion' => $request->pago_numero_operacion,
+                        'banco' => $request->pago_banco,
+                        'voucher' => $voucherPath,
+                        'tipo_moneda' => $venta->tipo_moneda,
+                    ]);
+                }
+
                 // Si viene de una cotización → cambiar su estado a 'aprobada'
                 if (!empty($validated['cotizacion_id'])) {
                     \App\Models\Cotizacion::where('id', $validated['cotizacion_id'])
                         ->where('id_empresa', $user->id_empresa)
                         ->update(['estado' => 'aprobada']);
+                }
+
+                // Si viene de una nota de venta → marcar como 'vendida' (estado 3)
+                if (!empty($validated['nota_venta_id'])) {
+                    Venta::where('id_venta', $validated['nota_venta_id'])
+                        ->where('id_empresa', $user->id_empresa)
+                        ->where('id_tido', 6) // Solo notas de venta
+                        ->update(['estado' => '3']);
                 }
 
                 return response()->json([

@@ -18,6 +18,7 @@ class VentaPago extends Model
         'fecha_pago',
         'banco',
         'observaciones',
+        'voucher',
         'tipo_moneda',
         'tipo_cambio',
         'monto_moneda_origen',

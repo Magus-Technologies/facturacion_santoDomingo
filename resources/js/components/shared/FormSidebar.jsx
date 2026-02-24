@@ -27,6 +27,7 @@ export default function FormSidebar({
     showTipoPago = false,
     showAsunto = false,
     showCuotas = false,
+    showEmpresas = true,
     onOpenPaymentSchedule,
     tipoDocumentoLabel = "Tipo Documento",
     tipoContexto = "venta", // 'venta', 'compra', 'cotizacion'
@@ -64,27 +65,29 @@ export default function FormSidebar({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow  p-6 space-y-4">
+        <div className="bg-white rounded-lg shadow p-6 space-y-3">
             {/* Empresas */}
-            <div>
-                <Label className="block text-sm font-medium mb-2">
-                    Empresa(s) que Factura(n)
-                </Label>
-                <SelectEmpresas
-                    value={
-                        Array.isArray(formData.empresas_ids)
-                            ? formData.empresas_ids
-                            : []
-                    }
-                    onChange={(value) => handleChange("empresas_ids", value)}
-                    multiple={true}
-                />
-            </div>
+            {showEmpresas && (
+                <div>
+                    <Label className="block text-xs font-medium mb-1">
+                        Empresa(s) que Factura(n)
+                    </Label>
+                    <SelectEmpresas
+                        value={
+                            Array.isArray(formData.empresas_ids)
+                                ? formData.empresas_ids
+                                : []
+                        }
+                        onChange={(value) => handleChange("empresas_ids", value)}
+                        multiple={true}
+                    />
+                </div>
+            )}
 
-            {/* Tipo de Documento y Tipo de Pago */}
+            {/* Tipo de Documento y Serie */}
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <Label className="block text-sm font-medium mb-2">
+                    <Label className="block text-xs font-medium mb-1">
                         {tipoDocumentoLabel}
                     </Label>
                     <SelectTipoDocumento
@@ -95,46 +98,44 @@ export default function FormSidebar({
                     />
                 </div>
 
-                {showTipoPago && (
-                    <div>
-                        <Label className="block text-sm font-medium mb-2">
-                            Tipo Pago
-                        </Label>
-                        <SelectTipoPago
-                            value={formData.tipo_pago}
-                            onValueChange={(value) =>
-                                handleChange("tipo_pago", value)
-                            }
-                        />
-                    </div>
-                )}
-
-                {!showTipoPago && (
-                    <div>
-                        <Label className="block text-sm font-medium mb-2">
-                            Serie
-                        </Label>
-                        <Input
-                            type="text"
-                            value={formData.serie}
-                            readOnly
-                            className="bg-gray-50 font-medium"
-                        />
-                    </div>
-                )}
+                <div>
+                    <Label className="block text-xs font-medium mb-1">
+                        Serie
+                    </Label>
+                    <Input
+                        type="text"
+                        value={formData.serie}
+                        readOnly
+                        className="bg-gray-50 font-medium"
+                    />
+                </div>
             </div>
+
+            {/* Tipo Pago: Contado / Crédito (solo si showTipoPago) */}
+            {showTipoPago && (
+                <div>
+                    <Label className="block text-xs font-medium mb-1">
+                        Condición de Pago
+                    </Label>
+                    <SelectTipoPago
+                        value={formData.tipo_pago || formData.id_tipo_pago}
+                        onValueChange={(value) => {
+                            onFormDataChange({
+                                ...formData,
+                                tipo_pago: value,
+                                id_tipo_pago: value,
+                            });
+                        }}
+                    />
+                </div>
+            )}
 
             {/* Afecta Stock (solo para Notas de Venta) */}
             {formData.id_tido === "6" && (
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="space-y-0.5">
-                        <Label className="text-sm font-semibold text-blue-900">
-                            Afectar Stock
-                        </Label>
-                        <p className="text-xs text-blue-700">
-                            ¿Descontar del almacén?
-                        </p>
-                    </div>
+                <div className="flex items-center justify-between px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
+                    <Label className="text-xs font-semibold text-blue-900">
+                        Afectar Stock
+                    </Label>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
                             type="checkbox"
@@ -144,7 +145,7 @@ export default function FormSidebar({
                                 handleChange("afecta_stock", e.target.checked)
                             }
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                 </div>
             )}
@@ -152,7 +153,7 @@ export default function FormSidebar({
             {/* Cuotas (solo para crédito) */}
             {showCuotas && formData.tipo_pago === "2" && (
                 <div>
-                    <Label className="block text-sm font-medium mb-2">
+                    <Label className="block text-xs font-medium mb-1">
                         Cuotas
                     </Label>
                     <div className="flex gap-2">
@@ -189,8 +190,8 @@ export default function FormSidebar({
             {/* Fecha y Número */}
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <Label className="block text-sm font-medium mb-2">
-                        Fecha {showTipoPago ? "" : "Emisión"}
+                    <Label className="block text-xs font-medium mb-1">
+                        Fecha Emisión
                     </Label>
                     <Input
                         type="date"
@@ -204,8 +205,8 @@ export default function FormSidebar({
                     />
                 </div>
                 <div>
-                    <Label className="block text-sm font-medium mb-2">
-                        N° {showTipoPago ? "" : "Documento"}
+                    <Label className="block text-xs font-medium mb-1">
+                        N° Documento
                     </Label>
                     <Input
                         type="text"
@@ -219,7 +220,7 @@ export default function FormSidebar({
             {/* Moneda y Tipo de Cambio */}
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <Label className="block text-sm font-medium mb-2">
+                    <Label className="block text-xs font-medium mb-1">
                         Moneda
                     </Label>
                     <SelectMoneda
@@ -238,7 +239,7 @@ export default function FormSidebar({
                     />
                 </div>
                 <div>
-                    <Label className="block text-sm font-medium mb-2">
+                    <Label className="block text-xs font-medium mb-1">
                         T. Cambio
                     </Label>
                     <Input
@@ -253,10 +254,10 @@ export default function FormSidebar({
             </div>
 
             {/* IGV (solo para cotizaciones) */}
-            {showTipoPago && (
+            {tipoContexto === "cotizacion" && (
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <Label className="block text-sm font-medium mb-2">
+                        <Label className="block text-xs font-medium mb-1">
                             IGV
                         </Label>
                         <Select
@@ -287,6 +288,9 @@ export default function FormSidebar({
                 />
             </div>
 
+            {/* Contenido adicional (Método de Pago, etc.) */}
+            {children}
+
             {/* Totales */}
             <div className="pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
@@ -301,18 +305,15 @@ export default function FormSidebar({
                         {monedaSimbolo} {totales.igv.toFixed(2)}
                     </span>
                 </div>
-                <div className="bg-primary-600 rounded-lg p-4 text-center text-white mt-4">
-                    <div className="text-3xl font-bold mb-1">
+                <div className="bg-primary-600 rounded-lg p-3 text-center text-white mt-2">
+                    <div className="text-2xl font-bold">
                         {monedaSimbolo} {totales.total.toFixed(2)}
                     </div>
-                    <div className="text-sm uppercase">
-                        {showTipoPago ? "Suma Pedido" : "Total a Pagar"}
+                    <div className="text-xs uppercase">
+                        {tipoContexto === "cotizacion" ? "Suma Pedido" : "Total a Pagar"}
                     </div>
                 </div>
             </div>
-
-            {/* Contenido adicional */}
-            {children}
         </div>
     );
 }

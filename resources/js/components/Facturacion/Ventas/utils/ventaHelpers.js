@@ -85,6 +85,10 @@ export const getEstadoBadge = (estado) => {
             color: 'bg-red-100 text-red-800',
             text: 'Anulada',
         },
+        '3': {
+            color: 'bg-blue-100 text-blue-800',
+            text: 'Vendida',
+        },
     };
 
     return badges[estado] || {
@@ -142,6 +146,7 @@ export const validarCliente = (cliente, formData) => {
 export const prepararDatosVenta = (cliente, formData, productos, totales) => {
     return {
         id_tido: parseInt(formData.id_tido),
+        id_tipo_pago: parseInt(formData.id_tipo_pago || formData.tipo_pago || 1),
         id_cliente: cliente?.id_cliente || null,
         cliente_documento: formData.num_doc,
         cliente_datos: formData.nom_cli,
@@ -155,7 +160,8 @@ export const prepararDatosVenta = (cliente, formData, productos, totales) => {
         tipo_moneda: formData.tipo_moneda,
         tipo_cambio: parseFloat(formData.tipo_cambio),
         afecta_stock: formData.id_tido === '6' ? formData.afecta_stock : true,
-        cotizacion_id: formData.cotizacion_id || null, // Agregar ID de cotización si existe
+        cotizacion_id: formData.cotizacion_id || null,
+        nota_venta_id: formData.nota_venta_id || null,
         empresas_ids: formData.empresas_ids || [],
         productos: productos.map((p) => {
             const cantidad = parseFloat(p.cantidad);

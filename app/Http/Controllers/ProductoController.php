@@ -20,7 +20,8 @@ class ProductoController extends Controller
             $productos = $this->productoService->listar(
                 $user->id_empresa,
                 $request->get('almacen', '1'),
-                $request->get('search')
+                $request->get('search'),
+                $request->boolean('solo_con_stock', false)
             );
 
             return response()->json(['success' => true, 'data' => $productos]);

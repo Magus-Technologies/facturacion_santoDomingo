@@ -14,6 +14,7 @@ export default function ProductSearchInput({
     showScanner = false,
     className = "",
     showCosto = false, // Nuevo prop para mostrar costo en lugar de precio
+    soloConStock = false, // Filtrar solo productos con stock > 0
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [products, setProducts] = useState([]);
@@ -47,7 +48,7 @@ export default function ProductSearchInput({
 
             // Buscar en productos
             const response = await fetch(
-                `/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}`,
+                `/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}${soloConStock ? '&solo_con_stock=1' : ''}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

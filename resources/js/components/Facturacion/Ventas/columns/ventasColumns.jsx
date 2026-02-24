@@ -10,6 +10,11 @@ import {
     FileCode,
     Send,
     Truck,
+    Banknote,
+    CreditCard,
+    Building2,
+    Smartphone,
+    ShoppingCart,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -211,6 +216,43 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                 </span>
             ),
         },
+        {
+            accessorKey: "id_tipo_pago",
+            header: "Condición",
+            cell: ({ row }) => {
+                const tipo = row.getValue("id_tipo_pago");
+                const esContado = tipo === 1 || tipo === "1" || !tipo;
+                return (
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                        esContado ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                    }`}>
+                        {esContado ? "Contado" : "Crédito"}
+                    </span>
+                );
+            },
+        },
+        {
+            accessorKey: "metodo_pago",
+            header: "Método Pago",
+            cell: ({ row }) => {
+                const metodo = row.getValue("metodo_pago");
+                const config = {
+                    1: { label: "Efectivo", icon: Banknote, color: "text-green-600" },
+                    2: { label: "Tarjeta", icon: CreditCard, color: "text-blue-600" },
+                    4: { label: "Transfer.", icon: Building2, color: "text-purple-600" },
+                    5: { label: "Yape/Plin", icon: Smartphone, color: "text-pink-600" },
+                };
+                const info = config[metodo];
+                if (!info) return <span className="text-xs text-gray-400">—</span>;
+                const Icon = info.icon;
+                return (
+                    <span className={`inline-flex items-center gap-1 text-xs font-medium ${info.color}`}>
+                        <Icon className="h-3.5 w-3.5" />
+                        {info.label}
+                    </span>
+                );
+            },
+        },
         ...(!ocultarSunat
             ? [
                   {
@@ -244,6 +286,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                 const iconos = {
                     Activa: <CheckCircle className="h-3 w-3" />,
                     Anulada: <XCircle className="h-3 w-3" />,
+                    Vendida: <ShoppingCart className="h-3 w-3" />,
                     Pendiente: <Clock className="h-3 w-3" />,
                 };
                 return (
@@ -263,6 +306,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                 const venta = row.original;
                 const estaAnulada =
                     venta.estado === "2" || venta.estado === "A";
+                const estaVendida = venta.estado === "3";
 
                 return (
                     <div className="flex items-center gap-1 justify-end md:justify-start">
@@ -290,6 +334,20 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                             >
                                 <Printer className="h-4 w-4 text-gray-600" />
                             </Button>
+                            {!estaAnulada && !estaVendida && ocultarSunat && handlers.handleConvertirNota && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleConvertirNota(venta);
+                                    }}
+                                    title="Convertir a Boleta/Factura"
+                                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                >
+                                    <ShoppingCart className="h-4 w-4" />
+                                </Button>
+                            )}
                             {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
                                 <Button
                                     variant="ghost"
@@ -332,7 +390,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                     <Truck className="h-4 w-4" />
                                 </Button>
                             )}
-                            {!estaAnulada && (
+                            {!estaAnulada && !estaVendida && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -383,6 +441,18 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                         <Printer className="mr-2 h-4 w-4 text-gray-600" />
                                         Imprimir PDF
                                     </DropdownMenuItem>
+                                    {!estaAnulada && !estaVendida && ocultarSunat && handlers.handleConvertirNota && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleConvertirNota(venta);
+                                            }}
+                                            className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700"
+                                        >
+                                            <ShoppingCart className="mr-2 h-4 w-4" />
+                                            Convertir a Venta
+                                        </DropdownMenuItem>
+                                    )}
                                     {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
@@ -419,7 +489,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                             Guía de Remisión
                                         </DropdownMenuItem>
                                     )}
-                                    {!estaAnulada && (
+                                    {!estaAnulada && !estaVendida && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();

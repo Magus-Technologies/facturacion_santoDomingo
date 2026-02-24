@@ -81,6 +81,13 @@ export default function VentasList() {
         window.location.href = `/guia-remision/add?venta_id=${venta.id_venta}`;
     };
 
+    const handleConvertirNota = (venta) => {
+        // Determinar tipo según documento del cliente
+        const doc = (venta.cliente?.documento || "").trim();
+        const tipoVenta = doc.length === 11 ? "factura" : "boleta";
+        window.location.href = `/ventas/productos?tipo=${tipoVenta}&nota_venta_id=${venta.id_venta}`;
+    };
+
     // Generar columnas con los handlers
     const columns = getVentasColumns(
         {
@@ -90,6 +97,7 @@ export default function VentasList() {
             handleGenerarYEnviar,
             handleVerXml,
             handleGenerarGuia,
+            handleConvertirNota,
         },
         filtroTipo === "6",
     ); // Ocultar columna Sunat si es nota de venta

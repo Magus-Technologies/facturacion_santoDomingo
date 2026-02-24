@@ -9,6 +9,7 @@ import FormSidebar from "../../shared/FormSidebar";
 import ProductosTable from "../../shared/ProductosTable";
 import ProductoFormSection from "../../shared/ProductoFormSection";
 import PrintOptionsModal from "../../shared/PrintOptionsModal";
+import MetodoPago from "../../shared/MetodoPago";
 
 // Hook personalizado
 import { useVentaForm } from "./hooks/useVentaForm";
@@ -42,6 +43,8 @@ export default function VentaForm({ ventaId = null }) {
         handleClosePrintModal,
         obtenerProximoNumero,
         calcularTotales,
+        metodoPago,
+        setMetodoPago,
     } = useVentaForm(ventaId);
 
     // Leer parámetros de la URL: tipo y cotizacion_id
@@ -50,6 +53,7 @@ export default function VentaForm({ ventaId = null }) {
             const urlParams = new URLSearchParams(window.location.search);
             const tipoParam = urlParams.get("tipo");
             const cotizacionIdParam = urlParams.get("cotizacion_id");
+            const notaVentaIdParam = urlParams.get("nota_venta_id");
 
             const tipoMap = { boleta: "1", factura: "2", nota: "6" };
             const serieMap = { boleta: "B001", factura: "F001", nota: "NV01" };
@@ -64,7 +68,8 @@ export default function VentaForm({ ventaId = null }) {
                     id_tido: idTido,
                     serie: serie,
                     _tipoFijo: !!tipoParam,
-                    cotizacion_id: cotizacionIdParam || null, // Guardar ID para el guardado
+                    cotizacion_id: cotizacionIdParam || null,
+                    nota_venta_id: notaVentaIdParam || null,
                 }));
                 obtenerProximoNumero(serie);
             }
@@ -140,6 +145,66 @@ export default function VentaForm({ ventaId = null }) {
                     }
                 };
                 fetchCotizacion();
+            }
+
+            // Si hay nota_venta_id, cargar datos desde la API de ventas
+            if (notaVentaIdParam) {
+                const fetchNotaVenta = async () => {
+                    try {
+                        const token = localStorage.getItem("auth_token");
+                        const response = await fetch(
+                            `/api/ventas/${notaVentaIdParam}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    Accept: "application/json",
+                                },
+                            },
+                        );
+                        const data = await response.json();
+
+                        if (data.success) {
+                            const nv = data.venta;
+                            const clienteObj = nv.cliente || {};
+
+                            setFormData((prev) => ({
+                                ...prev,
+                                id_tido: prev.id_tido,
+                                serie: prev.serie,
+                                nota_venta_id: nv.id_venta,
+                                num_doc: clienteObj.documento || "",
+                                nom_cli: clienteObj.datos || "",
+                                dir_cli: clienteObj.direccion || nv.direccion || "",
+                                tipo_moneda: nv.tipo_moneda || "PEN",
+                                aplicar_igv: true,
+                            }));
+
+                            if (clienteObj.id_cliente) {
+                                setCliente(clienteObj);
+                            }
+
+                            // Cargar productos de la nota de venta
+                            const detalles = nv.productos_ventas || [];
+                            if (detalles.length > 0) {
+                                setProductos(
+                                    detalles.map((d) => ({
+                                        id_producto: d.id_producto,
+                                        codigo: d.producto?.codigo || "",
+                                        descripcion: d.producto?.nombre || "",
+                                        cantidad: parseFloat(d.cantidad) || 1,
+                                        precioVenta: parseFloat(d.precio_unitario) || 0,
+                                        precio_mostrado: parseFloat(d.precio_unitario) || 0,
+                                        tipo_precio: "precio",
+                                        moneda: nv.tipo_moneda || "PEN",
+                                    })),
+                                );
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error cargando nota de venta:", error);
+                    }
+                };
+                fetchNotaVenta();
             }
 
             if (!tipoParam) {
@@ -276,6 +341,7 @@ export default function VentaForm({ ventaId = null }) {
                                 }
                             }}
                             disableAlmacenSelector={!!formData.id_tido}
+                            soloConStock={formData.id_tido !== "6"}
                         />
 
                         <div>
@@ -310,11 +376,18 @@ export default function VentaForm({ ventaId = null }) {
                         onClienteSelect={handleClienteSelect}
                         totales={totales}
                         monedaSimbolo={monedaSimbolo}
-                        showTipoPago={false}
+                        showTipoPago={true}
                         showAsunto={false}
+                        showEmpresas={false}
                         tipoContexto="venta"
                         disableTipoDoc={formData._tipoFijo}
-                    />
+                    >
+                        <MetodoPago
+                            metodoPago={metodoPago}
+                            onMetodoPagoChange={setMetodoPago}
+                            condicionPago={formData.id_tipo_pago || formData.tipo_pago || "1"}
+                        />
+                    </FormSidebar>
                 </div>
             </div>
 

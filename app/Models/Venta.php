@@ -51,6 +51,7 @@ class Venta extends Model
         'id_usuario',
         'fecha_registro',
         'cotizacion_id',
+        'nota_venta_id',
     ];
 
     protected $casts = [

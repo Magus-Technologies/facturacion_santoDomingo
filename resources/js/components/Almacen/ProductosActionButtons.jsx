@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/sweetalert";
-import { loading } from "@/lib/sweetalert";
 import {
     Plus,
     FileSpreadsheet,
@@ -10,6 +9,7 @@ import {
     History,
     Ruler,
     FolderOpen,
+    Loader2,
 } from "lucide-react";
 import UnidadesModal from "../UnidadesModal";
 import CategoriasModal from "../CategoriasModal";
@@ -20,10 +20,10 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
     const [isUnidadesModalOpen, setIsUnidadesModalOpen] = useState(false);
     const [isCategoriasModalOpen, setIsCategoriasModalOpen] = useState(false);
     const [isImportarExcelModalOpen, setIsImportarExcelModalOpen] = useState(false);
+    const [loadingExcel, setLoadingExcel] = useState(false);
 
     const handleExcelBusqueda = () => {
-        // Mostrar loader
-        loading.show("Generando Excel...");
+        setLoadingExcel(true);
         
         const token = localStorage.getItem("auth_token");
         const url = `/api/productos/descargar-excel?almacen=${almacenActivo}&texto=${encodeURIComponent(busqueda || '')}`;
@@ -50,18 +50,14 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            // Cerrar loader y mostrar éxito
-            loading.close();
-            setTimeout(() => {
-                toast.success("Excel descargado exitosamente");
-            }, 300);
+            toast.success("Excel descargado exitosamente");
         })
         .catch(error => {
             console.error("Error:", error);
-            loading.close();
-            setTimeout(() => {
-                toast.error("Error al descargar Excel");
-            }, 300);
+            toast.error("Error al descargar Excel");
+        })
+        .finally(() => {
+            setLoadingExcel(false);
         });
     };
 
@@ -91,8 +87,13 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                         size="sm"
                         className="gap-2"
                         onClick={handleExcelBusqueda}
+                        disabled={loadingExcel}
                     >
-                        <FileSpreadsheet className="h-4 w-4" />
+                        {loadingExcel ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <FileSpreadsheet className="h-4 w-4" />
+                        )}
                         <span className="hidden sm:inline">Descargar Excel</span>
                     </Button>
                     <PermissionGuard permission="productos.create">

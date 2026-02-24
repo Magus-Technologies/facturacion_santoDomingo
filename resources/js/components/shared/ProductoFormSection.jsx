@@ -34,6 +34,7 @@ export default function ProductoFormSection({
     almacen = "1",
     onAlmacenChange,
     disableAlmacenSelector = false,
+    soloConStock = false,
 }) {
     return (
         <form onSubmit={onAddProducto} className="space-y-4 mb-8">
@@ -57,6 +58,7 @@ export default function ProductoFormSection({
                         onProductSelect={onProductSelect}
                         almacen={almacen}
                         showCosto={showCosto}
+                        soloConStock={soloConStock}
                     />
                 </div>
 

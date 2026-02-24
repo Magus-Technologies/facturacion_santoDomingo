@@ -7,6 +7,7 @@ import ListaProductosModal from "./ListaProductosModal";
 
 export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
     const [loading, setLoading] = useState(false);
+    const [loadingPlantilla, setLoadingPlantilla] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [productosLeidos, setProductosLeidos] = useState([]);
@@ -91,6 +92,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
     };
 
     const handleDescargarPlantilla = async () => {
+        setLoadingPlantilla(true);
         try {
             const token = localStorage.getItem("auth_token");
             const response = await fetch("/api/productos/plantilla-excel", {
@@ -116,6 +118,8 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
         } catch (error) {
             console.error("Error:", error);
             toast.error("Error de conexión al servidor");
+        } finally {
+            setLoadingPlantilla(false);
         }
     };
 
@@ -191,9 +195,14 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
                             variant="outline"
                             size="sm"
                             onClick={handleDescargarPlantilla}
+                            disabled={loadingPlantilla}
                             className="gap-2 border-primary-600 text-primary-600 hover:bg-primary-50"
                         >
-                            <Download className="h-4 w-4" />
+                            {loadingPlantilla ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Download className="h-4 w-4" />
+                            )}
                             plantilla.xlsx
                         </Button>
                     </div>

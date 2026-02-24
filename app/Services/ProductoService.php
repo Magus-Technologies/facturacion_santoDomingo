@@ -10,12 +10,16 @@ class ProductoService
     /**
      * Listar productos por almacén
      */
-    public function listar(int $idEmpresa, string $almacen, ?string $search = null)
+    public function listar(int $idEmpresa, string $almacen, ?string $search = null, bool $soloConStock = false)
     {
         $query = Producto::with(['categoria', 'unidad'])
             ->where('id_empresa', $idEmpresa)
             ->where('almacen', $almacen)
             ->where('estado', '1');
+
+        if ($soloConStock) {
+            $query->where('cantidad', '>', 0);
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -25,7 +29,14 @@ class ProductoService
             });
         }
 
-        return $query->orderBy('id_producto', 'desc')->limit(50)->get();
+        $query->orderBy('id_producto', 'desc');
+
+        // Limitar solo cuando es búsqueda (autocomplete), sin búsqueda devolver todo
+        if ($search) {
+            $query->limit(50);
+        }
+
+        return $query->get();
     }
 
     /**

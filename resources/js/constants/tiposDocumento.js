@@ -33,11 +33,7 @@ export const TIPOS_DOCUMENTO_VENTA = [
  */
 export const TIPOS_DOCUMENTO_COMPRA = [
     { value: '2', label: 'FACTURA', codigo: '01' },
-    { value: '1', label: 'BOLETA', codigo: '03' },
-    { value: '3', label: 'NOTA DE CRÉDITO', codigo: '07' },
-    { value: '4', label: 'NOTA DE DÉBITO', codigo: '08' },
-    { value: '11', label: 'GUÍA DE REMISIÓN', codigo: '09' },
-    { value: '12', label: 'NOTA DE COMPRA', codigo: '00' },
+    { value: '13', label: 'DUA', codigo: '50' },
 ];
 
 export const TIPOS_DOCUMENTO_COTIZACION = [

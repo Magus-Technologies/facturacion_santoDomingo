@@ -3,9 +3,10 @@
  */
 
 /**
- * Calcula el subtotal de la venta
+ * Calcula el total bruto (precio con IGV × cantidad)
+ * Los precios de los productos YA incluyen IGV
  */
-export const calcularSubtotal = (productos) => {
+export const calcularTotalBruto = (productos) => {
     return productos.reduce((sum, producto) => {
         const cantidad = parseFloat(producto.cantidad || 0);
         const precio = parseFloat(producto.precioVenta || 0);
@@ -14,21 +15,29 @@ export const calcularSubtotal = (productos) => {
 };
 
 /**
+ * Calcula el subtotal (valor de venta sin IGV)
+ * El precio ya incluye IGV, se extrae dividiendo entre 1.18
+ */
+export const calcularSubtotal = (productos, aplicarIgv = true) => {
+    const totalBruto = calcularTotalBruto(productos);
+    if (!aplicarIgv) return totalBruto;
+    return totalBruto / 1.18;
+};
+
+/**
  * Calcula el IGV
  */
 export const calcularIGV = (productos, aplicarIgv) => {
     if (!aplicarIgv) return 0;
-    const subtotal = calcularSubtotal(productos);
-    return subtotal * 0.18;
+    const totalBruto = calcularTotalBruto(productos);
+    return totalBruto - (totalBruto / 1.18);
 };
 
 /**
- * Calcula el total de la venta
+ * Calcula el total de la venta (igual al total bruto, ya incluye IGV)
  */
 export const calcularTotal = (productos, aplicarIgv) => {
-    const subtotal = calcularSubtotal(productos);
-    const igv = calcularIGV(productos, aplicarIgv);
-    return subtotal + igv;
+    return calcularTotalBruto(productos);
 };
 
 /**
@@ -148,20 +157,23 @@ export const prepararDatosVenta = (cliente, formData, productos, totales) => {
         afecta_stock: formData.id_tido === '6' ? formData.afecta_stock : true,
         cotizacion_id: formData.cotizacion_id || null, // Agregar ID de cotización si existe
         empresas_ids: formData.empresas_ids || [],
-        productos: productos.map((p) => ({
-            id_producto: p.id_producto,
-            cantidad: parseFloat(p.cantidad),
-            precio_unitario: parseFloat(p.precioVenta),
-            subtotal: parseFloat(p.cantidad) * parseFloat(p.precioVenta),
-            igv: formData.aplicar_igv
-                ? parseFloat(p.cantidad) * parseFloat(p.precioVenta) * 0.18
-                : 0,
-            total:
-                parseFloat(p.cantidad) *
-                parseFloat(p.precioVenta) *
-                (formData.aplicar_igv ? 1.18 : 1),
-            unidad_medida: 'NIU',
-            tipo_afectacion_igv: formData.aplicar_igv ? '10' : '20',
-        })),
+        productos: productos.map((p) => {
+            const cantidad = parseFloat(p.cantidad);
+            const precioConIgv = parseFloat(p.precioVenta);
+            const lineaTotal = cantidad * precioConIgv;
+            const lineaSubtotal = formData.aplicar_igv ? lineaTotal / 1.18 : lineaTotal;
+            const lineaIgv = formData.aplicar_igv ? lineaTotal - lineaSubtotal : 0;
+
+            return {
+                id_producto: p.id_producto,
+                cantidad,
+                precio_unitario: precioConIgv,
+                subtotal: lineaSubtotal,
+                igv: lineaIgv,
+                total: lineaTotal,
+                unidad_medida: 'NIU',
+                tipo_afectacion_igv: formData.aplicar_igv ? '10' : '20',
+            };
+        }),
     };
 };

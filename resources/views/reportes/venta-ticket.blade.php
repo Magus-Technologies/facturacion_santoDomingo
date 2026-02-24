@@ -247,11 +247,24 @@
             </div>
         </div>
         
+        <!-- QR -->
+        @if(!empty($qrBase64))
+        <div style="text-align: center; margin: 8px 0;">
+            <img src="{{ $qrBase64 }}" style="width: 90px; height: 90px;" alt="QR">
+        </div>
+        @endif
+
         <div class="divider"></div>
-        
+
         <!-- Footer -->
         <div class="footer">
-            ¡Gracias por su compra!
+            <p style="margin-bottom: 4px;">{{ $venta->empresa->propaganda ?? '¡Gracias por su compra!' }}</p>
+            <p style="font-size: 6pt; margin-bottom: 2px;">
+                Representación impresa de la {{ strtoupper($venta->tipoDocumento->nombre ?? 'VENTA') }}
+            </p>
+            @if(!empty($consultaUrl))
+            <p style="font-size: 6pt;">Consulte su comprobante en: <strong>{{ $consultaUrl }}</strong></p>
+            @endif
         </div>
     </div>
 </body>

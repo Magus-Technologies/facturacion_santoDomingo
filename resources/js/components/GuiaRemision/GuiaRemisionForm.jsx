@@ -157,6 +157,13 @@ export default function GuiaRemisionForm() {
     useEffect(() => {
         fetchMotivos();
         fetchEmpresa();
+
+        // Si viene venta_id en la URL, cargar automáticamente
+        const params = new URLSearchParams(window.location.search);
+        const ventaId = params.get("venta_id");
+        if (ventaId) {
+            cargarVentaPorId(ventaId);
+        }
     }, []);
 
     const fetchMotivos = async () => {
@@ -183,6 +190,52 @@ export default function GuiaRemisionForm() {
         } catch (err) {
             console.error("Error cargando empresa:", err);
         }
+    };
+
+    const cargarVentaPorId = async (ventaId) => {
+        setBuscando(true);
+        try {
+            const res = await fetch(`/api/ventas/${ventaId}`, {
+                headers: getAuthHeaders(),
+            });
+            const data = await res.json();
+            const v = data.venta || data;
+
+            if (v && v.id_venta) {
+                setVenta(v);
+                setSerie(v.serie || "");
+                setNumero(String(v.numero || ""));
+
+                const cliente = v.cliente;
+                if (cliente) {
+                    const doc = cliente.documento || "";
+                    setDestinatario({
+                        tipo_doc: doc.length === 11 ? "6" : "1",
+                        documento: doc,
+                        nombre: cliente.datos || "",
+                        direccion: cliente.direccion || "",
+                        ubigeo: cliente.ubigeo || "",
+                    });
+                    setClienteNombre(cliente.datos || "");
+                }
+
+                const prods = v.productos_ventas || v.productosVentas || [];
+                if (prods.length > 0) {
+                    setDetalles(
+                        prods.map((p) => ({
+                            id_producto: p.id_producto || null,
+                            codigo: p.producto?.codigo || p.codigo_producto || "",
+                            descripcion: p.producto?.nombre || p.descripcion || "Producto",
+                            cantidad: String(p.cantidad || 1),
+                            unidad: p.unidad_medida || "NIU",
+                        }))
+                    );
+                }
+            }
+        } catch (err) {
+            console.error("Error cargando venta:", err);
+        }
+        setBuscando(false);
     };
 
     const handleBuscarVenta = async () => {

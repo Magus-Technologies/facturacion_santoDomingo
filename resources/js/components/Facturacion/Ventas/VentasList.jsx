@@ -78,8 +78,7 @@ export default function VentasList() {
     };
 
     const handleGenerarGuia = (venta) => {
-        // Placeholder - se implementará cuando se haga el módulo de Guía de Remisión
-        window.location.href = `/guia-remision?venta_id=${venta.id_venta}`;
+        window.location.href = `/guia-remision/add?venta_id=${venta.id_venta}`;
     };
 
     // Generar columnas con los handlers

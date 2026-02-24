@@ -92,8 +92,13 @@ class VentaPdfController extends Controller
                 "productosVentas.producto",
             ])->findOrFail($id);
 
+            // Generar QR
+            $qrString = QrHelper::buildQrStringVenta($venta);
+            $qrBase64 = QrHelper::generarQrBase64($qrString);
+            $consultaUrl = config('app.consulta_url');
+
             // Renderizar vista Blade a HTML
-            $html = view("reportes.venta-ticket", compact("venta"))->render();
+            $html = view("reportes.venta-ticket", compact("venta", "qrBase64", "consultaUrl"))->render();
 
             // Crear PDF con mPDF (8cm = 80mm de ancho)
             $mpdf = new Mpdf([

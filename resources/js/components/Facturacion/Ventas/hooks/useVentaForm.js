@@ -313,10 +313,10 @@ export const useVentaForm = (ventaId = null) => {
      * Calcula los totales de la venta
      */
     const calcularTotales = () => {
-        const subtotal = calcularSubtotal(productos);
+        const subtotal = calcularSubtotal(productos, formData.aplicar_igv);
         const igv = calcularIGV(productos, formData.aplicar_igv);
         const total = calcularTotal(productos, formData.aplicar_igv);
-        
+
         return { subtotal, igv, total };
     };
 

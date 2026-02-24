@@ -6,7 +6,8 @@ import {
     FileBadge,
     MoreHorizontal,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../../ui/button";
 import {
     DropdownMenu,
@@ -29,14 +30,24 @@ import { PermissionGuard } from "@/components/auth/PermissionGuard";
  */
 const DocumentCell = ({ compra }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef(null);
+    const triggerRef = useRef(null);
+    const dropdownRef = useRef(null);
+    const [pos, setPos] = useState({ top: 0, left: 0 });
 
-    // Cerrar al hacer click fuera
+    const updatePosition = useCallback(() => {
+        if (triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setPos({ top: rect.bottom + 4, left: rect.left });
+        }
+    }, []);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target)
+                triggerRef.current &&
+                !triggerRef.current.contains(event.target) &&
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
             ) {
                 setIsOpen(false);
             }
@@ -45,6 +56,11 @@ const DocumentCell = ({ compra }) => {
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const handleToggle = () => {
+        if (!isOpen) updatePosition();
+        setIsOpen(!isOpen);
+    };
 
     const handlePrint = (formato) => {
         const url =
@@ -56,10 +72,10 @@ const DocumentCell = ({ compra }) => {
     };
 
     return (
-        <div className="relative" ref={containerRef}>
+        <div ref={triggerRef}>
             <div
                 className="flex items-center gap-2 cursor-pointer group"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggle}
             >
                 <div className="p-1.5 rounded-md text-primary-600 group-hover:bg-primary-50 transition-colors">
                     <FileBadge className="h-4 w-4" />
@@ -69,8 +85,12 @@ const DocumentCell = ({ compra }) => {
                 </span>
             </div>
 
-            {isOpen && (
-                <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in duration-200 origin-top-left">
+            {isOpen && createPortal(
+                <div
+                    ref={dropdownRef}
+                    className="fixed w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-[9999] animate-in fade-in zoom-in duration-200 origin-top-left"
+                    style={{ top: pos.top, left: pos.left }}
+                >
                     <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold text-gray-400">
                         Opciones de Impresión
                     </div>
@@ -102,7 +122,8 @@ const DocumentCell = ({ compra }) => {
                             </div>
                         </div>
                     </button>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

@@ -8,6 +8,7 @@ import {
     ArrowLeftRight,
     History,
 } from "lucide-react";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 
 export default function VentasActionButtons({ onNuevaVenta }) {
@@ -155,13 +156,15 @@ export default function VentasActionButtons({ onNuevaVenta }) {
                 )}
                 
                 {/* Botón Nueva Venta/Factura/Boleta */}
-                <Button
-                    onClick={handleNuevaVenta}
-                    className="gap-2 ml-auto"
-                >
-                    <Plus className="h-5 w-5" />
-                    {getTextoBoton()}
-                </Button>
+                <PermissionGuard permission="ventas.create">
+                    <Button
+                        onClick={handleNuevaVenta}
+                        className="gap-2 ml-auto"
+                    >
+                        <Plus className="h-5 w-5" />
+                        {getTextoBoton()}
+                    </Button>
+                </PermissionGuard>
             </div>
         </>
     );

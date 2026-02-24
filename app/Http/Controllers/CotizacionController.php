@@ -19,9 +19,10 @@ class CotizacionController extends Controller
     {
         try {
             $user = $request->user();
+            $idEmpresa = $request->query('id_empresa') ?: ($request->header('X-Empresa-Id') ?: $user->id_empresa);
             
             $cotizaciones = DB::table('view_cotizaciones')
-                ->where('id_empresa', $user->id_empresa)
+                ->where('id_empresa', $idEmpresa)
                 ->orderBy('id', 'desc')
                 ->get();
             
@@ -108,22 +109,23 @@ class CotizacionController extends Controller
                 ->first();
             $numero = $ultimaCotizacion ? $ultimaCotizacion->numero + 1 : 1;
 
-            // Calcular totales
-            $subtotal = 0;
+            // Calcular totales considerando que los precios ya INCLUYEN IGV
+            $montoBruto = 0;
             foreach ($request->productos as $prod) {
                 $precio = $prod['precio_especial'] ?? $prod['precio_unitario'];
-                $subtotal += $precio * $prod['cantidad'];
+                $montoBruto += $precio * $prod['cantidad'];
             }
 
             $descuento = $request->descuento ?? 0;
-            $subtotalConDescuento = $subtotal - $descuento;
+            $total = $montoBruto - $descuento; // El Total final (incluyendo IGV si aplica)
             
             $igv = 0;
+            $subtotal = $total; // Base imponible
+
             if ($request->aplicar_igv) {
-                $igv = $subtotalConDescuento * 0.18;
+                $subtotal = $total / 1.18; // Operaciones Gravadas
+                $igv = $total - $subtotal;
             }
-            
-            $total = $subtotalConDescuento + $igv;
 
             // Crear cotización
             $cotizacion = Cotizacion::create([
@@ -232,22 +234,23 @@ class CotizacionController extends Controller
 
             DB::beginTransaction();
 
-            // Calcular totales
-            $subtotal = 0;
+            // Calcular totales considerando que los precios ya INCLUYEN IGV
+            $montoBruto = 0;
             foreach ($request->productos as $prod) {
                 $precio = $prod['precio_especial'] ?? $prod['precio_unitario'];
-                $subtotal += $precio * $prod['cantidad'];
+                $montoBruto += $precio * $prod['cantidad'];
             }
 
             $descuento = $request->descuento ?? 0;
-            $subtotalConDescuento = $subtotal - $descuento;
+            $total = $montoBruto - $descuento; // El Total final (incluyendo IGV si aplica)
             
             $igv = 0;
+            $subtotal = $total; // Base imponible
+
             if ($request->aplicar_igv) {
-                $igv = $subtotalConDescuento * 0.18;
+                $subtotal = $total / 1.18; // Operaciones Gravadas
+                $igv = $total - $subtotal;
             }
-            
-            $total = $subtotalConDescuento + $igv;
 
             // Actualizar cotización
             $datosActualizar = [

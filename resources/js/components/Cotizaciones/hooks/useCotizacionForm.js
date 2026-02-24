@@ -284,7 +284,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
     const calcularTotales = () => {
         const subtotal = calcularSubtotal(productos);
         const descuento = calcularDescuento(productos, formData.descuento_activado, formData.descuento_general);
-        const base = calcularBase(productos, formData.descuento_activado, formData.descuento_general);
+        const base = calcularBase(productos, formData.aplicar_igv, formData.descuento_activado, formData.descuento_general);
         const igv = calcularIGV(productos, formData.aplicar_igv, formData.descuento_activado, formData.descuento_general);
         const total = calcularTotal(productos, formData.aplicar_igv, formData.descuento_activado, formData.descuento_general);
         

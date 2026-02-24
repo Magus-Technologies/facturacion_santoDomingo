@@ -33,12 +33,12 @@ export const useCompraForm = (compraId = null) => {
     });
 
     const [formData, setFormData] = useState({
-        tipo_doc: '12', // 12=Orden de Compra
+        tipo_doc: '2', // Por defecto: Factura
         tipo_pago: '1', // 1=Contado, 2=Crédito
         fecha_emision: new Date().toISOString().split('T')[0],
         fecha_vencimiento: '',
-        serie: 'OC',
-        numero: '',
+        serie: '', // Vacío, el usuario lo ingresa
+        numero: '', // Vacío, el usuario lo ingresa
         moneda: 'PEN',
         ruc: '',
         razon_social: '',
@@ -51,9 +51,8 @@ export const useCompraForm = (compraId = null) => {
     useEffect(() => {
         if (isEditing) {
             cargarCompra();
-        } else {
-            obtenerProximoNumero();
         }
+        // No llamar a obtenerProximoNumero - el usuario ingresa los datos manualmente
     }, [compraId]);
 
     /**
@@ -98,6 +97,7 @@ export const useCompraForm = (compraId = null) => {
                 
                 setFormData(prev => ({
                     ...prev,
+                    tipo_doc: compra.id_tido?.toString() || '2',
                     fecha_emision: compra.fecha_emision,
                     fecha_vencimiento: compra.fecha_vencimiento || '',
                     numero: compra.numero,
@@ -114,27 +114,6 @@ export const useCompraForm = (compraId = null) => {
             toast.error('Error al cargar la compra');
         } finally {
             setLoading(false);
-        }
-    };
-
-    /**
-     * Obtiene el próximo número de compra
-     */
-    const obtenerProximoNumero = async () => {
-        try {
-            const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/compras/proximo-numero?serie=${formData.serie}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setFormData(prev => ({ ...prev, numero: data.numero }));
-            }
-        } catch (error) {
-            console.error('Error obteniendo número:', error);
         }
     };
 

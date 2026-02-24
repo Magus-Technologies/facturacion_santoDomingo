@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Modal, ModalForm, ModalField } from "../ui/modal";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -50,68 +50,66 @@ export default function ProductoModal({
         if (isOpen) {
             fetchCategorias();
             fetchUnidades();
-        }
-    }, [isOpen]);
+            
+            if (producto) {
+                setFormData({
+                    nombre: producto.nombre || "",
+                    codigo: producto.codigo || "",
+                    detalle: producto.descripcion || "",
+                    categoria_id: producto.categoria_id
+                        ? producto.categoria_id.toString()
+                        : "",
+                    precio: producto.precio || "0.00",
+                    costo: producto.costo || "0.00",
+                    cantidad: producto.cantidad || "0",
+                    unidad_id: producto.unidad_id
+                        ? producto.unidad_id.toString()
+                        : "",
+                    almacen: producto.almacen
+                        ? producto.almacen.toString()
+                        : almacen
+                          ? almacen.toString()
+                          : "1",
+                    moneda: producto.moneda || "PEN",
+                    codsunat: producto.codsunat || "51121703",
+                    iscbp: producto.iscbp || "0",
+                    precio_mayor: producto.precio_mayor || "0.00",
+                    precio_menor: producto.precio_menor || "0.00",
+                    usar_multiprecio: producto.usar_multiprecio || "0",
+                    imagen: null,
+                });
 
-    useEffect(() => {
-        if (producto) {
-            setFormData({
-                nombre: producto.nombre || "",
-                codigo: producto.codigo || "",
-                detalle: producto.descripcion || "",
-                categoria_id: producto.categoria_id
-                    ? producto.categoria_id.toString()
-                    : "",
-                precio: producto.precio || "0.00",
-                costo: producto.costo || "0.00",
-                cantidad: producto.cantidad || "0",
-                unidad_id: producto.unidad_id
-                    ? producto.unidad_id.toString()
-                    : "",
-                almacen: producto.almacen
-                    ? producto.almacen.toString()
-                    : almacen
-                      ? almacen.toString()
-                      : "1",
-                moneda: producto.moneda || "PEN",
-                codsunat: producto.codsunat || "51121703",
-                iscbp: producto.iscbp || "0",
-                precio_mayor: producto.precio_mayor || "0.00",
-                precio_menor: producto.precio_menor || "0.00",
-                usar_multiprecio: producto.usar_multiprecio || "0",
-                imagen: null,
-            });
+                if (producto.imagen) {
+                    setImagePreview(`/storage/${producto.imagen}`);
+                } else {
+                    setImagePreview(null);
+                }
 
-            if (producto.imagen) {
-                setImagePreview(`/storage/${producto.imagen}`);
+                setIsAutoCode(!producto.codigo);
             } else {
+                setFormData({
+                    nombre: "",
+                    codigo: "",
+                    detalle: "",
+                    categoria_id: "",
+                    precio: "0.00",
+                    costo: "0.00",
+                    cantidad: "0",
+                    unidad_id: "",
+                    almacen: almacen || "1",
+                    moneda: "PEN",
+                    codsunat: "51121703",
+                    iscbp: "0",
+                    precio_mayor: "0.00",
+                    precio_menor: "0.00",
+                    usar_multiprecio: "0",
+                    imagen: null,
+                });
                 setImagePreview(null);
+                setIsAutoCode(true);
             }
-
-            setIsAutoCode(!producto.codigo);
-        } else {
-            setFormData({
-                nombre: "",
-                codigo: "",
-                detalle: "",
-                categoria_id: "",
-                precio: "0.00",
-                costo: "0.00",
-                cantidad: "0",
-                unidad_id: "",
-                almacen: almacen || "1",
-                moneda: "PEN",
-                codsunat: "51121703",
-                iscbp: "0",
-                precio_mayor: "0.00",
-                precio_menor: "0.00",
-                usar_multiprecio: "0",
-                imagen: null,
-            });
-            setImagePreview(null);
-            setIsAutoCode(true); // Por defecto nuevo producto tiene código auto
+            setErrors({});
         }
-        setErrors({});
     }, [producto, isOpen, almacen]);
 
     const fetchCategorias = async () => {
@@ -150,15 +148,20 @@ export default function ProductoModal({
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: null }));
-        }
-    };
+        setErrors((prev) => {
+            if (prev[name]) {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            }
+            return prev;
+        });
+    }, []);
 
-    const handleImageChange = (e) => {
+    const handleImageChange = useCallback((e) => {
         const file = e.target.files[0];
         if (file) {
             setFormData((prev) => ({ ...prev, imagen: file }));
@@ -169,7 +172,7 @@ export default function ProductoModal({
             };
             reader.readAsDataURL(file);
         }
-    };
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

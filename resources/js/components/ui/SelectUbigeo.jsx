@@ -1,29 +1,45 @@
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "./select";
 
 /**
  * Componente para seleccionar Departamento, Provincia y Distrito
  * Incluye campo de Ubigeo (6 dígitos)
  */
-export default function SelectUbigeo({ 
-    value = {}, 
-    onChange, 
+export default function SelectUbigeo({
+    value = {},
+    onChange,
     disabled = false,
-    errors = {} 
+    errors = {},
 }) {
     const [departamentos, setDepartamentos] = useState([]);
     const [provincias, setProvincias] = useState([]);
     const [distritos, setDistritos] = useState([]);
-    
+
     const [loadingDepartamentos, setLoadingDepartamentos] = useState(false);
     const [loadingProvincias, setLoadingProvincias] = useState(false);
     const [loadingDistritos, setLoadingDistritos] = useState(false);
 
-    const [selectedDepartamento, setSelectedDepartamento] = useState(value.departamento || "");
-    const [selectedProvincia, setSelectedProvincia] = useState(value.provincia || "");
-    const [selectedDistrito, setSelectedDistrito] = useState(value.distrito || "");
-    const [ubigeo, setUbigeo] = useState(value.ubigeo || "");
+    // Extraer códigos del ubigeo inicial
+    const initialDept =
+        value.ubigeo?.length === 6 ? value.ubigeo.substring(0, 2) : "";
+    const initialProv =
+        value.ubigeo?.length === 6 ? value.ubigeo.substring(2, 4) : "";
+    const initialDist =
+        value.ubigeo?.length === 6 ? value.ubigeo.substring(4, 6) : "";
+
+    const [selectedDepartamento, setSelectedDepartamento] =
+        useState(initialDept);
+    const [selectedProvincia, setSelectedProvincia] = useState(initialProv);
+    const [selectedDistrito, setSelectedDistrito] = useState(initialDist);
+    // Iniciamos vacío para que el useEffect detector de ubigeo dispare la cascada si es necesario
+    const [ubigeo, setUbigeo] = useState("");
     const [isAutoCompleting, setIsAutoCompleting] = useState(false);
 
     // Cargar departamentos al montar
@@ -55,31 +71,51 @@ export default function SelectUbigeo({
 
     // Actualizar ubigeo cuando cambian los valores (solo si no está autocompletando)
     useEffect(() => {
-        if (!isAutoCompleting && selectedDepartamento && selectedProvincia && selectedDistrito) {
+        if (
+            !isAutoCompleting &&
+            selectedDepartamento &&
+            selectedProvincia &&
+            selectedDistrito
+        ) {
             const nuevoUbigeo = `${selectedDepartamento}${selectedProvincia}${selectedDistrito}`;
             setUbigeo(nuevoUbigeo);
-            
+
             // Notificar cambios al padre
             onChange?.({
                 departamento: selectedDepartamento,
                 provincia: selectedProvincia,
                 distrito: selectedDistrito,
                 ubigeo: nuevoUbigeo,
-                departamentoNombre: departamentos.find(d => d.departamento === selectedDepartamento)?.nombre || "",
-                provinciaNombre: provincias.find(p => p.provincia === selectedProvincia)?.nombre || "",
-                distritoNombre: distritos.find(d => d.distrito === selectedDistrito)?.nombre || "",
+                departamentoNombre:
+                    departamentos.find(
+                        (d) => d.departamento === selectedDepartamento,
+                    )?.nombre || "",
+                provinciaNombre:
+                    provincias.find((p) => p.provincia === selectedProvincia)
+                        ?.nombre || "",
+                distritoNombre:
+                    distritos.find((d) => d.distrito === selectedDistrito)
+                        ?.nombre || "",
             });
         }
-    }, [selectedDepartamento, selectedProvincia, selectedDistrito, isAutoCompleting, departamentos, provincias, distritos]);
+    }, [
+        selectedDepartamento,
+        selectedProvincia,
+        selectedDistrito,
+        isAutoCompleting,
+        departamentos,
+        provincias,
+        distritos,
+    ]);
 
     const cargarDepartamentos = async () => {
         setLoadingDepartamentos(true);
         try {
-            const response = await fetch('/api/departamentos');
+            const response = await fetch("/api/departamentos");
             const data = await response.json();
             setDepartamentos(data);
         } catch (error) {
-            console.error('Error al cargar departamentos:', error);
+            console.error("Error al cargar departamentos:", error);
         } finally {
             setLoadingDepartamentos(false);
         }
@@ -92,7 +128,7 @@ export default function SelectUbigeo({
             const data = await response.json();
             setProvincias(data);
         } catch (error) {
-            console.error('Error al cargar provincias:', error);
+            console.error("Error al cargar provincias:", error);
         } finally {
             setLoadingProvincias(false);
         }
@@ -101,11 +137,13 @@ export default function SelectUbigeo({
     const cargarDistritos = async (departamentoId, provinciaId) => {
         setLoadingDistritos(true);
         try {
-            const response = await fetch(`/api/distritos/${departamentoId}/${provinciaId}`);
+            const response = await fetch(
+                `/api/distritos/${departamentoId}/${provinciaId}`,
+            );
             const data = await response.json();
             setDistritos(data);
         } catch (error) {
-            console.error('Error al cargar distritos:', error);
+            console.error("Error al cargar distritos:", error);
         } finally {
             setLoadingDistritos(false);
         }
@@ -113,44 +151,58 @@ export default function SelectUbigeo({
 
     // Método público para setear valores desde fuera (cuando se consulta RUC)
     useEffect(() => {
-        if (value.ubigeo && value.ubigeo.length === 6 && value.ubigeo !== ubigeo) {
+        if (
+            value.ubigeo &&
+            value.ubigeo.length === 6 &&
+            value.ubigeo !== ubigeo
+        ) {
             const dept = value.ubigeo.substring(0, 2);
             const prov = value.ubigeo.substring(2, 4);
             const dist = value.ubigeo.substring(4, 6);
-            
+
             // Cargar en cascada: departamento -> provincia -> distrito
             const cargarCascada = async () => {
                 setIsAutoCompleting(true);
-                
+
                 try {
                     // 1. Setear departamento
                     setSelectedDepartamento(dept);
-                    
+
                     // 2. Cargar y setear provincia
-                    const respProvincias = await fetch(`/api/provincias/${dept}`);
+                    const respProvincias = await fetch(
+                        `/api/provincias/${dept}`,
+                    );
                     const dataProvincias = await respProvincias.json();
                     setProvincias(dataProvincias);
-                    
+
                     // Esperar a que React actualice el DOM
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                     setSelectedProvincia(prov);
-                    
+
                     // 3. Cargar y setear distrito
-                    const respDistritos = await fetch(`/api/distritos/${dept}/${prov}`);
+                    const respDistritos = await fetch(
+                        `/api/distritos/${dept}/${prov}`,
+                    );
                     const dataDistritos = await respDistritos.json();
                     setDistritos(dataDistritos);
-                    
+
                     // Esperar a que React actualice el DOM
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                     setSelectedDistrito(dist);
-                    
+
                     setUbigeo(value.ubigeo);
-                    
+
                     // Notificar al padre con los nombres completos
-                    const deptNombre = departamentos.find(d => d.departamento === dept)?.nombre || "";
-                    const provNombre = dataProvincias.find(p => p.provincia === prov)?.nombre || "";
-                    const distNombre = dataDistritos.find(d => d.distrito === dist)?.nombre || "";
-                    
+                    const deptNombre =
+                        departamentos.find((d) => d.departamento === dept)
+                            ?.nombre || "";
+                    const provNombre =
+                        dataProvincias.find((p) => p.provincia === prov)
+                            ?.nombre || "";
+                    const distNombre =
+                        dataDistritos.find((d) => d.distrito === dist)
+                            ?.nombre || "";
+
                     onChange?.({
                         departamento: dept,
                         provincia: prov,
@@ -161,12 +213,12 @@ export default function SelectUbigeo({
                         distritoNombre: distNombre,
                     });
                 } catch (error) {
-                    console.error('[UBIGEO] Error al cargar ubicación:', error);
+                    console.error("[UBIGEO] Error al cargar ubicación:", error);
                 } finally {
                     setIsAutoCompleting(false);
                 }
             };
-            
+
             cargarCascada();
         }
     }, [value.ubigeo, ubigeo, departamentos, onChange]);
@@ -181,7 +233,12 @@ export default function SelectUbigeo({
                 <div className="relative">
                     <Select
                         value={selectedDepartamento}
-                        onValueChange={setSelectedDepartamento}
+                        onValueChange={(val) => {
+                            setSelectedDepartamento(val);
+                            setSelectedProvincia("");
+                            setSelectedDistrito("");
+                            setDistritos([]);
+                        }}
                         disabled={disabled || loadingDepartamentos}
                     >
                         <SelectTrigger>
@@ -189,7 +246,10 @@ export default function SelectUbigeo({
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px] overflow-y-auto">
                             {departamentos.map((dept) => (
-                                <SelectItem key={dept.id_ubigeo} value={dept.departamento}>
+                                <SelectItem
+                                    key={dept.id_ubigeo}
+                                    value={dept.departamento}
+                                >
                                     {dept.nombre}
                                 </SelectItem>
                             ))}
@@ -200,7 +260,9 @@ export default function SelectUbigeo({
                     )}
                 </div>
                 {errors.departamento && (
-                    <p className="text-sm text-red-600">{errors.departamento}</p>
+                    <p className="text-sm text-red-600">
+                        {errors.departamento}
+                    </p>
                 )}
             </div>
 
@@ -212,15 +274,25 @@ export default function SelectUbigeo({
                 <div className="relative">
                     <Select
                         value={selectedProvincia}
-                        onValueChange={setSelectedProvincia}
-                        disabled={disabled || !selectedDepartamento || loadingProvincias}
+                        onValueChange={(val) => {
+                            setSelectedProvincia(val);
+                            setSelectedDistrito("");
+                        }}
+                        disabled={
+                            disabled ||
+                            !selectedDepartamento ||
+                            loadingProvincias
+                        }
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Seleccione provincia" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px] overflow-y-auto">
                             {provincias.map((prov) => (
-                                <SelectItem key={prov.id_ubigeo} value={prov.provincia}>
+                                <SelectItem
+                                    key={prov.id_ubigeo}
+                                    value={prov.provincia}
+                                >
                                     {prov.nombre}
                                 </SelectItem>
                             ))}
@@ -244,14 +316,19 @@ export default function SelectUbigeo({
                     <Select
                         value={selectedDistrito}
                         onValueChange={setSelectedDistrito}
-                        disabled={disabled || !selectedProvincia || loadingDistritos}
+                        disabled={
+                            disabled || !selectedProvincia || loadingDistritos
+                        }
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Seleccione distrito" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px] overflow-y-auto">
                             {distritos.map((dist) => (
-                                <SelectItem key={dist.id_ubigeo} value={dist.distrito}>
+                                <SelectItem
+                                    key={dist.id_ubigeo}
+                                    value={dist.distrito}
+                                >
                                     {dist.nombre}
                                 </SelectItem>
                             ))}

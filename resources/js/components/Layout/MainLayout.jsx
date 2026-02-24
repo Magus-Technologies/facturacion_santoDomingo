@@ -1,20 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { useLoadPermissions } from "@/hooks/usePermissions";
 
 export default function MainLayout({
     children,
     currentPath = window.location.pathname + window.location.search,
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile toggle
-    const [isCollapsed, setIsCollapsed] = useState(false); // Desktop collapse
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        // Leer el estado guardado en localStorage
+        const saved = localStorage.getItem('sidebar-collapsed');
+        return saved === 'true';
+    }); // Desktop collapse
+    const { loadPermissions } = useLoadPermissions();
+
+    // Recargar permisos al montar el componente
+    useEffect(() => {
+        loadPermissions();
+    }, []);
 
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
     const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
+        const newState = !isCollapsed;
+        setIsCollapsed(newState);
+        // Guardar el estado en localStorage
+        localStorage.setItem('sidebar-collapsed', newState.toString());
     };
 
     return (

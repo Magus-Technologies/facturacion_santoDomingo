@@ -167,6 +167,7 @@ export default function CompraDetallesModal({ isOpen, onClose, compraId }) {
             size="lg"
             title={modalTitle}
             footer={modalFooter}
+            closeOnOverlayClick={true}
         >
             <div className="min-h-[400px]">
                 {loading ? (

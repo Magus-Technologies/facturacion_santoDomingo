@@ -12,6 +12,7 @@ import {
     Shield,
     Loader2,
     MoreHorizontal,
+    Building2,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -132,16 +133,16 @@ export default function UserList() {
             header: "Nombre",
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shrink-0">
                         {row.getValue("name")?.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                        <p className="font-medium text-gray-900">
+                    <div className="min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
                             {row.getValue("name")}
                         </p>
-                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {row.original.email}
+                        <p className="text-sm text-gray-500 flex items-center gap-1 truncate">
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{row.original.email}</span>
                         </p>
                     </div>
                 </div>
@@ -158,6 +159,30 @@ export default function UserList() {
                             {rol?.nombre || "Sin rol"}
                         </span>
                     </div>
+                );
+            },
+        },
+        {
+            accessorKey: "empresa",
+            header: "Empresa",
+            cell: ({ row }) => {
+                const empresa = row.original.empresa;
+                return empresa ? (
+                    <div className="flex items-center gap-2 max-w-xs" title={`${empresa.comercial}\nRUC: ${empresa.ruc}`}>
+                        <Building2 className="h-4 w-4 text-gray-400 shrink-0" />
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                                {empresa.comercial}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                {empresa.ruc}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <span className="text-sm text-gray-400 italic">
+                        Sin empresa
+                    </span>
                 );
             },
         },

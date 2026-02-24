@@ -70,4 +70,56 @@ class User extends Authenticatable
     {
         return $this->belongsTo(\App\Models\Rol::class, 'rol_id', 'rol_id');
     }
+
+    /**
+     * Verificar si el usuario tiene un permiso específico
+     */
+    public function hasPermission($permissionName)
+    {
+        // Admin (rol_id = 1) tiene todos los permisos
+        if ($this->rol_id == 1) {
+            return true;
+        }
+        
+        return $this->rol && $this->rol->hasPermission($permissionName);
+    }
+
+    /**
+     * Verificar si el usuario tiene alguno de los permisos
+     */
+    public function hasAnyPermission(array $permissions)
+    {
+        // Admin (rol_id = 1) tiene todos los permisos
+        if ($this->rol_id == 1) {
+            return true;
+        }
+        
+        return $this->rol && $this->rol->hasAnyPermission($permissions);
+    }
+
+    /**
+     * Verificar si el usuario tiene todos los permisos
+     */
+    public function hasAllPermissions(array $permissions)
+    {
+        // Admin (rol_id = 1) tiene todos los permisos
+        if ($this->rol_id == 1) {
+            return true;
+        }
+        
+        return $this->rol && $this->rol->hasAllPermissions($permissions);
+    }
+
+    /**
+     * Obtener todos los permisos del usuario
+     */
+    public function getPermissions()
+    {
+        // Admin (rol_id = 1) tiene todos los permisos
+        if ($this->rol_id == 1) {
+            return \App\Models\Permission::all();
+        }
+        
+        return $this->rol ? $this->rol->permissions : collect();
+    }
 }

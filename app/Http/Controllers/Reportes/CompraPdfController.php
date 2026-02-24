@@ -19,6 +19,7 @@ class CompraPdfController extends Controller
                 "empresa",
                 "empresas",
                 "detalles.producto",
+                "tipoDocumento",
             ])->findOrFail($id);
 
             // Renderizar vista Blade a HTML
@@ -38,21 +39,24 @@ class CompraPdfController extends Controller
             ]);
 
             $mpdf->shrink_tables_to_fit = 1;
+            $tipoDoc = $compra->tipoDocumento->nombre ?? 'Compra';
             $mpdf->SetTitle(
-                "Orden de Compra - " .
+                $tipoDoc . " - " .
                     $compra->serie .
                     "-" .
                     str_pad($compra->numero, 6, "0", STR_PAD_LEFT),
             );
             $mpdf->WriteHTML($html);
             $mpdf->Output(
-                "OC-" .
+                $tipoDoc . "-" .
                     $compra->serie .
                     "-" .
                     str_pad($compra->numero, 6, "0", STR_PAD_LEFT) .
                     ".pdf",
                 "I",
             );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->view('errors.pdf-no-encontrado', [], 404);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Error Compra A4: " . $e->getMessage(), [
                 "file" => $e->getFile(),
@@ -78,6 +82,7 @@ class CompraPdfController extends Controller
                 "empresa",
                 "empresas",
                 "detalles.producto",
+                "tipoDocumento",
             ])->findOrFail($id);
 
             // Renderizar vista Blade a HTML
@@ -96,21 +101,24 @@ class CompraPdfController extends Controller
             ]);
 
             $mpdf->shrink_tables_to_fit = 1;
+            $tipoDoc = $compra->tipoDocumento->nombre ?? 'Compra';
             $mpdf->SetTitle(
-                "Ticket OC - " .
+                "Ticket " . $tipoDoc . " - " .
                     $compra->serie .
                     "-" .
                     str_pad($compra->numero, 6, "0", STR_PAD_LEFT),
             );
             $mpdf->WriteHTML($html);
             $mpdf->Output(
-                "Ticket-OC-" .
+                "Ticket-" . $tipoDoc . "-" .
                     $compra->serie .
                     "-" .
                     str_pad($compra->numero, 6, "0", STR_PAD_LEFT) .
                     ".pdf",
                 "I",
             );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->view('errors.pdf-no-encontrado', [], 404);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Error Compra Ticket: " . $e->getMessage(), [
                 "file" => $e->getFile(),

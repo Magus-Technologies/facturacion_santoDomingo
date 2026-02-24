@@ -15,6 +15,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         password: "",
         password_confirmation: "",
         rol_id: "",
+        id_empresa: "",
     });
 
     // Cargar datos del usuario si está editando
@@ -26,6 +27,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
                 password: "",
                 password_confirmation: "",
                 rol_id: user.rol_id || "",
+                id_empresa: user.id_empresa || "",
             });
         } else {
             // Resetear formulario si es nuevo
@@ -35,6 +37,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
                 password: "",
                 password_confirmation: "",
                 rol_id: "",
+                id_empresa: "",
             });
         }
         setErrors({});
@@ -60,6 +63,16 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         setFormData((prev) => ({ ...prev, rol_id: rolId }));
         if (errors.rol_id) {
             setErrors((prev) => ({ ...prev, rol_id: null }));
+        }
+    };
+
+    /**
+     * Maneja el cambio de empresa
+     */
+    const handleEmpresaChange = (empresaId) => {
+        setFormData((prev) => ({ ...prev, id_empresa: empresaId }));
+        if (errors.id_empresa) {
+            setErrors((prev) => ({ ...prev, id_empresa: null }));
         }
     };
 
@@ -129,6 +142,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         isEditing,
         handleChange,
         handleRoleChange,
+        handleEmpresaChange,
         handleSubmit,
     };
 };

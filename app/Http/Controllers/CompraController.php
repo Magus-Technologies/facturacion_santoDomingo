@@ -65,35 +65,6 @@ class CompraController extends Controller
     }
 
     /**
-     * Obtener próximo número de compra
-     */
-    public function proximoNumero(Request $request)
-    {
-        try {
-            $user = Auth::user();
-            $idEmpresa = $user->id_empresa;
-            $serie = $request->input('serie', 'OC');
-
-            $ultimaCompra = Compra::where('id_empresa', $idEmpresa)
-                ->where('serie', $serie)
-                ->orderBy('numero', 'desc')
-                ->first();
-
-            $numero = $ultimaCompra ? (int)$ultimaCompra->numero + 1 : 1;
-
-            return response()->json([
-                'success' => true,
-                'numero' => str_pad($numero, 8, '0', STR_PAD_LEFT)
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener número: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
      * Guardar nueva compra
      */
     public function store(Request $request)
@@ -108,12 +79,13 @@ class CompraController extends Controller
             // Validar datos básicos
             $request->validate([
                 'id_proveedor' => 'required|exists:proveedores,proveedor_id',
+                'tipo_doc' => 'required|exists:documentos_sunat,id_tido',
+                'serie' => 'required|string|max:4',
+                'numero' => 'required|string|max:8',
                 'fecha_emision' => 'required|date',
                 'fecha_vencimiento' => 'nullable|date',
                 'id_tipo_pago' => 'required|in:1,2',
                 'moneda' => 'required|in:PEN,USD',
-                'serie' => 'required|string',
-                'numero' => 'required',
                 'productos' => 'required|array|min:1',
                 'productos.*.id_producto' => 'required|exists:productos,id_producto',
                 'productos.*.cantidad' => 'required|numeric|min:0.01',
@@ -121,6 +93,37 @@ class CompraController extends Controller
                 'empresas_ids' => 'nullable|array',
                 'empresas_ids.*' => 'integer|exists:empresas,id_empresa',
             ]);
+
+            // Validar formato de serie (letras y números)
+            if (!preg_match('/^[A-Z0-9]{1,4}$/', $request->serie)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Serie inválida. Use 1-4 caracteres alfanuméricos'
+                ], 400);
+            }
+
+            // Validar formato de número (solo números)
+            if (!preg_match('/^[0-9]{1,8}$/', $request->numero)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Número inválido. Use solo dígitos (máximo 8)'
+                ], 400);
+            }
+
+            // Validar que no exista el mismo documento del proveedor
+            $existe = Compra::where('id_empresa', $idEmpresa)
+                ->where('id_proveedor', $request->id_proveedor)
+                ->where('id_tido', $request->tipo_doc)
+                ->where('serie', $request->serie)
+                ->where('numero', $request->numero)
+                ->exists();
+
+            if ($existe) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ya existe una compra registrada con este documento del proveedor'
+                ], 400);
+            }
 
             // Calcular totales
             $subtotal = 0;
@@ -133,7 +136,7 @@ class CompraController extends Controller
 
             // Crear compra
             $compra = Compra::create([
-                'id_tido' => 12, // Orden de compra
+                'id_tido' => $request->tipo_doc,
                 'serie' => $request->serie,
                 'numero' => $request->numero,
                 'id_proveedor' => $request->id_proveedor,

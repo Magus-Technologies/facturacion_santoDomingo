@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { usePermissionsStore } from "@/hooks/usePermissions";
 import {
     User,
     Lock,
@@ -21,6 +22,7 @@ export default function Login({ onLoginSuccess }) {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const { setPermissions } = usePermissionsStore();
 
     // Verificar si ya está logeado al cargar el componente
     React.useEffect(() => {
@@ -106,6 +108,11 @@ export default function Login({ onLoginSuccess }) {
                 if (!localStorage.getItem("empresa_activa") && data.empresas?.length > 0) {
                     const empresaDefault = data.empresas.find(e => e.id_empresa === data.user.id_empresa) || data.empresas[0];
                     localStorage.setItem("empresa_activa", JSON.stringify(empresaDefault));
+                }
+
+                // Guardar permisos en el store
+                if (data.permissions) {
+                    setPermissions(data.permissions);
                 }
 
                 // Redirigir al dashboard

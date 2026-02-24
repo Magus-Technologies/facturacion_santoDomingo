@@ -12,6 +12,7 @@ import { DataTable } from "../ui/data-table";
 import { useCompras } from "./hooks/useCompras";
 import { getComprasColumns } from "./columns/comprasColumns";
 import CompraDetallesModal from "./CompraDetallesModal";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export default function ComprasList() {
     const [viewCompraId, setViewCompraId] = useState(null);
@@ -77,15 +78,17 @@ export default function ComprasList() {
                             <FilePdf className="h-4 w-4" />
                             PDF
                         </Button>
-                        <Button
-                            onClick={() =>
-                                (window.location.href = "/compras/nueva")
-                            }
-                            className="gap-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Nueva Compra
-                        </Button>
+                        <PermissionGuard permission="compras.create">
+                            <Button
+                                onClick={() =>
+                                    (window.location.href = "/compras/nueva")
+                                }
+                                className="gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Nueva Compra
+                            </Button>
+                        </PermissionGuard>
                     </div>
                 </div>
             </div>

@@ -62,6 +62,16 @@ class AuthController extends Controller
             }
         }
 
+        // Cargar permisos del usuario
+        $permissions = [];
+        if ($user->rol_id == 1) {
+            // Admin tiene todos los permisos automáticamente
+            $permissions = \App\Models\Permission::pluck('name')->toArray();
+        } elseif ($user->rol) {
+            // Otros roles: solo sus permisos asignados
+            $permissions = $user->rol->permissions->pluck('name')->toArray();
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Login exitoso',
@@ -74,6 +84,7 @@ class AuthController extends Controller
                 'id_empresa' => $user->id_empresa,
             ],
             'empresas' => $empresas,
+            'permissions' => $permissions,
         ]);
     }
 

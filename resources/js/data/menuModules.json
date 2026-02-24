@@ -98,6 +98,12 @@
           "name": "Usuarios",
           "icon": "UserCog",
           "path": "/configuracion/usuarios"
+        },
+        {
+          "id": "permisos",
+          "name": "Permisos",
+          "icon": "Shield",
+          "path": "/configuracion/permisos"
         }
         
       ]

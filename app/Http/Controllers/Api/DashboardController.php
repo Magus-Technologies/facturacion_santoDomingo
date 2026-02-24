@@ -20,6 +20,18 @@ class DashboardController extends Controller
         }
 
         $empresaId = $user->id_empresa;
+        
+        // Si el usuario no tiene empresa asignada, retornar error
+        if (!$empresaId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuario sin empresa asignada. Por favor contacte al administrador.',
+                'stats' => [],
+                'recentInvoices' => [],
+                'sunat' => ['pendientes' => 0, 'ultima_conexion' => now()->format('Y-m-d H:i:s')]
+            ], 200); // Cambiar a 200 para que el frontend lo maneje correctamente
+        }
+
         $now = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
@@ -94,6 +106,7 @@ class DashboardController extends Controller
             ->count();
 
         return response()->json([
+            'success' => true,
             'stats' => [
                 [
                     'id' => 1,

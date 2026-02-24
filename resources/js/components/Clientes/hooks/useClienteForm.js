@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/lib/sweetalert';
 import { consultarDocumento } from '@/services/apisPeru';
 import { consultarUbigeo } from '../utils/clienteHelpers';
@@ -26,52 +26,59 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
         distrito: '',
     });
 
-    // Cargar datos del cliente si está editando
+    // Cargar datos del cliente solo cuando se abre el modal
     useEffect(() => {
-        if (cliente) {
-            setFormData({
-                documento: cliente.documento || '',
-                datos: cliente.datos || '',
-                direccion: cliente.direccion || '',
-                direccion2: cliente.direccion2 || '',
-                telefono: cliente.telefono || '',
-                telefono2: cliente.telefono2 || '',
-                email: cliente.email || '',
-                ubigeo: cliente.ubigeo || '',
-                departamento: cliente.departamento || '',
-                provincia: cliente.provincia || '',
-                distrito: cliente.distrito || '',
-            });
-        } else {
-            // Resetear formulario si es nuevo
-            setFormData({
-                documento: '',
-                datos: '',
-                direccion: '',
-                direccion2: '',
-                telefono: '',
-                telefono2: '',
-                email: '',
-                ubigeo: '',
-                departamento: '',
-                provincia: '',
-                distrito: '',
-            });
+        if (isOpen) {
+            if (cliente) {
+                setFormData({
+                    documento: cliente.documento || '',
+                    datos: cliente.datos || '',
+                    direccion: cliente.direccion || '',
+                    direccion2: cliente.direccion2 || '',
+                    telefono: cliente.telefono || '',
+                    telefono2: cliente.telefono2 || '',
+                    email: cliente.email || '',
+                    ubigeo: cliente.ubigeo || '',
+                    departamento: cliente.departamento || '',
+                    provincia: cliente.provincia || '',
+                    distrito: cliente.distrito || '',
+                });
+            } else {
+                // Resetear formulario si es nuevo
+                setFormData({
+                    documento: '',
+                    datos: '',
+                    direccion: '',
+                    direccion2: '',
+                    telefono: '',
+                    telefono2: '',
+                    email: '',
+                    ubigeo: '',
+                    departamento: '',
+                    provincia: '',
+                    distrito: '',
+                });
+            }
+            setErrors({});
         }
-        setErrors({});
     }, [cliente, isOpen]);
 
     /**
      * Maneja los cambios en los campos del formulario
      */
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         
         // Limpiar error del campo al escribir
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: null }));
-        }
+        setErrors((prev) => {
+            if (prev[name]) {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            }
+            return prev;
+        });
 
         // Auto-consultar cuando el documento tenga 8 u 11 dígitos
         if (name === 'documento') {
@@ -80,12 +87,12 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
                 handleConsultarDocumento(docLimpio);
             }
         }
-    };
+    }, []);
 
     /**
      * Consulta los datos del documento (DNI o RUC) en APIs externas
      */
-    const handleConsultarDocumento = async (documento = null) => {
+    const handleConsultarDocumento = useCallback(async (documento = null) => {
         const doc = documento || formData.documento.trim();
 
         if (!doc) {
@@ -146,12 +153,12 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
         } finally {
             setConsultando(false);
         }
-    };
+    }, [formData.documento]);
 
     /**
      * Envía el formulario para crear o actualizar el cliente
      */
-    const handleSubmit = async (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrors({});
@@ -212,7 +219,7 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [formData, isEditing, cliente, onClose, onSuccess]);
 
     return {
         formData,

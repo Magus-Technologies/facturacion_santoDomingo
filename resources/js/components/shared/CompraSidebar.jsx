@@ -3,6 +3,7 @@ import { Label } from "../ui/label";
 import SelectTipoPago from "../ui/SelectTipoPago";
 import SelectMoneda from "../ui/SelectMoneda";
 import SelectEmpresas from "../ui/SelectEmpresas";
+import SelectTipoDocumento from "../ui/SelectTipoDocumento";
 import ProveedorAutocomplete from "./ProveedorAutocomplete";
 
 /**
@@ -28,6 +29,21 @@ export default function CompraSidebar({
 
     return (
         <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            {/* Tipo de Documento */}
+            <div>
+                <Label className="block text-sm font-medium mb-2">
+                    Tipo de Documento
+                </Label>
+                <SelectTipoDocumento
+                    tipo="compra"
+                    value={formData.tipo_doc}
+                    onValueChange={(value) => handleChange("tipo_doc", value)}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                    Tipo de documento del proveedor
+                </p>
+            </div>
+
             {/* Tipo Pago y Moneda */}
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -130,16 +146,38 @@ export default function CompraSidebar({
                     <Input
                         type="text"
                         value={formData.serie}
-                        readOnly
+                        onChange={(e) => {
+                            const value = e.target.value.toUpperCase();
+                            handleChange("serie", value);
+                        }}
+                        placeholder="Ej: F001"
+                        maxLength={4}
                         variant="outlined"
-                        className="bg-gray-50 font-medium"
+                        className="font-medium"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                        Serie del documento del proveedor
+                    </p>
                 </div>
                 <div>
-                    <Label className="block text-sm font-medium mb-2">N°</Label>
-                    <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 font-medium">
-                        {formData.numero}
-                    </div>
+                    <Label className="block text-sm font-medium mb-2">
+                        Número
+                    </Label>
+                    <Input
+                        type="text"
+                        value={formData.numero}
+                        onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            handleChange("numero", value);
+                        }}
+                        placeholder="Ej: 00001234"
+                        maxLength={8}
+                        variant="outlined"
+                        className="font-medium"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                        Número del documento del proveedor
+                    </p>
                 </div>
             </div>
 

@@ -73,6 +73,11 @@ class Compra extends Model
         return $this->belongsTo(User::class, 'id_usuario', 'id');
     }
 
+    public function tipoDocumento(): BelongsTo
+    {
+        return $this->belongsTo(DocumentoSunat::class, 'id_tido', 'id_tido');
+    }
+
     // Scopes
     public function scopeActivas($query)
     {

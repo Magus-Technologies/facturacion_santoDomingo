@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 
@@ -9,22 +9,21 @@ export function Modal({
     children,
     size = "md",
     showCloseButton = true,
-    closeOnOverlayClick = true,
+    closeOnOverlayClick = false,
     footer,
 }) {
-    const [isAnimating, setIsAnimating] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
-    // Bloquear scroll del body cuando el modal está abierto
     useEffect(() => {
         if (isOpen) {
-            setIsAnimating(true);
+            setMounted(true);
             document.body.style.overflow = "hidden";
         } else {
             document.body.style.overflow = "unset";
-            // Dar tiempo para la animación de salida
+            // Esperar a que termine la animación antes de desmontar
             const timer = setTimeout(() => {
-                setIsAnimating(false);
-            }, 200);
+                setMounted(false);
+            }, 150);
             return () => clearTimeout(timer);
         }
 
@@ -33,20 +32,20 @@ export function Modal({
         };
     }, [isOpen]);
 
-    // Cerrar con tecla ESC
-    useEffect(() => {
-        const handleEscape = (e) => {
-            if (e.key === "Escape" && isOpen) {
-                onClose();
-            }
-        };
-
-        document.addEventListener("keydown", handleEscape);
-        return () => document.removeEventListener("keydown", handleEscape);
+    const handleEscape = useCallback((e) => {
+        if (e.key === "Escape" && isOpen) {
+            onClose();
+        }
     }, [isOpen, onClose]);
 
-    // No renderizar nada si no está abierto ni animando
-    if (!isOpen && !isAnimating) return null;
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleEscape);
+            return () => document.removeEventListener("keydown", handleEscape);
+        }
+    }, [isOpen, handleEscape]);
+
+    if (!mounted) return null;
 
     const sizeClasses = {
         sm: "max-w-md",
@@ -57,32 +56,26 @@ export function Modal({
     };
 
     return (
-        <div
-            className={cn(
-                "fixed inset-0 z-50 flex items-center justify-center py-4 px-4 overflow-y-auto",
-                isOpen
-                    ? "animate-in fade-in duration-150"
-                    : "animate-out fade-out duration-150",
-            )}
-        >
-            {/* Overlay */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center py-4 px-4 overflow-y-auto">
+            {/* Overlay con transición suave */}
             <div
                 className={cn(
-                    "fixed inset-0 bg-black/70 transition-opacity duration-150",
-                    isOpen ? "opacity-100" : "opacity-0",
+                    "fixed inset-0 bg-black/70 transition-opacity duration-150 ease-out",
+                    isOpen ? "opacity-100" : "opacity-0"
                 )}
                 onClick={closeOnOverlayClick ? onClose : undefined}
             />
 
-            {/* Modal */}
+            {/* Modal con transición suave */}
             <div
                 className={cn(
-                    "relative bg-white rounded-xl w-full transition-all duration-150 my-auto",
-                    sizeClasses[size],
+                    "relative bg-white rounded-xl w-full my-auto",
                     "max-h-[calc(100vh-2rem)] flex flex-col shadow-2xl",
-                    isOpen
-                        ? "animate-in zoom-in-95 duration-150"
-                        : "animate-out zoom-out-95 duration-150",
+                    "transition-all duration-150 ease-out",
+                    sizeClasses[size],
+                    isOpen 
+                        ? "opacity-100 scale-100" 
+                        : "opacity-0 scale-95"
                 )}
             >
                 {/* Header */}

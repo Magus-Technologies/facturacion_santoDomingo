@@ -56,6 +56,8 @@ class VentaPdfController extends Controller
                     ".pdf",
                 "I",
             );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->view('errors.pdf-no-encontrado', [], 404);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Error Venta A4: " . $e->getMessage(), [
                 "file" => $e->getFile(),
@@ -115,6 +117,8 @@ class VentaPdfController extends Controller
                     ".pdf",
                 "I",
             );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->view('errors.pdf-no-encontrado', [], 404);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Error Venta Ticket: " . $e->getMessage(), [
                 "file" => $e->getFile(),

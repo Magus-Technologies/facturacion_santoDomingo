@@ -22,6 +22,7 @@ import {
     getEstadoLabel,
     getEstadoColor,
 } from "../utils/compraHelpers";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 /**
  * Componente para mostrar el documento con opciones de impresión
@@ -229,27 +230,31 @@ export const getComprasColumns = (handlers) => [
                         </Button>
                         {compra.estado === "1" && (
                             <>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() =>
-                                        (window.location.href = `/compras/editar/${compra.id_compra}`)
-                                    }
-                                    title="Editar"
-                                >
-                                    <Edit className="h-4 w-4 text-yellow-600" />
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() =>
-                                        handlers.handleAnular(compra.id_compra)
-                                    }
-                                    title="Anular"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <PermissionGuard permission="compras.edit">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() =>
+                                            (window.location.href = `/compras/editar/${compra.id_compra}`)
+                                        }
+                                        title="Editar"
+                                    >
+                                        <Edit className="h-4 w-4 text-yellow-600" />
+                                    </Button>
+                                </PermissionGuard>
+                                <PermissionGuard permission="compras.delete">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() =>
+                                            handlers.handleAnular(compra.id_compra)
+                                        }
+                                        title="Anular"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </PermissionGuard>
                             </>
                         )}
                     </div>
@@ -285,25 +290,29 @@ export const getComprasColumns = (handlers) => [
                                 </DropdownMenuItem>
                                 {compra.estado === "1" && (
                                     <>
-                                        <DropdownMenuItem
-                                            onClick={() =>
-                                                (window.location.href = `/compras/editar/${compra.id_compra}`)
-                                            }
-                                        >
-                                            <Edit className="mr-2 h-4 w-4 text-yellow-600" />
-                                            Editar
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() =>
-                                                handlers.handleAnular(
-                                                    compra.id_compra,
-                                                )
-                                            }
-                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                                        >
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            Anular
-                                        </DropdownMenuItem>
+                                        <PermissionGuard permission="compras.edit">
+                                            <DropdownMenuItem
+                                                onClick={() =>
+                                                    (window.location.href = `/compras/editar/${compra.id_compra}`)
+                                                }
+                                            >
+                                                <Edit className="mr-2 h-4 w-4 text-yellow-600" />
+                                                Editar
+                                            </DropdownMenuItem>
+                                        </PermissionGuard>
+                                        <PermissionGuard permission="compras.delete">
+                                            <DropdownMenuItem
+                                                onClick={() =>
+                                                    handlers.handleAnular(
+                                                        compra.id_compra,
+                                                    )
+                                                }
+                                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Anular
+                                            </DropdownMenuItem>
+                                        </PermissionGuard>
                                     </>
                                 )}
                             </DropdownMenuContent>

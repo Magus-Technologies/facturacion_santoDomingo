@@ -13,6 +13,7 @@ export default function ProductSearchInput({
     placeholder = "Buscar producto por nombre o código...",
     showScanner = false,
     className = "",
+    showCosto = false, // Nuevo prop para mostrar costo en lugar de precio
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [products, setProducts] = useState([]);
@@ -218,7 +219,7 @@ export default function ProductSearchInput({
                                     <span className="text-sm font-semibold text-orange-600">
                                         {product.moneda === "USD" ? "$" : "S/"}{" "}
                                         {parseFloat(
-                                            product.precio || 0,
+                                            showCosto ? (product.costo || 0) : (product.precio || 0),
                                         ).toFixed(2)}
                                     </span>
                                 </div>

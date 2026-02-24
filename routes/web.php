@@ -23,27 +23,95 @@ Route::get('/login', function () {
 })->name('login');
 
 // --- VISTAS DEL FRONTEND ---
-// (Nota: La protección de navegación se maneja principalmente en React via auth_token)
+// Las rutas web no pueden usar auth:sanctum directamente porque el token está en localStorage
+// La protección se maneja en el frontend, pero agregamos verificación básica
 
 Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
-Route::get('/configuracion/usuarios', function () { return view('configuracion.userList'); })->name('userList');
-Route::get('/ventas', function () { return view('ventas.ventasList'); })->name('ventasList');
-Route::get('/ventas/productos', function () { return view('ventas.ventas-productos'); })->name('ventas.productos');
-Route::get('/facturas', function () { return redirect('/ventas?tipo=factura'); })->name('facturas');
-Route::get('/boletas', function () { return redirect('/ventas?tipo=boleta'); })->name('boletas');
-Route::get('/notas-venta', function () { return redirect('/ventas?tipo=nota'); })->name('notas-venta');
-Route::get('/cotizaciones', function () { return view('cotizaciones.cotizaciones'); })->name('cotizaciones');
-Route::get('/cotizaciones/nueva', function () { return view('cotizaciones.cotizaciones-nueva'); })->name('cotizaciones.nueva');
-Route::get('/cotizaciones/editar/{id}', function ($id) { return view('cotizaciones.cotizaciones-editar', ['id' => $id]); })->name('cotizaciones.editar');
-Route::get('/productos', function () { return view('almacen.productosList'); })->name('productosList');
-Route::get('/clientes', function () { return view('clientesList'); })->name('clientesList');
-Route::get('/configuracion/empresa', function () { return view('configuracion.misEmpresas'); })->name('misEmpresas');
-Route::get('/compras', function () { return view('compras.compras'); })->name('compras');
-Route::get('/compras/nueva', function () { return view('compras.compras-nueva'); })->name('compras.nueva');
-Route::get('/compras/editar/{id}', function ($id) { return view('compras.compras-editar', ['id' => $id]); })->name('compras.editar');
-Route::get('/proveedores', function () { return view('proveedores'); })->name('proveedores');
-Route::get('/guia-remision', function () { return view('guiaRemision.guia-remision'); })->name('guia-remision');
-Route::get('/nota-credito', function () { return view('notaCredito.nota-credito'); })->name('nota-credito');
+
+// Configuración
+Route::get('/configuracion/usuarios', function () { 
+    return view('configuracion.userList'); 
+})->name('userList');
+
+Route::get('/configuracion/permisos', function () { 
+    return view('configuracion.rolePermissions'); 
+})->name('rolePermissions');
+
+Route::get('/configuracion/empresa', function () { 
+    return view('configuracion.misEmpresas'); 
+})->name('misEmpresas');
+
+// Ventas
+Route::get('/ventas', function () { 
+    return view('ventas.ventasList'); 
+})->name('ventasList');
+
+Route::get('/ventas/productos', function () { 
+    return view('ventas.ventas-productos'); 
+})->name('ventas.productos');
+
+Route::get('/facturas', function () { 
+    return redirect('/ventas?tipo=factura'); 
+})->name('facturas');
+
+Route::get('/boletas', function () { 
+    return redirect('/ventas?tipo=boleta'); 
+})->name('boletas');
+
+Route::get('/notas-venta', function () { 
+    return redirect('/ventas?tipo=nota'); 
+})->name('notas-venta');
+
+// Cotizaciones
+Route::get('/cotizaciones', function () { 
+    return view('cotizaciones.cotizaciones'); 
+})->name('cotizaciones');
+
+Route::get('/cotizaciones/nueva', function () { 
+    return view('cotizaciones.cotizaciones-nueva'); 
+})->name('cotizaciones.nueva');
+
+Route::get('/cotizaciones/editar/{id}', function ($id) { 
+    return view('cotizaciones.cotizaciones-editar', ['id' => $id]); 
+})->name('cotizaciones.editar');
+
+// Productos
+Route::get('/productos', function () { 
+    return view('almacen.productosList'); 
+})->name('productosList');
+
+// Clientes
+Route::get('/clientes', function () { 
+    return view('clientesList'); 
+})->name('clientesList');
+
+// Compras
+Route::get('/compras', function () { 
+    return view('compras.compras'); 
+})->name('compras');
+
+Route::get('/compras/nueva', function () { 
+    return view('compras.compras-nueva'); 
+})->name('compras.nueva');
+
+Route::get('/compras/editar/{id}', function ($id) { 
+    return view('compras.compras-editar', ['id' => $id]); 
+})->name('compras.editar');
+
+// Proveedores
+Route::get('/proveedores', function () { 
+    return view('proveedores'); 
+})->name('proveedores');
+
+// Guía de Remisión
+Route::get('/guia-remision', function () { 
+    return view('guiaRemision.guia-remision'); 
+})->name('guia-remision');
+
+// Nota de Crédito
+Route::get('/nota-credito', function () { 
+    return view('notaCredito.nota-credito'); 
+})->name('nota-credito');
 
 // --- REPORTES Y EXPORTACIONES ---
 // Estas rutas cargan sesión automáticamente por estar en web.php.

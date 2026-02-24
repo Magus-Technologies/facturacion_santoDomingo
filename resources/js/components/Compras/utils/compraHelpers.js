@@ -107,6 +107,7 @@ export const validarCuotas = (tipoPago, cuotas) => {
 export const prepararDatosCompra = (proveedor, formData, productos) => {
     return {
         id_proveedor: proveedor.proveedor_id,
+        tipo_doc: formData.tipo_doc, // Tipo de documento del proveedor
         fecha_emision: formData.fecha_emision,
         fecha_vencimiento: formData.fecha_vencimiento || formData.fecha_emision,
         id_tipo_pago: parseInt(formData.tipo_pago),

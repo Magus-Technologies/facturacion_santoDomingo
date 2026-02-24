@@ -41,8 +41,10 @@ class CotizacionPdfController extends Controller
             $mpdf->WriteHTML($html);
             $mpdf->Output("Cotizacion-COT-{$numero}-ticket.pdf", 'I');
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->view('errors.pdf-no-encontrado', [], 404);
         } catch (\Exception $e) {
-            Log::error('Error Cotización Ticket: ' . $e->getMessage());
+            Log::error('Error Cotización A4: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -74,10 +76,10 @@ class CotizacionPdfController extends Controller
                 'mode'          => 'utf-8',
                 'format'        => 'A4',
                 'tempDir'       => storage_path('app/mpdf'),
-                'margin_left'   => 15,
-                'margin_right'  => 15,
-                'margin_top'    => 15,
-                'margin_bottom' => 15,
+                'margin_left'   => 13,
+                'margin_right'  => 13,
+                'margin_top'    => 14,
+                'margin_bottom' => 14,
                 'img_dpi'       => 96,
                 'autoPadding'   => true,
             ]);
@@ -88,15 +90,18 @@ class CotizacionPdfController extends Controller
             $mpdf->WriteHTML($html);
             $mpdf->Output("Cotizacion-COT-{$numero}.pdf", 'I');
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->view('errors.pdf-no-encontrado', [], 404);
         } catch (\Exception $e) {
             Log::error('Error Cotización A4: ' . $e->getMessage(), [
                 'file'  => $e->getFile(),
                 'line'  => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            $mensaje = mb_convert_encoding($e->getMessage(), 'UTF-8', 'UTF-8');
             return response()->json([
                 'success' => false,
-                'error'   => $e->getMessage(),
+                'error'   => $mensaje,
                 'trace'   => config('app.debug') ? $e->getTrace() : null,
             ], 500);
         }

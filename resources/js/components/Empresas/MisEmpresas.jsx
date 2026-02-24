@@ -3,6 +3,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/sweetalert";
 import EmpresaModal from "./EmpresaModal";
+import ProtectedRoute from "../auth/ProtectedRoute";
 import {
     Edit,
     Phone,
@@ -245,36 +246,38 @@ export default function MisEmpresas() {
     }
 
     return (
-        <MainLayout>
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Mis Empresas
-                        </h1>
-                        <p className="text-gray-600 mt-1">
-                            Gestiona la información de tus empresas
-                        </p>
+        <ProtectedRoute permission="empresa.view">
+            <MainLayout>
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                Mis Empresas
+                            </h1>
+                            <p className="text-gray-600 mt-1">
+                                Gestiona la información de tus empresas
+                            </p>
+                        </div>
                     </div>
+
+                    <DataTable
+                        columns={columns}
+                        data={empresas}
+                        searchable={true}
+                        searchPlaceholder="Buscar por RUC, razón social, nombre comercial..."
+                        pagination={true}
+                        pageSize={10}
+                    />
+
+                    {/* Modal de Empresa */}
+                    <EmpresaModal
+                        isOpen={isModalOpen}
+                        onClose={handleModalClose}
+                        empresa={selectedEmpresa}
+                        onSuccess={handleModalSuccess}
+                    />
                 </div>
-
-                <DataTable
-                    columns={columns}
-                    data={empresas}
-                    searchable={true}
-                    searchPlaceholder="Buscar por RUC, razón social, nombre comercial..."
-                    pagination={true}
-                    pageSize={10}
-                />
-
-                {/* Modal de Empresa */}
-                <EmpresaModal
-                    isOpen={isModalOpen}
-                    onClose={handleModalClose}
-                    empresa={selectedEmpresa}
-                    onSuccess={handleModalSuccess}
-                />
-            </div>
-        </MainLayout>
+            </MainLayout>
+        </ProtectedRoute>
     );
 }

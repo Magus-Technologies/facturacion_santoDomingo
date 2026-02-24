@@ -24,30 +24,33 @@ export const calcularDescuento = (productos, descuentoActivado, descuentoGeneral
 };
 
 /**
- * Calcula la base imponible (subtotal - descuento)
+ * Calcula la base imponible (Operaciones gravadas = Total / 1.18)
  */
-export const calcularBase = (productos, descuentoActivado, descuentoGeneral) => {
-    const subtotal = calcularSubtotal(productos);
-    const descuento = calcularDescuento(productos, descuentoActivado, descuentoGeneral);
-    return subtotal - descuento;
+export const calcularBase = (productos, aplicarIgv, descuentoActivado, descuentoGeneral) => {
+    const total = calcularTotal(productos, aplicarIgv, descuentoActivado, descuentoGeneral);
+    if (aplicarIgv === '1' || aplicarIgv === true) {
+        return total / 1.18;
+    }
+    return total;
 };
 
 /**
  * Calcula el IGV
  */
 export const calcularIGV = (productos, aplicarIgv, descuentoActivado, descuentoGeneral) => {
-    if (aplicarIgv === '0') return 0;
-    const base = calcularBase(productos, descuentoActivado, descuentoGeneral);
-    return base * 0.18;
+    if (aplicarIgv === '0' || aplicarIgv === false) return 0;
+    const total = calcularTotal(productos, aplicarIgv, descuentoActivado, descuentoGeneral);
+    const base = calcularBase(productos, aplicarIgv, descuentoActivado, descuentoGeneral);
+    return total - base;
 };
 
 /**
  * Calcula el total de la cotización
  */
 export const calcularTotal = (productos, aplicarIgv, descuentoActivado, descuentoGeneral) => {
-    const base = calcularBase(productos, descuentoActivado, descuentoGeneral);
-    const igv = calcularIGV(productos, aplicarIgv, descuentoActivado, descuentoGeneral);
-    return base + igv;
+    const montoBruto = calcularSubtotal(productos);
+    const descuento = calcularDescuento(productos, descuentoActivado, descuentoGeneral);
+    return montoBruto - descuento;
 };
 
 /**

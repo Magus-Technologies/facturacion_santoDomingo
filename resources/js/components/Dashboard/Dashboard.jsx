@@ -43,16 +43,29 @@ export default function Dashboard() {
                 },
             });
 
-            if (!response.ok)
+            if (!response.ok) {
                 throw new Error("Error al cargar datos del dashboard");
+            }
 
             const data = await response.json();
-            setStats(data.stats);
-            setRecentInvoices(data.recentInvoices);
-            setSunatStatus(data.sunat);
+            
+            // Manejar error de empresa no asignada o cualquier otro error
+            if (data.success === false) {
+                setError(data.message || "Error al cargar datos del dashboard");
+                setStats([]);
+                setRecentInvoices([]);
+                setSunatStatus({ pendientes: 0, ultima_conexion: null });
+                setLoading(false);
+                return;
+            }
+
+            setStats(data.stats || []);
+            setRecentInvoices(data.recentInvoices || []);
+            setSunatStatus(data.sunat || { pendientes: 0, ultima_conexion: null });
+            setError(null);
         } catch (err) {
             console.error("Dashboard error:", err);
-            setError(err.message);
+            setError(err.message || "Error de conexión al servidor");
         } finally {
             setLoading(false);
         }

@@ -1,7 +1,7 @@
 import { Printer, FileText, Download } from "lucide-react";
 import { Button } from "../ui/button";
 import { Modal } from "../ui/modal";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 /**
  * Modal para mostrar preview de PDF y opciones de impresión
@@ -15,7 +15,7 @@ export default function PrintOptionsModal({
 }) {
     const [formato, setFormato] = useState("ticket"); // 'ticket' o 'a4'
 
-    const getPdfUrl = () => {
+    const getPdfUrl = useCallback(() => {
         const folder =
             tipo === "compra"
                 ? "reporteOC"
@@ -28,18 +28,18 @@ export default function PrintOptionsModal({
         } else {
             return `/${folder}/a4.php?id=${ventaId}`;
         }
-    };
+    }, [tipo, formato, ventaId]);
 
-    const handlePrint = () => {
+    const handlePrint = useCallback(() => {
         const iframe = document.getElementById("pdf-preview");
         if (iframe) {
             iframe.contentWindow.print();
         }
-    };
+    }, []);
 
-    const handleDownload = () => {
+    const handleDownload = useCallback(() => {
         window.open(getPdfUrl(), "_blank");
-    };
+    }, [getPdfUrl]);
 
     return (
         <Modal
@@ -47,7 +47,7 @@ export default function PrintOptionsModal({
             onClose={onClose}
             title={`Documento Nro: ${numeroCompleto}`}
             size="xl"
-            closeOnOverlayClick={false}
+            closeOnOverlayClick={true}
         >
             {/* Toolbar */}
             <div className="flex items-center justify-between mb-4 pb-3 border-b">

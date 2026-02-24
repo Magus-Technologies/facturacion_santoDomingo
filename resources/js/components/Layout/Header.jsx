@@ -104,7 +104,7 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                 onClick={() =>
                                     setShowEmpresaMenu(!showEmpresaMenu)
                                 }
-                                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors max-w-[160px] sm:max-w-xs"
+                                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors max-w-40 sm:max-w-xs"
                             >
                                 <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 shrink-0" />
                                 <div className="text-left min-w-0">
@@ -128,7 +128,7 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                             setShowEmpresaMenu(false)
                                         }
                                     />
-                                    <div className="fixed sm:absolute top-[64px] sm:top-full left-4 right-4 sm:left-0 sm:right-auto sm:mt-2 sm:w-80 bg-white rounded-xl shadow-2xl sm:shadow-lg border border-gray-200 py-2 z-50 overflow-hidden max-h-[calc(100vh-80px)] overflow-y-auto">
+                                    <div className="fixed sm:absolute top-16 sm:top-full left-4 right-4 sm:left-0 sm:right-auto sm:mt-2 sm:w-80 bg-white rounded-xl shadow-2xl sm:shadow-lg border border-gray-200 py-2 z-50 overflow-hidden max-h-[calc(100vh-80px)] overflow-y-auto">
                                         <div className="px-4 py-2 border-b border-gray-100">
                                             <p className="text-xs font-semibold text-gray-500 uppercase">
                                                 Cambiar empresa
@@ -225,7 +225,7 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                     {user?.email || ""}
                                 </p>
                             </div>
-                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold">
+                            <div className="h-9 w-9 rounded-full bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold">
                                 {user?.name?.charAt(0) || "U"}
                             </div>
                             <ChevronDown className="h-4 w-4 text-gray-500 hidden sm:block" />

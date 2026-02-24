@@ -20,8 +20,14 @@ export const useCotizaciones = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
+            const empresaActiva = JSON.parse(localStorage.getItem('empresa_activa') || '{}');
 
-            const response = await fetch('/api/cotizaciones', {
+            let url = '/api/cotizaciones';
+            if (empresaActiva.id_empresa) {
+                url += `?id_empresa=${empresaActiva.id_empresa}`;
+            }
+
+            const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',

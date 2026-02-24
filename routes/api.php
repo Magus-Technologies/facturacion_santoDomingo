@@ -28,11 +28,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('users/roles', [\App\Http\Controllers\Api\UserController::class, 'getRoles']);
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
 
+    // Permisos
+    Route::get('permissions', [\App\Http\Controllers\Api\PermissionController::class, 'index']);
+    Route::get('permissions/user', [\App\Http\Controllers\Api\PermissionController::class, 'getUserPermissions']);
+    Route::get('permissions/role/{rolId}', [\App\Http\Controllers\Api\PermissionController::class, 'getRolePermissions']);
+    Route::put('permissions/role/{rolId}', [\App\Http\Controllers\Api\PermissionController::class, 'updateRolePermissions']);
+
     // Dashboard
     Route::get('/dashboard/stats', [\App\Http\Controllers\Api\DashboardController::class, 'getStats']);
 
     // Clientes
-    Route::apiResource('clientes', \App\Http\Controllers\Api\ClienteController::class);
+    Route::get('clientes', [\App\Http\Controllers\Api\ClienteController::class, 'index'])->middleware('permission:clientes.view');
+    Route::post('clientes', [\App\Http\Controllers\Api\ClienteController::class, 'store'])->middleware('permission:clientes.create');
+    Route::get('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'show'])->middleware('permission:clientes.view');
+    Route::put('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'update'])->middleware('permission:clientes.edit');
+    Route::delete('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'destroy'])->middleware('permission:clientes.delete');
     Route::post('clientes/buscar-documento', [\App\Http\Controllers\Api\ClienteController::class, 'buscarPorDocumento']);
 
     // Empresas
@@ -44,13 +54,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Productos
     Route::get('productos/plantilla-excel', [\App\Http\Controllers\Exports\ProductoExportController::class, 'descargarPlantilla']);
     Route::get('productos/descargar-excel', [\App\Http\Controllers\Exports\ProductoExportController::class, 'descargarExcel']);
-    Route::post('productos/leer-excel', [\App\Http\Controllers\Imports\ProductoImportController::class, 'leerExcel']);
-    Route::post('productos/importar-lista', [\App\Http\Controllers\Imports\ProductoImportController::class, 'importarLista']);
-    Route::apiResource('productos', \App\Http\Controllers\ProductoController::class);
+    Route::post('productos/leer-excel', [\App\Http\Controllers\Imports\ProductoImportController::class, 'leerExcel'])->middleware('permission:productos.create');
+    Route::post('productos/importar-lista', [\App\Http\Controllers\Imports\ProductoImportController::class, 'importarLista'])->middleware('permission:productos.create');
+    Route::get('productos', [\App\Http\Controllers\ProductoController::class, 'index'])->middleware('permission:productos.view');
+    Route::post('productos', [\App\Http\Controllers\ProductoController::class, 'store'])->middleware('permission:productos.create');
+    Route::get('productos/{id}', [\App\Http\Controllers\ProductoController::class, 'show'])->middleware('permission:productos.view');
+    Route::put('productos/{id}', [\App\Http\Controllers\ProductoController::class, 'update'])->middleware('permission:productos.edit');
+    Route::delete('productos/{id}', [\App\Http\Controllers\ProductoController::class, 'destroy'])->middleware('permission:productos.delete');
 
     // Proveedores
-    Route::get('proveedores/{id}/detalles', [\App\Http\Controllers\ProveedorController::class, 'getDetalles']);
-    Route::apiResource('proveedores', \App\Http\Controllers\ProveedorController::class);
+    Route::get('proveedores/{id}/detalles', [\App\Http\Controllers\ProveedorController::class, 'getDetalles'])->middleware('permission:proveedores.view');
+    Route::get('proveedores', [\App\Http\Controllers\ProveedorController::class, 'index'])->middleware('permission:proveedores.view');
+    Route::post('proveedores', [\App\Http\Controllers\ProveedorController::class, 'store'])->middleware('permission:proveedores.create');
+    Route::get('proveedores/{id}', [\App\Http\Controllers\ProveedorController::class, 'show'])->middleware('permission:proveedores.view');
+    Route::put('proveedores/{id}', [\App\Http\Controllers\ProveedorController::class, 'update'])->middleware('permission:proveedores.edit');
+    Route::delete('proveedores/{id}', [\App\Http\Controllers\ProveedorController::class, 'destroy'])->middleware('permission:proveedores.delete');
 
     // Unidades - CRUD completo
     Route::get('unidades', [UnidadProductoController::class, 'index']);
@@ -66,18 +84,29 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Cotizaciones
     Route::get('cotizaciones/proximo-numero', [CotizacionController::class, 'proximoNumero']);
-    Route::apiResource('cotizaciones', CotizacionController::class);
-    Route::post('cotizaciones/{id}/estado', [CotizacionController::class, 'cambiarEstado']);
+    Route::get('cotizaciones', [CotizacionController::class, 'index'])->middleware('permission:cotizaciones.view');
+    Route::post('cotizaciones', [CotizacionController::class, 'store'])->middleware('permission:cotizaciones.create');
+    Route::get('cotizaciones/{id}', [CotizacionController::class, 'show'])->middleware('permission:cotizaciones.view');
+    Route::put('cotizaciones/{id}', [CotizacionController::class, 'update'])->middleware('permission:cotizaciones.edit');
+    Route::delete('cotizaciones/{id}', [CotizacionController::class, 'destroy'])->middleware('permission:cotizaciones.delete');
+    Route::post('cotizaciones/{id}/estado', [CotizacionController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.edit');
 
     // Ventas
     Route::get('ventas/proximo-numero', [\App\Http\Controllers\VentasController::class, 'proximoNumero']);
-    Route::post('ventas/{id}/anular', [\App\Http\Controllers\VentasController::class, 'anular']);
-    Route::apiResource('ventas', \App\Http\Controllers\VentasController::class);
+    Route::get('ventas', [\App\Http\Controllers\VentasController::class, 'index'])->middleware('permission:ventas.view');
+    Route::post('ventas', [\App\Http\Controllers\VentasController::class, 'store'])->middleware('permission:ventas.create');
+    Route::get('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'show'])->middleware('permission:ventas.view');
+    Route::put('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'update'])->middleware('permission:ventas.edit');
+    Route::delete('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'destroy'])->middleware('permission:ventas.delete');
+    Route::post('ventas/{id}/anular', [\App\Http\Controllers\VentasController::class, 'anular'])->middleware('permission:ventas.delete');
 
     // Compras
-    Route::get('compras/proximo-numero', [\App\Http\Controllers\CompraController::class, 'proximoNumero']);
-    Route::post('compras/{id}/anular', [\App\Http\Controllers\CompraController::class, 'anular']);
-    Route::apiResource('compras', \App\Http\Controllers\CompraController::class);
+    Route::get('compras', [\App\Http\Controllers\CompraController::class, 'index'])->middleware('permission:compras.view');
+    Route::post('compras', [\App\Http\Controllers\CompraController::class, 'store'])->middleware('permission:compras.create');
+    Route::get('compras/{id}', [\App\Http\Controllers\CompraController::class, 'show'])->middleware('permission:compras.view');
+    Route::put('compras/{id}', [\App\Http\Controllers\CompraController::class, 'update'])->middleware('permission:compras.edit');
+    Route::delete('compras/{id}', [\App\Http\Controllers\CompraController::class, 'destroy'])->middleware('permission:compras.delete');
+    Route::post('compras/{id}/anular', [\App\Http\Controllers\CompraController::class, 'anular'])->middleware('permission:compras.delete');
 
     // Aquí agregarás más rutas protegidas
     // Route::apiResource('/conductores', ConductorController::class);

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
     LayoutDashboard,
     FileText,
@@ -18,9 +19,10 @@ import {
     ChevronRight,
     Circle,
     ChevronLeft,
-    Menu,
+    Shield,
 } from "lucide-react";
 import menuData from "@/data/menuModules.json";
+import { usePermissions } from "@/hooks/usePermissions";
 
 // Mapeo de iconos
 const iconMap = {
@@ -38,17 +40,66 @@ const iconMap = {
     UserCog,
     FileCheck,
     TrendingUp,
+    Shield,
     FileInvoice: FileText,
 };
 
 export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard", toggleCollapse }) {
     const [openModules, setOpenModules] = useState({});
     const [hoveredModule, setHoveredModule] = useState(null);
+    const [clickedModule, setClickedModule] = useState(null);
+    const [tooltipPosition, setTooltipPosition] = useState({ top: 0 });
+    const [isTooltipHovered, setIsTooltipHovered] = useState(false);
+    const { canView } = usePermissions();
+
+    // Filtrar módulos según permisos
+    const filterModulesByPermissions = (modules) => {
+        return modules.filter(module => {
+            // Dashboard siempre visible
+            if (module.id === 'dashboard') return true;
+            
+            // Si tiene submódulos, filtrar los submódulos
+            if (module.submodules) {
+                const filteredSubmodules = module.submodules.filter(sub => 
+                    canView(sub.id)
+                );
+                // Solo mostrar el módulo padre si tiene al menos un submódulo visible
+                if (filteredSubmodules.length > 0) {
+                    module.submodules = filteredSubmodules;
+                    return true;
+                }
+                return false;
+            }
+            
+            // Módulo sin submódulos, verificar permiso
+            return canView(module.id);
+        });
+    };
+
+    const filteredModules = filterModulesByPermissions([...menuData.modules]);
+
+    // Cerrar tooltip al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isCollapsed && clickedModule) {
+                const tooltip = document.querySelector('[data-tooltip-menu]');
+                const sidebar = document.querySelector('aside');
+                if (tooltip && !tooltip.contains(event.target) && sidebar && !sidebar.contains(event.target)) {
+                    setClickedModule(null);
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isCollapsed, clickedModule]);
 
     // Auto-expandir módulos que contienen la ruta activa
     useEffect(() => {
         const newOpenModules = {};
-        menuData.modules.forEach((module) => {
+        filteredModules.forEach((module) => {
             if (module.submodules) {
                 const hasActiveSubmodule = module.submodules.some(
                     (sub) => sub.path === currentPath
@@ -59,7 +110,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
             }
         });
         setOpenModules(newOpenModules);
-    }, [currentPath, isCollapsed]);
+    }, [currentPath, isCollapsed, filteredModules.length]);
 
     const toggleModule = (moduleId) => {
         if (!isCollapsed) {
@@ -116,7 +167,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                     {/* Menu Navigation */}
                     <nav className="flex-1 overflow-y-auto px-3 py-4">
                         <ul className="space-y-1">
-                            {menuData.modules.map((module) => {
+                            {filteredModules.map((module) => {
                                 const Icon = iconMap[module.icon] || Circle;
                                 const hasSubmodules =
                                     module.submodules &&
@@ -128,17 +179,33 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                     <li 
                                         key={module.id}
                                         className="relative"
-                                        onMouseEnter={() => isCollapsed && setHoveredModule(module.id)}
-                                        onMouseLeave={() => isCollapsed && setHoveredModule(null)}
+                                        data-module-id={module.id}
                                     >
                                         {/* Módulo Principal */}
                                         {hasSubmodules ? (
                                             <button
-                                                onClick={() => toggleModule(module.id)}
+                                                onClick={(e) => {
+                                                    if (isCollapsed) {
+                                                        // Si está colapsado, mostrar/ocultar tooltip con click
+                                                        if (clickedModule === module.id) {
+                                                            setClickedModule(null);
+                                                        } else {
+                                                            setClickedModule(module.id);
+                                                            const element = e.currentTarget.closest('[data-module-id]');
+                                                            if (element) {
+                                                                const rect = element.getBoundingClientRect();
+                                                                setTooltipPosition({ top: rect.top });
+                                                            }
+                                                        }
+                                                    } else {
+                                                        // Si está expandido, comportamiento normal
+                                                        toggleModule(module.id);
+                                                    }
+                                                }}
                                                 className={`w-full flex items-center ${
                                                     isCollapsed ? 'justify-center' : 'justify-between'
                                                 } px-4 py-3 rounded-lg transition-all duration-200 group ${
-                                                    isModuleActive
+                                                    isModuleActive || (isCollapsed && clickedModule === module.id)
                                                         ? "bg-accent-500 text-gray-900 shadow-lg"
                                                         : "hover:bg-primary-500/50 text-white/90 hover:text-white"
                                                 }`}
@@ -147,7 +214,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                                 <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
                                                     <Icon
                                                         className={`h-5 w-5 ${
-                                                            isModuleActive
+                                                            isModuleActive || (isCollapsed && clickedModule === module.id)
                                                                 ? "text-gray-900"
                                                                 : "text-white/80 group-hover:text-white"
                                                         }`}
@@ -235,34 +302,6 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                                 )}
                                             </ul>
                                         )}
-
-                                        {/* Tooltip con submódulos cuando está colapsado */}
-                                        {hasSubmodules && isCollapsed && hoveredModule === module.id && (
-                                            <div className="absolute left-full top-0 ml-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                                                <div className="px-4 py-2 border-b border-gray-100">
-                                                    <p className="text-sm font-semibold text-gray-900">
-                                                        {module.name}
-                                                    </p>
-                                                </div>
-                                                {module.submodules.map((submodule) => {
-                                                    const SubIcon = iconMap[submodule.icon] || Circle;
-                                                    return (
-                                                        <a
-                                                            key={submodule.id}
-                                                            href={submodule.path}
-                                                            className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                                                                isActive(submodule.path)
-                                                                    ? "bg-orange-50 text-orange-600 font-semibold border-l-4 border-orange-500"
-                                                                    : "text-gray-700 hover:bg-gray-50"
-                                                            }`}
-                                                        >
-                                                            <SubIcon className="h-4 w-4" />
-                                                            <span>{submodule.name}</span>
-                                                        </a>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
                                     </li>
                                 );
                             })}
@@ -290,6 +329,48 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                     </div>
                 </div>
             </aside>
+
+            {/* Tooltip con submódulos - Renderizado fuera del aside usando Portal */}
+            {isCollapsed && clickedModule && createPortal(
+                <div 
+                    data-tooltip-menu
+                    className="fixed left-20 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100] min-w-[220px]"
+                    style={{ top: `${tooltipPosition.top}px` }}
+                >
+                    {filteredModules.map((module) => {
+                        if (module.id === clickedModule && module.submodules) {
+                            return (
+                                <div key={module.id}>
+                                    <div className="px-4 py-2 border-b border-gray-100">
+                                        <p className="text-sm font-semibold text-gray-900">
+                                            {module.name}
+                                        </p>
+                                    </div>
+                                    {module.submodules.map((submodule) => {
+                                        const SubIcon = iconMap[submodule.icon] || Circle;
+                                        return (
+                                            <a
+                                                key={submodule.id}
+                                                href={submodule.path}
+                                                className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                                                    isActive(submodule.path)
+                                                        ? "bg-orange-50 text-orange-600 font-semibold border-l-4 border-orange-500"
+                                                        : "text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                <SubIcon className="h-4 w-4" />
+                                                <span>{submodule.name}</span>
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        }
+                        return null;
+                    })}
+                </div>,
+                document.body
+            )}
         </>
     );
 }

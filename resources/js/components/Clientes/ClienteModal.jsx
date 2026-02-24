@@ -16,6 +16,22 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
         handleSubmit,
     } = useClienteForm(cliente, isOpen, onClose, onSuccess);
 
+    const handleUbigeoChange = (ubicacion) => {
+        handleChange({
+            target: {
+                name: "departamento",
+                value: ubicacion.departamentoNombre,
+            },
+        });
+        handleChange({
+            target: { name: "provincia", value: ubicacion.provinciaNombre },
+        });
+        handleChange({
+            target: { name: "distrito", value: ubicacion.distritoNombre },
+        });
+        handleChange({ target: { name: "ubigeo", value: ubicacion.ubigeo } });
+    };
+
     return (
         <Modal
             isOpen={isOpen}
@@ -24,7 +40,11 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
             size="lg"
             footer={
                 <>
-                    <Button variant="outline" onClick={onClose} disabled={loading}>
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={loading}
+                    >
                         Cancelar
                     </Button>
                     <Button
@@ -32,7 +52,9 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
                         disabled={loading}
                         className="gap-2"
                     >
-                        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {loading && (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
                         {isEditing ? "Actualizar" : "Guardar"}
                     </Button>
                 </>
@@ -64,7 +86,8 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
                             )}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Los datos se completarán automáticamente al ingresar 8 (DNI) u 11 (RUC) dígitos
+                            Los datos se completarán automáticamente al ingresar
+                            8 (DNI) u 11 (RUC) dígitos
                         </p>
                     </ModalField>
 
@@ -108,7 +131,10 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
                     </ModalField>
 
                     {/* Teléfono 2 */}
-                    <ModalField label="Teléfono 2" error={errors.telefono2?.[0]}>
+                    <ModalField
+                        label="Teléfono 2"
+                        error={errors.telefono2?.[0]}
+                    >
                         <Input
                             variant="outlined"
                             name="telefono2"
@@ -135,7 +161,10 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
 
                     {/* Ubigeo - Ocupa las 2 columnas */}
                     <div className="md:col-span-2">
-                        <SelectUbigeo />
+                        <SelectUbigeo
+                            value={formData}
+                            onChange={handleUbigeoChange}
+                        />
                     </div>
 
                     {/* Dirección 2 */}

@@ -20,6 +20,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import MainLayout from "../Layout/MainLayout";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export default function ProductosList() {
     const [productos, setProductos] = useState([]);
@@ -271,29 +272,33 @@ export default function ProductosList() {
                     <div className="flex items-center gap-1 justify-end md:justify-start">
                         {/* PC */}
                         <div className="hidden md:flex items-center gap-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEdit(producto);
-                                }}
-                                title="Editar producto"
-                            >
-                                <Edit className="h-4 w-4 text-accent-600" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(producto);
-                                }}
-                                title="Eliminar producto"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <PermissionGuard permission="productos.edit">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(producto);
+                                    }}
+                                    title="Editar producto"
+                                >
+                                    <Edit className="h-4 w-4 text-accent-600" />
+                                </Button>
+                            </PermissionGuard>
+                            <PermissionGuard permission="productos.delete">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(producto);
+                                    }}
+                                    title="Eliminar producto"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </PermissionGuard>
                         </div>
                         {/* Móvil */}
                         <div className="md:hidden">
@@ -313,25 +318,29 @@ export default function ProductosList() {
                                     align="end"
                                     className="w-48"
                                 >
-                                    <DropdownMenuItem
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(producto);
-                                        }}
-                                    >
-                                        <Edit className="mr-2 h-4 w-4 text-accent-600" />
-                                        Editar producto
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(producto);
-                                        }}
-                                        className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar producto
-                                    </DropdownMenuItem>
+                                    <PermissionGuard permission="productos.edit">
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(producto);
+                                            }}
+                                        >
+                                            <Edit className="mr-2 h-4 w-4 text-accent-600" />
+                                            Editar producto
+                                        </DropdownMenuItem>
+                                    </PermissionGuard>
+                                    <PermissionGuard permission="productos.delete">
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(producto);
+                                            }}
+                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar producto
+                                        </DropdownMenuItem>
+                                    </PermissionGuard>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
@@ -507,23 +516,27 @@ export default function ProductosList() {
 
                                 {/* Acciones - al final */}
                                 <div className="flex gap-2 mt-auto">
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => handleEdit(producto)}
-                                        className="flex-1 gap-2"
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                        Editar
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleDelete(producto)}
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <PermissionGuard permission="productos.edit">
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={() => handleEdit(producto)}
+                                            className="flex-1 gap-2"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                            Editar
+                                        </Button>
+                                    </PermissionGuard>
+                                    <PermissionGuard permission="productos.delete">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDelete(producto)}
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </PermissionGuard>
                                 </div>
                             </div>
                         </div>

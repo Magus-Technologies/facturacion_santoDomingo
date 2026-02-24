@@ -143,6 +143,7 @@ export default function DetallesVentaModal({ venta, isOpen, onClose }) {
                 </div>
             }
             size="lg"
+            closeOnOverlayClick={true}
             footer={
                 <div className="flex w-full items-center justify-between">
                     <div className="flex gap-2">

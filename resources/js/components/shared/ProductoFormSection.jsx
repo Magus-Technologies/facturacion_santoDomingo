@@ -56,6 +56,7 @@ export default function ProductoFormSection({
                     <ProductSearchInput
                         onProductSelect={onProductSelect}
                         almacen={almacen}
+                        showCosto={showCosto}
                     />
                 </div>
 

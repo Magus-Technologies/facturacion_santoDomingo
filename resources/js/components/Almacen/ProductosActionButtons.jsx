@@ -14,6 +14,7 @@ import {
 import UnidadesModal from "../UnidadesModal";
 import CategoriasModal from "../CategoriasModal";
 import ImportarExcelModal from "./ImportarExcelModal";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export default function ProductosActionButtons({ onNuevoProducto, onRefresh, almacenActivo, busqueda }) {
     const [isUnidadesModalOpen, setIsUnidadesModalOpen] = useState(false);
@@ -94,42 +95,50 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                         <FileSpreadsheet className="h-4 w-4" />
                         <span className="hidden sm:inline">Descargar Excel</span>
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => setIsImportarExcelModalOpen(true)}
-                    >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        <span className="hidden sm:inline">Importar Excel</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleAumentarStock}
-                    >
-                        <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline">Aumentar Stock</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleDisminuirStock}
-                    >
-                        <Minus className="h-4 w-4" />
-                        <span className="hidden sm:inline">Disminuir Stock</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleTraslado}
-                    >
-                        <ArrowLeftRight className="h-4 w-4" />
-                        <span className="hidden sm:inline">Traslado</span>
-                    </Button>
+                    <PermissionGuard permission="productos.create">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => setIsImportarExcelModalOpen(true)}
+                        >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            <span className="hidden sm:inline">Importar Excel</span>
+                        </Button>
+                    </PermissionGuard>
+                    <PermissionGuard permission="productos.edit">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleAumentarStock}
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span className="hidden sm:inline">Aumentar Stock</span>
+                        </Button>
+                    </PermissionGuard>
+                    <PermissionGuard permission="productos.edit">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleDisminuirStock}
+                        >
+                            <Minus className="h-4 w-4" />
+                            <span className="hidden sm:inline">Disminuir Stock</span>
+                        </Button>
+                    </PermissionGuard>
+                    <PermissionGuard permission="productos.edit">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleTraslado}
+                        >
+                            <ArrowLeftRight className="h-4 w-4" />
+                            <span className="hidden sm:inline">Traslado</span>
+                        </Button>
+                    </PermissionGuard>
                     <Button
                         variant="outline"
                         size="sm"
@@ -160,13 +169,15 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                 </div>
                 
                 {/* Botón Nuevo Producto */}
-                <Button
-                    onClick={onNuevoProducto}
-                    className="gap-2"
-                >
-                    <Plus className="h-5 w-5" />
-                    Nuevo Producto
-                </Button>
+                <PermissionGuard permission="productos.create">
+                    <Button
+                        onClick={onNuevoProducto}
+                        className="gap-2"
+                    >
+                        <Plus className="h-5 w-5" />
+                        Nuevo Producto
+                    </Button>
+                </PermissionGuard>
             </div>
 
             {/* Modales */}

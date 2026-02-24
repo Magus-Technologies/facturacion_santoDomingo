@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Modal, ModalForm, ModalField } from "../ui/modal";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -32,59 +32,66 @@ export default function ProveedorModal({ isOpen, onClose, proveedor, onSuccess }
         ubigeo: "",
     });
 
-    // Cargar datos del proveedor si está editando
+    // Cargar datos del proveedor solo cuando se abre el modal
     useEffect(() => {
-        if (proveedor) {
-            setFormData({
-                ruc: proveedor.ruc || "",
-                razon_social: proveedor.razon_social || "",
-                direccion: proveedor.direccion || "",
-                telefono: proveedor.telefono || "",
-                email: proveedor.email || "",
-                ubigeo: proveedor.ubigeo || "",
-                departamento: proveedor.departamento || "",
-                provincia: proveedor.provincia || "",
-                distrito: proveedor.distrito || "",
-            });
-            
-            setUbigeoData({
-                departamento: proveedor.departamento || "",
-                provincia: proveedor.provincia || "",
-                distrito: proveedor.distrito || "",
-                ubigeo: proveedor.ubigeo || "",
-            });
-        } else {
-            // Resetear formulario si es nuevo
-            setFormData({
-                ruc: "",
-                razon_social: "",
-                direccion: "",
-                telefono: "",
-                email: "",
-                ubigeo: "",
-                departamento: "",
-                provincia: "",
-                distrito: "",
-            });
-            
-            setUbigeoData({
-                departamento: "",
-                provincia: "",
-                distrito: "",
-                ubigeo: "",
-            });
+        if (isOpen) {
+            if (proveedor) {
+                setFormData({
+                    ruc: proveedor.ruc || "",
+                    razon_social: proveedor.razon_social || "",
+                    direccion: proveedor.direccion || "",
+                    telefono: proveedor.telefono || "",
+                    email: proveedor.email || "",
+                    ubigeo: proveedor.ubigeo || "",
+                    departamento: proveedor.departamento || "",
+                    provincia: proveedor.provincia || "",
+                    distrito: proveedor.distrito || "",
+                });
+                
+                setUbigeoData({
+                    departamento: proveedor.departamento || "",
+                    provincia: proveedor.provincia || "",
+                    distrito: proveedor.distrito || "",
+                    ubigeo: proveedor.ubigeo || "",
+                });
+            } else {
+                // Resetear formulario si es nuevo
+                setFormData({
+                    ruc: "",
+                    razon_social: "",
+                    direccion: "",
+                    telefono: "",
+                    email: "",
+                    ubigeo: "",
+                    departamento: "",
+                    provincia: "",
+                    distrito: "",
+                });
+                
+                setUbigeoData({
+                    departamento: "",
+                    provincia: "",
+                    distrito: "",
+                    ubigeo: "",
+                });
+            }
+            setErrors({});
         }
-        setErrors({});
     }, [proveedor, isOpen]);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         
         // Limpiar error del campo al escribir
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: null }));
-        }
+        setErrors((prev) => {
+            if (prev[name]) {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            }
+            return prev;
+        });
 
         // Auto-consultar cuando el RUC tenga 11 dígitos
         if (name === 'ruc') {
@@ -93,9 +100,9 @@ export default function ProveedorModal({ isOpen, onClose, proveedor, onSuccess }
                 handleConsultarRuc(rucLimpio);
             }
         }
-    };
+    }, []);
 
-    const handleConsultarRuc = async (ruc = null) => {
+    const handleConsultarRuc = useCallback(async (ruc = null) => {
         const rucConsultar = ruc || formData.ruc.trim();
         
         if (!rucConsultar) {
@@ -141,9 +148,9 @@ export default function ProveedorModal({ isOpen, onClose, proveedor, onSuccess }
         } finally {
             setConsultando(false);
         }
-    };
+    }, [formData.ruc]);
 
-    const handleUbigeoChange = (data) => {
+    const handleUbigeoChange = useCallback((data) => {
         setUbigeoData(data);
         setFormData((prev) => ({
             ...prev,
@@ -152,9 +159,9 @@ export default function ProveedorModal({ isOpen, onClose, proveedor, onSuccess }
             provincia: data.provinciaNombre || "",
             distrito: data.distritoNombre || "",
         }));
-    };
+    }, []);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrors({});
@@ -217,7 +224,7 @@ export default function ProveedorModal({ isOpen, onClose, proveedor, onSuccess }
         } finally {
             setLoading(false);
         }
-    };
+    }, [formData, isEditing, proveedor, onClose, onSuccess]);
 
     return (
         <Modal

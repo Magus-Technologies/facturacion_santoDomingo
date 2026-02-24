@@ -24,6 +24,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import MainLayout from "../Layout/MainLayout";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export default function ProveedoresList() {
     const [proveedores, setProveedores] = useState([]);
@@ -243,29 +244,33 @@ export default function ProveedoresList() {
                             >
                                 <Eye className="h-4 w-4 text-primary-600" />
                             </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEdit(proveedor);
-                                }}
-                                title="Editar proveedor"
-                            >
-                                <Edit className="h-4 w-4 text-accent-600" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(proveedor);
-                                }}
-                                title="Eliminar proveedor"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <PermissionGuard permission="proveedores.edit">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(proveedor);
+                                    }}
+                                    title="Editar proveedor"
+                                >
+                                    <Edit className="h-4 w-4 text-accent-600" />
+                                </Button>
+                            </PermissionGuard>
+                            <PermissionGuard permission="proveedores.delete">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(proveedor);
+                                    }}
+                                    title="Eliminar proveedor"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </PermissionGuard>
                         </div>
                         {/* Móvil */}
                         <div className="md:hidden">
@@ -294,25 +299,29 @@ export default function ProveedoresList() {
                                         <Eye className="mr-2 h-4 w-4 text-primary-600" />
                                         Ver detalles
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(proveedor);
-                                        }}
-                                    >
-                                        <Edit className="mr-2 h-4 w-4 text-accent-600" />
-                                        Editar proveedor
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(proveedor);
-                                        }}
-                                        className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar proveedor
-                                    </DropdownMenuItem>
+                                    <PermissionGuard permission="proveedores.edit">
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(proveedor);
+                                            }}
+                                        >
+                                            <Edit className="mr-2 h-4 w-4 text-accent-600" />
+                                            Editar proveedor
+                                        </DropdownMenuItem>
+                                    </PermissionGuard>
+                                    <PermissionGuard permission="proveedores.delete">
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(proveedor);
+                                            }}
+                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar proveedor
+                                        </DropdownMenuItem>
+                                    </PermissionGuard>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
@@ -382,10 +391,12 @@ export default function ProveedoresList() {
                             <FilePdf className="h-4 w-4" />
                             PDF
                         </Button>
-                        <Button onClick={handleCreate} className="gap-2">
-                            <UserPlus className="h-5 w-5" />
-                            Nuevo Proveedor
-                        </Button>
+                        <PermissionGuard permission="proveedores.create">
+                            <Button onClick={handleCreate} className="gap-2">
+                                <UserPlus className="h-5 w-5" />
+                                Nuevo Proveedor
+                            </Button>
+                        </PermissionGuard>
                     </div>
                 </div>
 

@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import Login from "./components/Login";
 import DashboardApp from "./components/DashboardApp";
 import UserList from "./components/Usuarios/UserList";
+import RolePermissions from "./components/Configuracion/RolePermissions";
 import VentasList from "./components/Facturacion/Ventas/VentasList";
 import VentaForm from "./components/Facturacion/Ventas/VentaForm";
 import CotizacionesList from "./components/Cotizaciones/CotizacionesList";
@@ -26,6 +27,7 @@ const components = {
     DashboardApp,
     NotFound,
     UserList,
+    RolePermissions,
     VentasList,
     CotizacionesList,
     CotizacionForm,

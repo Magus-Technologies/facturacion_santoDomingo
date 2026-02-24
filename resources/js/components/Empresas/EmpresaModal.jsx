@@ -34,9 +34,9 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
         modo: "production",
     });
 
-    // Cargar datos de la empresa
+    // Cargar datos de la empresa - solo cuando cambia la empresa, no en cada isOpen
     useEffect(() => {
-        if (empresa) {
+        if (isOpen && empresa) {
             setFormData({
                 ruc: empresa.ruc || "",
                 razon_social: empresa.razon_social || "",
@@ -62,8 +62,8 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
                 setLogoPreview(null);
             }
             setLogoFile(null);
+            setErrors({});
         }
-        setErrors({});
     }, [empresa, isOpen]);
 
     // Manejar selección de archivo de logo

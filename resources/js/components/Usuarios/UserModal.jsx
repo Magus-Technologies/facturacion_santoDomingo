@@ -2,9 +2,10 @@ import React from "react";
 import { Modal, ModalForm, ModalField } from "../ui/modal";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Loader2, User, Mail, Calendar, Shield, Briefcase } from "lucide-react";
+import { Loader2, User, Mail, Calendar, Shield, Briefcase, Building2 } from "lucide-react";
 import { useUserForm } from "./hooks/useUserForm";
 import SelectRol from "../ui/SelectRol";
+import SelectEmpresa from "../ui/SelectEmpresa";
 
 export default function UserModal({
     isOpen,
@@ -21,6 +22,7 @@ export default function UserModal({
         isEditing,
         handleChange,
         handleRoleChange,
+        handleEmpresaChange,
         handleSubmit,
     } = useUserForm(user, isOpen, onClose, onSuccess);
 
@@ -97,6 +99,18 @@ export default function UserModal({
                                         {user?.rol?.nombre ||
                                             "Sin rol asignado"}
                                     </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <Building2 className="h-5 w-5 text-gray-400" />
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase font-semibold">
+                                    Empresa Asignada
+                                </p>
+                                <p className="text-gray-900">
+                                    {user?.empresa?.comercial || "Sin empresa asignada"}
                                 </p>
                             </div>
                         </div>
@@ -188,6 +202,21 @@ export default function UserModal({
                                 value={formData.rol_id}
                                 onChange={handleRoleChange}
                                 error={errors.rol_id?.[0]}
+                            />
+                        </ModalField>
+
+                        {/* Empresa */}
+                        <ModalField
+                            label="Empresa Asignada"
+                            required
+                            error={errors.id_empresa?.[0]}
+                            hint="Selecciona la empresa a la que tendrá acceso este usuario"
+                        >
+                            <SelectEmpresa
+                                value={formData.id_empresa}
+                                onChange={handleEmpresaChange}
+                                error={errors.id_empresa?.[0]}
+                                placeholder="Seleccionar empresa..."
                             />
                         </ModalField>
 

@@ -16,8 +16,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $users = User::select('id', 'name', 'email', 'rol_id', 'created_at', 'updated_at')
-                ->with('rol:rol_id,nombre')
+            $users = User::select('id', 'name', 'email', 'rol_id', 'id_empresa', 'created_at', 'updated_at')
+                ->with(['rol:rol_id,nombre', 'empresa:id_empresa,comercial,ruc'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -45,6 +45,7 @@ class UserController extends Controller
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:6|confirmed',
                 'rol_id' => 'required|integer|exists:roles,rol_id',
+                'id_empresa' => 'required|integer|exists:empresas,id_empresa',
             ]);
 
             $user = User::create([
@@ -52,6 +53,7 @@ class UserController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'rol_id' => $validated['rol_id'],
+                'id_empresa' => $validated['id_empresa'],
             ]);
 
             return response()->json([
@@ -80,8 +82,8 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $user = User::select('id', 'name', 'email', 'rol_id', 'created_at', 'updated_at')
-                ->with('rol:rol_id,nombre')
+            $user = User::select('id', 'name', 'email', 'rol_id', 'id_empresa', 'created_at', 'updated_at')
+                ->with(['rol:rol_id,nombre', 'empresa:id_empresa,comercial,ruc'])
                 ->findOrFail($id);
 
             return response()->json([
@@ -116,6 +118,7 @@ class UserController extends Controller
                 ],
                 'password' => 'sometimes|nullable|string|min:6|confirmed',
                 'rol_id' => 'sometimes|required|integer|exists:roles,rol_id',
+                'id_empresa' => 'sometimes|required|integer|exists:empresas,id_empresa',
             ]);
 
             if (isset($validated['name'])) {
@@ -132,6 +135,10 @@ class UserController extends Controller
 
             if (isset($validated['rol_id'])) {
                 $user->rol_id = $validated['rol_id'];
+            }
+
+            if (isset($validated['id_empresa'])) {
+                $user->id_empresa = $validated['id_empresa'];
             }
 
             $user->save();

@@ -14,7 +14,8 @@ import {
     CreditCard,
     Building2,
     Smartphone,
-    ShoppingCart,
+    PackageMinus,
+    PackageCheck,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -286,7 +287,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                 const iconos = {
                     Activa: <CheckCircle className="h-3 w-3" />,
                     Anulada: <XCircle className="h-3 w-3" />,
-                    Vendida: <ShoppingCart className="h-3 w-3" />,
+                    Vendida: <CheckCircle className="h-3 w-3" />,
                     Pendiente: <Clock className="h-3 w-3" />,
                 };
                 return (
@@ -334,18 +335,28 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                             >
                                 <Printer className="h-4 w-4 text-gray-600" />
                             </Button>
-                            {!estaAnulada && !estaVendida && ocultarSunat && handlers.handleConvertirNota && (
+                            {!estaAnulada && venta.stock_real_descontado && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-green-600 cursor-default hover:bg-transparent"
+                                    title="Ya descontado del Almacén Real"
+                                >
+                                    <PackageCheck className="h-4 w-4" />
+                                </Button>
+                            )}
+                            {!estaAnulada && !venta.stock_real_descontado && handlers.handleDescontarStock && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handlers.handleConvertirNota(venta);
+                                        handlers.handleDescontarStock(venta);
                                     }}
-                                    title="Convertir a Boleta/Factura"
-                                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                    title="Descontar del Almacén Real"
+                                    className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                                 >
-                                    <ShoppingCart className="h-4 w-4" />
+                                    <PackageMinus className="h-4 w-4" />
                                 </Button>
                             )}
                             {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
@@ -441,16 +452,25 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                         <Printer className="mr-2 h-4 w-4 text-gray-600" />
                                         Imprimir PDF
                                     </DropdownMenuItem>
-                                    {!estaAnulada && !estaVendida && ocultarSunat && handlers.handleConvertirNota && (
+                                    {!estaAnulada && venta.stock_real_descontado && (
+                                        <DropdownMenuItem
+                                            disabled
+                                            className="text-green-600 opacity-100"
+                                        >
+                                            <PackageCheck className="mr-2 h-4 w-4" />
+                                            Ya descontado del real
+                                        </DropdownMenuItem>
+                                    )}
+                                    {!estaAnulada && !venta.stock_real_descontado && handlers.handleDescontarStock && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handlers.handleConvertirNota(venta);
+                                                handlers.handleDescontarStock(venta);
                                             }}
-                                            className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700"
+                                            className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
                                         >
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
-                                            Convertir a Venta
+                                            <PackageMinus className="mr-2 h-4 w-4" />
+                                            Descontar Almacén Real
                                         </DropdownMenuItem>
                                     )}
                                     {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (

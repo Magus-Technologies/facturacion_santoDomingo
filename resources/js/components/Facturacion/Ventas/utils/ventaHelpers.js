@@ -159,7 +159,7 @@ export const prepararDatosVenta = (cliente, formData, productos, totales) => {
         total: totales.total,
         tipo_moneda: formData.tipo_moneda,
         tipo_cambio: parseFloat(formData.tipo_cambio),
-        afecta_stock: formData.id_tido === '6' ? formData.afecta_stock : true,
+        afecta_stock: formData.id_tido === '6' ? (formData.afecta_stock ? 1 : 0) : 1,
         cotizacion_id: formData.cotizacion_id || null,
         nota_venta_id: formData.nota_venta_id || null,
         empresas_ids: formData.empresas_ids || [],

@@ -99,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'update'])->middleware('permission:ventas.edit');
     Route::delete('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'destroy'])->middleware('permission:ventas.delete');
     Route::post('ventas/{id}/anular', [\App\Http\Controllers\VentasController::class, 'anular'])->middleware('permission:ventas.delete');
+    Route::post('ventas/{id}/descontar-stock', [\App\Http\Controllers\VentasController::class, 'descontarStock'])->middleware('permission:ventas.edit');
 
     // Compras
     Route::get('compras', [\App\Http\Controllers\CompraController::class, 'index'])->middleware('permission:compras.view');

@@ -67,8 +67,10 @@ export const useVentaForm = (ventaId = null) => {
     useEffect(() => {
         if (formData.id_tido) {
             obtenerProximoNumero(formData.id_tido);
-            // Si no es Nota de Venta (6), siempre debe afectar stock
-            if (formData.id_tido !== "6") {
+            // Nota de Venta (6) nunca afecta stock, los demás siempre
+            if (formData.id_tido === "6") {
+                setFormData((prev) => ({ ...prev, afecta_stock: false }));
+            } else {
                 setFormData((prev) => ({ ...prev, afecta_stock: true }));
             }
         }

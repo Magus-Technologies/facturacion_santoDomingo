@@ -52,6 +52,8 @@ class VentasController extends Controller
                         'metodo_pago' => $pago ? $pago->id_tipo_pago : null,
                         'estado' => $venta->estado,
                         'estado_sunat' => $venta->estado_sunat,
+                        'afecta_stock' => $venta->afecta_stock,
+                        'stock_real_descontado' => $venta->stock_real_descontado,
                     ];
                 });
 
@@ -159,7 +161,7 @@ class VentasController extends Controller
                     'igv' => $validated['igv'],
                     'total' => $validated['total'],
                     'tipo_moneda' => $validated['tipo_moneda'],
-                    'afecta_stock' => $validated['afecta_stock'] ?? true,
+                    'afecta_stock' => $validated['id_tido'] == 6 ? false : ($validated['afecta_stock'] ?? true),
                     'estado' => '1',
                     'estado_sunat' => '0',
                     'id_empresa' => $user->id_empresa,
@@ -169,8 +171,8 @@ class VentasController extends Controller
                     'cotizacion_id' => $validated['cotizacion_id'] ?? null,
                     'nota_venta_id' => $validated['nota_venta_id'] ?? null,
                 ]);
-                
-                $afectaStock = $validated['afecta_stock'] ?? true;
+
+                $afectaStock = $validated['id_tido'] == 6 ? false : ($validated['afecta_stock'] ?? true);
 
                 // Crear productos de la venta y descontar stock
                 foreach ($validated['productos'] as $producto) {
@@ -358,6 +360,62 @@ class VentasController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al anular la venta',
+            ], 500);
+        }
+    }
+
+    /**
+     * Descontar stock del almacén 2 (real) para cualquier venta
+     */
+    public function descontarStock(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            return DB::transaction(function () use ($id, $user) {
+                $venta = Venta::with(['productosVentas'])
+                    ->where('id_empresa', $user->id_empresa)
+                    ->where('estado', '1')
+                    ->where('stock_real_descontado', false)
+                    ->findOrFail($id);
+
+                foreach ($venta->productosVentas as $detalle) {
+                    // Buscar el producto equivalente en almacén 2
+                    $productoAlmacen2 = \App\Models\Producto::where('id_empresa', $user->id_empresa)
+                        ->where('almacen', '2')
+                        ->where('codigo', function ($query) use ($detalle) {
+                            $query->select('codigo')
+                                ->from('productos')
+                                ->where('id_producto', $detalle->id_producto)
+                                ->limit(1);
+                        })
+                        ->first();
+
+                    if ($productoAlmacen2) {
+                        $productoAlmacen2->decrement('cantidad', $detalle->cantidad);
+                        $productoAlmacen2->update(['ultima_salida' => now()]);
+
+                        Log::info("Stock descontado de almacén real", [
+                            'id_producto_almacen2' => $productoAlmacen2->id_producto,
+                            'codigo' => $productoAlmacen2->codigo,
+                            'cantidad_descontada' => $detalle->cantidad,
+                            'stock_nuevo' => $productoAlmacen2->fresh()->cantidad,
+                        ]);
+                    }
+                }
+
+                $venta->update(['stock_real_descontado' => true]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Stock descontado del almacén real exitosamente',
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Error al descontar stock: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al descontar stock del almacén real',
             ], 500);
         }
     }

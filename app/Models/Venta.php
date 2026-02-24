@@ -52,6 +52,7 @@ class Venta extends Model
         'fecha_registro',
         'cotizacion_id',
         'nota_venta_id',
+        'stock_real_descontado',
     ];
 
     protected $casts = [
@@ -60,6 +61,7 @@ class Venta extends Model
         'fecha_registro' => 'datetime',
         'total' => 'decimal:2',
         'afecta_stock' => 'boolean',
+        'stock_real_descontado' => 'boolean',
         'subtotal' => 'decimal:2',
         'igv' => 'decimal:2',
         'tipo_cambio' => 'decimal:4',

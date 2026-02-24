@@ -56,8 +56,28 @@ export default function VentasList() {
         return "Ventas";
     };
 
-    const handleView = (venta) => {
-        setVentaSeleccionada(venta);
+    const handleView = async (venta) => {
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/ventas/${venta.id_venta}`, {
+                headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+            });
+            const data = await res.json();
+            if (data.success && data.venta) {
+                const v = data.venta;
+                setVentaSeleccionada({
+                    ...v,
+                    detalles: (v.productos_ventas || []).map((d) => ({
+                        ...d,
+                        precio: d.precio_unitario,
+                    })),
+                });
+            } else {
+                setVentaSeleccionada(venta);
+            }
+        } catch {
+            setVentaSeleccionada(venta);
+        }
         setIsModalOpen(true);
     };
 
@@ -81,11 +101,35 @@ export default function VentasList() {
         window.location.href = `/guia-remision/add?venta_id=${venta.id_venta}`;
     };
 
-    const handleConvertirNota = (venta) => {
-        // Determinar tipo según documento del cliente
-        const doc = (venta.cliente?.documento || "").trim();
-        const tipoVenta = doc.length === 11 ? "factura" : "boleta";
-        window.location.href = `/ventas/productos?tipo=${tipoVenta}&nota_venta_id=${venta.id_venta}`;
+    const handleDescontarStock = async (venta) => {
+        const { toast, confirm } = await import("@/lib/sweetalert");
+        confirm({
+            title: "¿Descontar stock del Almacén Real?",
+            message: "Se descontará el stock de los productos de esta venta del Almacén 2 (stock real). Esta acción no se puede deshacer.",
+            confirmText: "Sí, descontar",
+            icon: "warning",
+            onConfirm: async () => {
+                const token = localStorage.getItem("auth_token");
+                try {
+                    const res = await fetch(`/api/ventas/${venta.id_venta}/descontar-stock`, {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: "application/json",
+                        },
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        toast.success(data.message);
+                        fetchVentas();
+                    } else {
+                        toast.error(data.message || "Error al descontar stock");
+                    }
+                } catch {
+                    toast.error("Error al descontar stock");
+                }
+            },
+        });
     };
 
     // Generar columnas con los handlers
@@ -97,7 +141,7 @@ export default function VentasList() {
             handleGenerarYEnviar,
             handleVerXml,
             handleGenerarGuia,
-            handleConvertirNota,
+            handleDescontarStock,
         },
         filtroTipo === "6",
     ); // Ocultar columna Sunat si es nota de venta

@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from "../ui/select";
 import ClienteFormSection from "./ClienteFormSection";
+import { PackageMinus } from "lucide-react";
 
 /**
  * Componente reutilizable para el sidebar de formularios (Ventas/Cotizaciones)
@@ -130,23 +131,13 @@ export default function FormSidebar({
                 </div>
             )}
 
-            {/* Afecta Stock (solo para Notas de Venta) */}
+            {/* Info: Nota de Venta no afecta stock */}
             {formData.id_tido === "6" && (
-                <div className="flex items-center justify-between px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                    <Label className="text-xs font-semibold text-blue-900">
-                        Afectar Stock
-                    </Label>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={formData.afecta_stock}
-                            onChange={(e) =>
-                                handleChange("afecta_stock", e.target.checked)
-                            }
-                        />
-                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
+                <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200">
+                    <PackageMinus className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                    <span className="text-xs font-medium text-amber-800">
+                        No descuenta stock al crear
+                    </span>
                 </div>
             )}
 

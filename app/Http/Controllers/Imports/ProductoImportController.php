@@ -407,16 +407,7 @@ class ProductoImportController extends Controller
                     }
 
                 } catch (\Exception $e) {
-                    // Simplificar mensaje: quitar SQL crudo, mostrar solo causa breve
-                    $msgError = $e->getMessage();
-                    if (str_contains($msgError, 'Data too long')) {
-                        $msgError = 'El nombre del producto es demasiado largo';
-                    } elseif (str_contains($msgError, 'Duplicate entry')) {
-                        $msgError = 'Código duplicado, el producto ya existe';
-                    } elseif (str_contains($msgError, 'SQLSTATE')) {
-                        $msgError = 'Error de base de datos al insertar producto';
-                    }
-                    $errores[] = 'Fila ' . ($index + 2) . ': ' . $msgError;
+                    $errores[] = 'Fila ' . ($index + 2) . ': ' . $e->getMessage();
                 }
             }
 

@@ -286,8 +286,20 @@ class ProductoImportController extends Controller
                 ->get(['id', 'nombre', 'codigo'])
                 ->keyBy(fn($u) => strtolower(trim($u->nombre)));
 
-            // ID de unidad por defecto "UNIDAD" (NIU)
-            $unidadDefaultId = $unidadesCache['unidad']->id ?? 1;
+            // ID de unidad por defecto: buscar "UNIDAD" o "NIU" en la tabla, nunca asumir ID fijo
+            $unidadDefault = $unidadesCache['unidad'] ?? $unidadesCache['niu'] ?? $unidadesCache->first();
+            if (!$unidadDefault) {
+                // No existe ninguna unidad: crear "UNIDAD" como base
+                $nuevoId = DB::table('unidades')->insertGetId([
+                    'nombre'     => 'UNIDAD',
+                    'estado'     => '1',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $unidadDefault = (object)['id' => $nuevoId, 'nombre' => 'UNIDAD'];
+                $unidadesCache['unidad'] = $unidadDefault;
+            }
+            $unidadDefaultId = $unidadDefault->id;
 
             foreach ($lista as $index => $item) {
                 try {
@@ -407,7 +419,17 @@ class ProductoImportController extends Controller
                     }
 
                 } catch (\Exception $e) {
-                    $errores[] = 'Fila ' . ($index + 2) . ': ' . $e->getMessage();
+                    $msgError = $e->getMessage();
+                    if (str_contains($msgError, 'Data too long')) {
+                        $msgError = 'El nombre del producto es demasiado largo';
+                    } elseif (str_contains($msgError, 'Duplicate entry')) {
+                        $msgError = 'Código duplicado, el producto ya existe';
+                    } elseif (str_contains($msgError, 'foreign key constraint')) {
+                        $msgError = 'Referencia inválida (categoría o unidad no existe)';
+                    } elseif (str_contains($msgError, 'SQLSTATE')) {
+                        $msgError = 'Error de base de datos al insertar producto';
+                    }
+                    $errores[] = 'Fila ' . ($index + 2) . ': ' . $msgError;
                 }
             }
 

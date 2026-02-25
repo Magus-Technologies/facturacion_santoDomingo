@@ -20,28 +20,31 @@ class ProductoExportController extends Controller
     {
         try {
             $user = $request->user();
-            
+
             // Crear nuevo Spreadsheet
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            
-            // Configurar encabezados
+
+            // Configurar encabezados (11 columnas)
             $headers = [
-                'A1' => 'Producto',
-                'B1' => 'Detalle',
-                'C1' => 'Cantidad',
-                'D1' => 'Costo',
-                'E1' => 'Precio Venta',
-                'F1' => 'Precio Distribuidor',
-                'G1' => 'Precio Mayorista',
-                'H1' => 'Código'
+                'A1' => 'Código',
+                'B1' => 'Producto',
+                'C1' => 'Detalle',
+                'D1' => 'Categoría',
+                'E1' => 'Unidad',
+                'F1' => 'Moneda',
+                'G1' => 'Costo',
+                'H1' => 'Stock',
+                'I1' => 'Precio Venta',
+                'J1' => 'Precio Distribuidor',
+                'K1' => 'Precio Mayorista',
             ];
-            
+
             // Establecer encabezados
             foreach ($headers as $cell => $value) {
                 $sheet->setCellValue($cell, $value);
             }
-            
+
             // Configurar estilos de encabezados
             $headerStyle = [
                 'font' => [
@@ -63,25 +66,50 @@ class ProductoExportController extends Controller
                     'vertical' => Alignment::VERTICAL_CENTER
                 ]
             ];
-            
-            $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
-            
+
+            $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+
+            // Fila de ejemplo comentada en gris
+            $ejemploStyle = [
+                'font' => ['italic' => true, 'color' => ['rgb' => '999999'], 'size' => 10],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+            ];
+            $sheet->setCellValue('A2', 'PROD-001');
+            $sheet->setCellValue('B2', 'Nombre del producto');
+            $sheet->setCellValue('C2', 'Descripción opcional');
+            $sheet->setCellValue('D2', 'Repuestos');
+            $sheet->setCellValue('E2', 'UNIDAD');
+            $sheet->setCellValue('F2', 'PEN');
+            $sheet->setCellValue('G2', '10.50');
+            $sheet->setCellValue('H2', '100');
+            $sheet->setCellValue('I2', '15.00');
+            $sheet->setCellValue('J2', '13.00');
+            $sheet->setCellValue('K2', '12.00');
+            $sheet->getStyle('A2:K2')->applyFromArray($ejemploStyle);
+
             // Configurar anchos de columnas
-            $sheet->getColumnDimension('A')->setWidth(35);  // Producto
-            $sheet->getColumnDimension('B')->setWidth(50);  // Detalle
-            $sheet->getColumnDimension('C')->setWidth(10);  // Cantidad
-            $sheet->getColumnDimension('D')->setWidth(12);  // Costo
-            $sheet->getColumnDimension('E')->setWidth(15);  // Precio Venta
-            $sheet->getColumnDimension('F')->setWidth(18);  // Precio Distribuidor
-            $sheet->getColumnDimension('G')->setWidth(18);  // Precio Mayorista
-            $sheet->getColumnDimension('H')->setWidth(15);  // Código
-            
+            $sheet->getColumnDimension('A')->setWidth(15);  // Código
+            $sheet->getColumnDimension('B')->setWidth(35);  // Producto
+            $sheet->getColumnDimension('C')->setWidth(40);  // Detalle
+            $sheet->getColumnDimension('D')->setWidth(18);  // Categoría
+            $sheet->getColumnDimension('E')->setWidth(12);  // Unidad
+            $sheet->getColumnDimension('F')->setWidth(10);  // Moneda
+            $sheet->getColumnDimension('G')->setWidth(12);  // Costo
+            $sheet->getColumnDimension('H')->setWidth(10);  // Stock
+            $sheet->getColumnDimension('I')->setWidth(15);  // Precio Venta
+            $sheet->getColumnDimension('J')->setWidth(20);  // Precio Distribuidor
+            $sheet->getColumnDimension('K')->setWidth(18);  // Precio Mayorista
+
+            // Altura de fila de encabezado
+            $sheet->getRowDimension(1)->setRowHeight(22);
+
             // Crear el archivo
             $writer = new Xlsx($spreadsheet);
             $fileName = 'plantilla-productos-importar.xlsx';
             $tempFile = tempnam(sys_get_temp_dir(), $fileName);
             $writer->save($tempFile);
-            
+
             return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
         } catch (\Exception $e) {
             return response()->json([

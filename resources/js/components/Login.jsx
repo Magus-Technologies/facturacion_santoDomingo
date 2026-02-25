@@ -72,31 +72,27 @@ export default function Login({ onLoginSuccess }) {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        e.stopPropagation(); // Prevenir propagación del evento
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
         setLoading(true);
         setError("");
 
         try {
-            // Primero obtener el CSRF token
-            await fetch("/sanctum/csrf-cookie", {
-                credentials: "include",
-            });
-
             const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
-                    "X-XSRF-TOKEN": getCookie("XSRF-TOKEN"),
                 },
-                credentials: "include",
                 body: JSON.stringify(formData),
             });
 
             const data = await response.json();
 
-            if (data.success) {
+            if (response.ok && data.success) {
                 localStorage.setItem("auth_token", data.token);
                 localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -123,7 +119,15 @@ export default function Login({ onLoginSuccess }) {
                     onLoginSuccess(data);
                 }
             } else {
-                setError(data.message || "Credenciales incorrectas");
+                // Manejar errores de validación
+                if (data.errors) {
+                    // Errores de validación de Laravel
+                    const errorMessages = Object.values(data.errors).flat();
+                    setError(errorMessages.join('. '));
+                } else {
+                    // Error de credenciales
+                    setError(data.message || "Credenciales incorrectas");
+                }
             }
         } catch (err) {
             console.error("Login error:", err);
@@ -131,16 +135,8 @@ export default function Login({ onLoginSuccess }) {
         } finally {
             setLoading(false);
         }
-    };
-
-    // Helper para obtener cookies
-    const getCookie = (name) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) {
-            return decodeURIComponent(parts.pop().split(";").shift());
-        }
-        return "";
+        
+        return false;
     };
 
     return (
@@ -162,7 +158,12 @@ export default function Login({ onLoginSuccess }) {
                     </div>
 
                     {/* Formulario */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form 
+                        onSubmit={handleSubmit} 
+                        className="space-y-5" 
+                        noValidate
+                        action="javascript:void(0);"
+                    >
                         {/* Campo Usuario/Email */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -224,12 +225,16 @@ export default function Login({ onLoginSuccess }) {
 
                         {/* Enlace Olvidé Contraseña */}
                         <div className="text-right">
-                            <a
-                                href="#"
-                                className="text-sm text-primary-600 hover:text-primary-800 transition-colors"
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    // Aquí puedes agregar la lógica de recuperación de contraseña
+                                }}
+                                className="text-sm text-primary-600 hover:text-primary-800 transition-colors bg-transparent border-0 cursor-pointer"
                             >
                                 ¿Olvidaste tu contraseña?
-                            </a>
+                            </button>
                         </div>
 
                         {/* Botón Submit */}

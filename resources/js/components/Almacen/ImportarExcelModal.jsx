@@ -11,6 +11,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
     const [selectedFile, setSelectedFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [productosLeidos, setProductosLeidos] = useState([]);
+    const [warningsLeidos, setWarningsLeidos] = useState([]);
     const [isListaModalOpen, setIsListaModalOpen] = useState(false);
 
     const handleFileChange = (e) => {
@@ -46,12 +47,18 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
             const formData = new FormData();
             formData.append('archivo', file);
 
+            const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            };
+            if (empresaActiva.id_empresa) {
+                headers['X-Empresa-Activa'] = empresaActiva.id_empresa;
+            }
+
             const response = await fetch("/api/productos/leer-excel", {
                 method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
+                headers,
                 body: formData,
             });
 
@@ -59,9 +66,13 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
 
             if (data.success) {
                 setProductosLeidos(data.data);
+                setWarningsLeidos(data.warnings || []);
                 setIsListaModalOpen(true);
             } else {
-                toast.error(data.message || "Error al leer archivo Excel");
+                // Mostrar mensaje de error detallado si existe
+                const mensaje = data.message || "Error al leer archivo Excel";
+                const detalle = data.detalle || null;
+                toast.error(detalle ? `${mensaje}\n\n${detalle}` : mensaje);
             }
         } catch (error) {
             console.error("Error:", error);
@@ -126,11 +137,13 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
     const handleListaModalClose = () => {
         setIsListaModalOpen(false);
         setProductosLeidos([]);
+        setWarningsLeidos([]);
     };
 
     const handleListaModalSuccess = () => {
         setIsListaModalOpen(false);
         setProductosLeidos([]);
+        setWarningsLeidos([]);
         handleClose();
         onSuccess?.();
     };
@@ -138,6 +151,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
     const handleClose = () => {
         setSelectedFile(null);
         setIsDragging(false);
+        setWarningsLeidos([]);
         onClose();
     };
 
@@ -183,9 +197,14 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
             <div className="-mb-4">
                 {/* Sección de descarga de plantilla */}
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-                    <p className="text-sm text-gray-700 mb-3">
-                        Descargue el modelo en <span className="font-bold">EXCEL</span> para importar, 
-                        no modifique los campos en el archivo.
+                    <p className="text-sm text-gray-700 mb-1">
+                        Descargue la <span className="font-bold">plantilla Excel</span> del sistema para importar productos correctamente.
+                    </p>
+                    <p className="text-xs text-gray-500 mb-3">
+                        Columnas: <span className="font-mono bg-gray-100 px-1 rounded">Código · Producto · Detalle · Categoría · Unidad · Moneda · Costo · Stock · Precio Venta · Precio Distribuidor · Precio Mayorista</span>
+                    </p>
+                    <p className="text-xs text-blue-600 mb-3">
+                        También se acepta el formato del cliente: <span className="font-mono bg-blue-50 px-1 rounded">CODIGOITEM · DESCRIPCIONITEM · MARCAITEM · DESCRIPCIONALMACEN · MONEDA · COSTOPROMEDIO · STOCK · VALORTOTAL</span>
                     </p>
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-gray-700">
@@ -272,6 +291,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
                 isOpen={isListaModalOpen}
                 onClose={handleListaModalClose}
                 productos={productosLeidos}
+                warnings={warningsLeidos}
                 onSuccess={handleListaModalSuccess}
             />
         </>

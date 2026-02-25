@@ -17,8 +17,15 @@ class ProductoController extends Controller
     {
         try {
             $user = $request->user();
+            
+            // Obtener empresa activa del header (para admin) o empresa del usuario
+            $idEmpresa = $user->id_empresa;
+            if ($user->rol_id == 1 && $request->header('X-Empresa-Activa')) {
+                $idEmpresa = $request->header('X-Empresa-Activa');
+            }
+            
             $productos = $this->productoService->listar(
-                $user->id_empresa,
+                $idEmpresa,
                 $request->get('almacen', '1'),
                 $request->get('search'),
                 $request->boolean('solo_con_stock', false)
@@ -49,13 +56,20 @@ class ProductoController extends Controller
     public function store(ProductoRequest $request)
     {
         try {
+            $user = $request->user();
             $data = $request->validated();
+
+            // Obtener empresa activa del header (para admin) o empresa del usuario
+            $idEmpresa = $user->id_empresa;
+            if ($user->rol_id == 1 && $request->header('X-Empresa-Activa')) {
+                $idEmpresa = $request->header('X-Empresa-Activa');
+            }
 
             if ($request->hasFile('imagen')) {
                 $data['imagen'] = $this->productoService->subirImagen($request->file('imagen'));
             }
 
-            $producto = $this->productoService->crear($data, $request->user()->id_empresa);
+            $producto = $this->productoService->crear($data, $idEmpresa);
 
             return response()->json([
                 'success' => true,

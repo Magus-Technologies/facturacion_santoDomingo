@@ -39,15 +39,21 @@ export default function ProductosList() {
         try {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
+            const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
+
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            };
+
+            // Enviar empresa activa en el header para que el backend filtre correctamente
+            if (empresaActiva.id_empresa) {
+                headers['X-Empresa-Activa'] = empresaActiva.id_empresa;
+            }
 
             const response = await fetch(
                 `/api/productos?almacen=${almacenActivo}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                    },
-                },
+                { headers },
             );
 
             const data = await response.json();

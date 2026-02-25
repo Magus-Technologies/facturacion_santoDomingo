@@ -46,25 +46,25 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
         window.location.reload();
     };
 
-    const handleLogout = async () => {
-        try {
-            const token = localStorage.getItem("auth_token");
+    const handleLogout = () => {
+        const token = localStorage.getItem("auth_token");
 
-            await fetch("/api/logout", {
+        // Limpiar localStorage y redirigir inmediatamente
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("empresas");
+        localStorage.removeItem("empresa_activa");
+        window.location.href = "/login";
+
+        // Invalidar token en segundo plano (no bloquea al usuario)
+        if (token) {
+            fetch("/api/logout", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-            });
-
-            localStorage.removeItem("auth_token");
-            localStorage.removeItem("user");
-            localStorage.removeItem("empresas");
-            localStorage.removeItem("empresa_activa");
-            window.location.href = "/login";
-        } catch (error) {
-            console.error("Error al cerrar sesión:", error);
+            }).catch(() => {});
         }
     };
 

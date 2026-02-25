@@ -185,6 +185,7 @@ export default function ProductoModal({
 
         try {
             const token = localStorage.getItem("auth_token");
+            const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
             const url = isEditing
                 ? `/api/productos/${producto.id_producto}`
                 : "/api/productos";
@@ -232,6 +233,7 @@ export default function ProductoModal({
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
+                    ...(empresaActiva.id_empresa && { 'X-Empresa-Activa': empresaActiva.id_empresa }),
                     // NO incluir Content-Type, el navegador lo establece automáticamente con boundary
                 },
                 body: formDataToSend,

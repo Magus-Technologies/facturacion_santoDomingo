@@ -14,7 +14,7 @@ use App\Http\Controllers\CotizacionController;
 */
 
 // Rutas públicas (sin autenticación)
-Route::middleware('web')->post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware('auth:sanctum')->group(function () {

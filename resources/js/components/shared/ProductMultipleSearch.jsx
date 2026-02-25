@@ -40,16 +40,19 @@ export default function ProductMultipleSearch({
         setLoading(true);
         try {
             const token = localStorage.getItem("auth_token");
+            const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            };
+            if (empresaActiva.id_empresa) {
+                headers["X-Empresa-Activa"] = empresaActiva.id_empresa;
+            }
 
             // Buscar productos
             const response = await fetch(
                 `/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}&limit=50`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                    },
-                },
+                { headers },
             );
 
             const data = await response.json();

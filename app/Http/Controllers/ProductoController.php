@@ -18,9 +18,9 @@ class ProductoController extends Controller
         try {
             $user = $request->user();
             
-            // Obtener empresa activa del header (para admin) o empresa del usuario
+            // Obtener empresa activa del header o empresa del usuario
             $idEmpresa = $user->id_empresa;
-            if ($user->rol_id == 1 && $request->header('X-Empresa-Activa')) {
+            if ($request->header('X-Empresa-Activa')) {
                 $idEmpresa = $request->header('X-Empresa-Activa');
             }
             
@@ -59,9 +59,9 @@ class ProductoController extends Controller
             $user = $request->user();
             $data = $request->validated();
 
-            // Obtener empresa activa del header (para admin) o empresa del usuario
+            // Obtener empresa activa del header o empresa del usuario
             $idEmpresa = $user->id_empresa;
-            if ($user->rol_id == 1 && $request->header('X-Empresa-Activa')) {
+            if ($request->header('X-Empresa-Activa')) {
                 $idEmpresa = $request->header('X-Empresa-Activa');
             }
 

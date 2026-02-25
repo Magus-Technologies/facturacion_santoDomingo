@@ -500,6 +500,12 @@ class ProductoImportController extends Controller
         if ($a === $b) return true;
         if (str_contains($b, $a) || str_contains($a, $b)) return true;
 
+        // Comparar versiones sin espacios ni símbolos (ej: "ARIESDM" vs "ARIES D & M")
+        $aSinEspacios = preg_replace('/[\s&\-_.,\/]+/', '', $a);
+        $bSinEspacios = preg_replace('/[\s&\-_.,\/]+/', '', $b);
+        if ($aSinEspacios === $bSinEspacios) return true;
+        if (str_contains($bSinEspacios, $aSinEspacios) || str_contains($aSinEspacios, $bSinEspacios)) return true;
+
         // Palabras genéricas a ignorar en la comparación
         $stopWords = ['de', 'del', 'la', 'el', 'los', 'las', 'y', 'en', 'a', 'con',
                       'ventas', 'almacen', 'almacén', 'tienda', 'bodega', 'deposito',

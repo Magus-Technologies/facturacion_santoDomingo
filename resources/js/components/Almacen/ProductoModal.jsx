@@ -309,82 +309,55 @@ export default function ProductoModal({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-1">
                     {/* COLUMNA 1 - IZQUIERDA */}
                     <div className="space-y-4">
-                        {/* Fila 1: Cod. Producto y Almacén */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <ModalField
-                                label="Cod. Producto:"
-                                required={!isAutoCode}
-                                error={!isAutoCode ? errors.codigo?.[0] : null}
-                            >
-                                <div className="space-y-2">
-                                    <Input
-                                        variant="outlined"
-                                        name="codigo"
-                                        value={
-                                            isAutoCode ? "" : formData.codigo
-                                        }
-                                        onChange={handleChange}
-                                        placeholder={
-                                            isAutoCode
-                                                ? "Generado automáticamente"
-                                                : "Código"
-                                        }
-                                        required={!isAutoCode}
-                                        disabled={isAutoCode}
-                                        className={
-                                            isAutoCode
-                                                ? "bg-gray-100 text-gray-500 italic"
-                                                : ""
-                                        }
-                                    />
-                                    <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 cursor-pointer pl-1">
-                                        <input
-                                            type="checkbox"
-                                            checked={isAutoCode}
-                                            onChange={(e) =>
-                                                setIsAutoCode(e.target.checked)
-                                            }
-                                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 h-3.5 w-3.5"
-                                        />
-                                        Automático
-                                    </label>
-                                </div>
-                            </ModalField>
-
-                            <ModalField
-                                label="Almacén"
-                                required
-                                error={errors.almacen?.[0]}
-                            >
-                                <Select
-                                    value={formData.almacen}
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            almacen: value,
-                                        }))
-                                    }
+                        {/* Fila 1: Cod. Producto + badge almacén */}
+                        <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                                <ModalField
+                                    label="Cod. Producto:"
+                                    required={!isAutoCode}
+                                    error={!isAutoCode ? errors.codigo?.[0] : null}
                                 >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccione" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">
-                                            Alm. 1
-                                        </SelectItem>
-                                        <SelectItem value="2">
-                                            Alm. 2
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </ModalField>
+                                    <div className="space-y-2">
+                                        <Input
+                                            variant="outlined"
+                                            name="codigo"
+                                            value={
+                                                isAutoCode ? "" : formData.codigo
+                                            }
+                                            onChange={handleChange}
+                                            placeholder={
+                                                isAutoCode
+                                                    ? "Generado automáticamente"
+                                                    : "Código"
+                                            }
+                                            required={!isAutoCode}
+                                            disabled={isAutoCode}
+                                            className={
+                                                isAutoCode
+                                                    ? "bg-gray-100 text-gray-500 italic"
+                                                    : ""
+                                            }
+                                        />
+                                        <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 cursor-pointer pl-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={isAutoCode}
+                                                onChange={(e) =>
+                                                    setIsAutoCode(e.target.checked)
+                                                }
+                                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 h-3.5 w-3.5"
+                                            />
+                                            Automático
+                                        </label>
+                                    </div>
+                                </ModalField>
+                            </div>
+                            <div className="pt-6 shrink-0">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 border border-gray-300 text-gray-600 text-xs font-semibold">
+                                    Almacén {formData.almacen}
+                                </span>
+                            </div>
                         </div>
-
-                        {!isEditing && (
-                            <p className="text-[10px] text-gray-500 leading-tight bg-gray-50 p-2 rounded-md border border-gray-100">
-                                El producto se registrará solo en el almacén seleccionado.
-                            </p>
-                        )}
 
                         {/* Fila 2: Producto (Nombre) */}
                         <ModalField

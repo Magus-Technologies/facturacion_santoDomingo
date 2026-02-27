@@ -67,8 +67,9 @@ class ProductoImportController extends Controller
             // Quitar fila de encabezado
             array_shift($rows);
 
-            $warnings  = [];
-            $productos = [];
+            $warnings       = [];
+            $productos      = [];
+            $omitidosSinStock = 0;
 
             // ── Mapeador según formato ────────────────────────────────────
             if ($formatoCliente) {
@@ -110,6 +111,14 @@ class ProductoImportController extends Controller
                         $nombresAlmacenVistos[] = $descAlmacen;
                     }
 
+                    $stockVal  = $colStock !== false && !empty($row[$colStock]) ? floatval($row[$colStock]) : 0;
+
+                    // Omitir productos sin stock
+                    if ($stockVal <= 0) {
+                        $omitidosSinStock++;
+                        continue;
+                    }
+
                     $monedaRaw = strtoupper(trim((string)($colMoneda !== false ? ($row[$colMoneda] ?? '') : '')));
                     $moneda    = $this->mapearMoneda($monedaRaw);
 
@@ -122,9 +131,9 @@ class ProductoImportController extends Controller
                         'categoria'       => $colCategoria !== false ? trim((string)($row[$colCategoria] ?? '')) : '',
                         'unidad'          => $unidadVal,
                         'moneda'          => $moneda,
-                        'costo'           => $colCosto   !== false && !empty($row[$colCosto])  ? floatval($row[$colCosto])  : 0,
-                        'cantidad'        => $colStock   !== false && !empty($row[$colStock])  ? floatval($row[$colStock])  : 0,
-                        'precio_unidad'   => $colPrecio  !== false && !empty($row[$colPrecio]) ? floatval($row[$colPrecio]) : 0,
+                        'costo'           => $colCosto  !== false && !empty($row[$colCosto])  ? floatval($row[$colCosto])  : 0,
+                        'cantidad'        => $stockVal,
+                        'precio_unidad'   => $colPrecio !== false && !empty($row[$colPrecio]) ? floatval($row[$colPrecio]) : 0,
                         'precio_mayor'    => 0,
                         'precio_menor'    => 0,
                     ];
@@ -177,6 +186,14 @@ class ProductoImportController extends Controller
                         continue;
                     }
 
+                    $stockVal = !empty($row[7]) ? floatval($row[7]) : 0;
+
+                    // Omitir productos sin stock
+                    if ($stockVal <= 0) {
+                        $omitidosSinStock++;
+                        continue;
+                    }
+
                     $monedaRaw = strtoupper(trim((string)($row[5] ?? '')));
                     $moneda    = $this->mapearMoneda($monedaRaw);
 
@@ -188,7 +205,7 @@ class ProductoImportController extends Controller
                         'unidad'          => trim((string)($row[4] ?? '')),
                         'moneda'          => $moneda,
                         'costo'           => !empty($row[6]) ? floatval($row[6]) : 0,
-                        'cantidad'        => !empty($row[7]) ? floatval($row[7]) : 0,
+                        'cantidad'        => $stockVal,
                         'precio_unidad'   => !empty($row[8]) ? floatval($row[8]) : 0,
                         'precio_mayor'    => !empty($row[9]) ? floatval($row[9]) : 0,
                         'precio_menor'    => !empty($row[10]) ? floatval($row[10]) : 0,
@@ -214,8 +231,20 @@ class ProductoImportController extends Controller
                 }
             }
 
+            // Warning: productos omitidos por stock 0
+            if ($omitidosSinStock > 0) {
+                $warnings[] = [
+                    'tipo'    => 'stock_cero',
+                    'mensaje' => "{$omitidosSinStock} producto(s) omitido(s) porque tienen stock 0.",
+                ];
+            }
+
             if (empty($productos)) {
-                return response()->json(['success' => false, 'message' => 'No se encontraron productos en el archivo'], 422);
+                $msg = 'No se encontraron productos con stock en el archivo.';
+                if ($omitidosSinStock > 0) {
+                    $msg .= " Se omitieron {$omitidosSinStock} producto(s) con stock 0.";
+                }
+                return response()->json(['success' => false, 'message' => $msg], 422);
             }
 
             return response()->json([

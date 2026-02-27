@@ -194,6 +194,7 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                 isOpen={isImportarExcelModalOpen}
                 onClose={() => setIsImportarExcelModalOpen(false)}
                 onSuccess={onRefresh}
+                almacen={almacenActivo}
             />
         </>
     );

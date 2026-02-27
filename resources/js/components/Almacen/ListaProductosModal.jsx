@@ -6,9 +6,9 @@ import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from ".
 import { toast } from "@/lib/sweetalert";
 import { Loader2, Search, Edit, Eye, Trash2, Warehouse, AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react";
 
-export default function ListaProductosModal({ isOpen, onClose, productos, warnings = [], onSuccess }) {
+export default function ListaProductosModal({ isOpen, onClose, productos, warnings = [], onSuccess, almacen = "1" }) {
     const [loading, setLoading] = useState(false);
-    const [almacenDestino, setAlmacenDestino] = useState("1");
+    const [almacenDestino, setAlmacenDestino] = useState(almacen);
     const [busqueda, setBusqueda] = useState("");
     const [modoEdicion, setModoEdicion] = useState(false);
     const [listaProductos, setListaProductos] = useState([]);
@@ -223,7 +223,8 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
                             <Warehouse className="h-4 w-4 text-gray-500 shrink-0" />
                             <p className="text-sm text-gray-600">
-                                Se importará en <span className="font-semibold text-gray-800">Almacén 1</span>, usado para facturación.
+                                Se importará en <span className="font-semibold text-gray-800">Almacén {almacenDestino}</span>
+                                {almacenDestino === "1" && <span className="text-gray-500">, usado para facturación</span>}.
                             </p>
                         </div>
                     </div>

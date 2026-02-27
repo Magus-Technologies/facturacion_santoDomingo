@@ -5,7 +5,7 @@ import { toast } from "@/lib/sweetalert";
 import { Loader2, FileSpreadsheet, Upload, Download } from "lucide-react";
 import ListaProductosModal from "./ListaProductosModal";
 
-export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
+export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen = "1" }) {
     const [loading, setLoading] = useState(false);
     const [loadingPlantilla, setLoadingPlantilla] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -293,6 +293,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess }) {
                 productos={productosLeidos}
                 warnings={warningsLeidos}
                 onSuccess={handleListaModalSuccess}
+                almacen={almacen}
             />
         </>
     );

@@ -257,6 +257,32 @@ class ProductoImportController extends Controller
                 ];
             }
 
+            // ── Detectar códigos duplicados y marcar cada producto ────────
+            $codigosVistos = [];
+            foreach ($productos as $idx => $prod) {
+                $cod = trim($prod['codigoProd'] ?? '');
+                if (!empty($cod)) {
+                    if (isset($codigosVistos[$cod])) {
+                        $productos[$codigosVistos[$cod]]['duplicado'] = true;
+                        $productos[$idx]['duplicado'] = true;
+                    } else {
+                        $codigosVistos[$cod] = $idx;
+                    }
+                }
+            }
+            $codigosDuplicados = array_values(array_unique(
+                array_keys(array_filter(
+                    array_count_values(array_filter(array_column($productos, 'codigoProd'), fn($c) => !empty($c))),
+                    fn($n) => $n > 1
+                ))
+            ));
+            if (!empty($codigosDuplicados)) {
+                $warnings[] = [
+                    'tipo'    => 'duplicados',
+                    'mensaje' => count($codigosDuplicados) . ' código(s) duplicado(s) en el Excel: ' . implode(', ', $codigosDuplicados) . '. Edita los códigos antes de importar para evitar que se sobreescriban.',
+                ];
+            }
+
             if (empty($productos)) {
                 $msg = 'No se encontraron productos con stock en el archivo.';
                 if ($omitidosSinStock > 0) {

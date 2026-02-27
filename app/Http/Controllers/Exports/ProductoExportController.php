@@ -69,11 +69,11 @@ class ProductoExportController extends Controller
 
             $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
 
-            // Fila de ejemplo comentada en gris
+            // Fila de ejemplo — fondo amarillo claro, texto oscuro legible
             $ejemploStyle = [
-                'font' => ['italic' => true, 'color' => ['rgb' => '999999'], 'size' => 10],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
-                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+                'font' => ['italic' => true, 'color' => ['rgb' => '5C4A00'], 'size' => 10],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF9C4']],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'F0C040']]],
             ];
             $sheet->setCellValue('A2', 'PROD-001');
             $sheet->setCellValue('B2', 'Nombre del producto');
@@ -81,12 +81,17 @@ class ProductoExportController extends Controller
             $sheet->setCellValue('D2', 'Repuestos');
             $sheet->setCellValue('E2', 'UNIDAD');
             $sheet->setCellValue('F2', 'PEN');
-            $sheet->setCellValue('G2', '10.50');
-            $sheet->setCellValue('H2', '100');
-            $sheet->setCellValue('I2', '15.00');
-            $sheet->setCellValue('J2', '13.00');
-            $sheet->setCellValue('K2', '12.00');
+            $sheet->setCellValue('G2', 10.50);
+            $sheet->setCellValue('H2', 100);
+            $sheet->setCellValue('I2', 15.00);
+            $sheet->setCellValue('J2', 13.00);
+            $sheet->setCellValue('K2', 12.00);
             $sheet->getStyle('A2:K2')->applyFromArray($ejemploStyle);
+
+            // Comentario en celda A2 indicando que es ejemplo
+            $sheet->getComment('A2')->getText()->createTextRun('Fila de ejemplo — eliminar antes de importar');
+            $sheet->getComment('A2')->setWidth('200pt');
+            $sheet->getComment('A2')->setHeight('40pt');
 
             // Configurar anchos de columnas
             $sheet->getColumnDimension('A')->setWidth(15);  // Código

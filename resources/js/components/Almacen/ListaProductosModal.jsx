@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "../ui/table";
 import { toast } from "@/lib/sweetalert";
-import { Loader2, Search, Edit, Eye, Trash2, Warehouse, AlertTriangle, Info, CheckCircle } from "lucide-react";
+import { Loader2, Search, Edit, Eye, Trash2, Warehouse, AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react";
 
 export default function ListaProductosModal({ isOpen, onClose, productos, warnings = [], onSuccess }) {
     const [loading, setLoading] = useState(false);
@@ -12,6 +12,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
     const [busqueda, setBusqueda] = useState("");
     const [modoEdicion, setModoEdicion] = useState(false);
     const [listaProductos, setListaProductos] = useState([]);
+    const [filtrarDuplicados, setFiltrarDuplicados] = useState(false);
 
     // Actualizar lista cuando cambian los productos
     useEffect(() => {
@@ -20,17 +21,43 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
         }
     }, [productos]);
 
-    // Filtrar productos según búsqueda
+    // Detectar códigos duplicados en la lista actual
+    const codigosDuplicados = useMemo(() => {
+        const conteo = {};
+        listaProductos.forEach(p => {
+            const cod = (p.codigoProd || '').trim();
+            if (cod) conteo[cod] = (conteo[cod] || 0) + 1;
+        });
+        return new Set(Object.keys(conteo).filter(k => conteo[k] > 1));
+    }, [listaProductos]);
+
+    const hayDuplicados = codigosDuplicados.size > 0;
+
+    // Activar edición automáticamente si hay duplicados
+    useEffect(() => {
+        if (codigosDuplicados.size > 0) setModoEdicion(true);
+    }, [codigosDuplicados.size]);
+
+    // Desactivar filtro de duplicados cuando ya no quedan
+    useEffect(() => {
+        if (codigosDuplicados.size === 0) setFiltrarDuplicados(false);
+    }, [codigosDuplicados.size]);
+
+    // Filtrar productos según búsqueda y filtro de duplicados
     const productosFiltrados = useMemo(() => {
-        if (!busqueda) return listaProductos;
+        let lista = listaProductos;
+        if (filtrarDuplicados) {
+            lista = lista.filter(p => codigosDuplicados.has((p.codigoProd || '').trim()));
+        }
+        if (!busqueda) return lista;
         const busquedaLower = busqueda.toLowerCase();
-        return listaProductos.filter(p =>
+        return lista.filter(p =>
             p.producto?.toLowerCase().includes(busquedaLower) ||
             p.descripcicon?.toLowerCase().includes(busquedaLower) ||
             p.codigoProd?.toLowerCase().includes(busquedaLower) ||
             p.categoria?.toLowerCase().includes(busquedaLower)
         );
-    }, [listaProductos, busqueda]);
+    }, [listaProductos, busqueda, filtrarDuplicados, codigosDuplicados]);
 
     // Detectar si hay datos de precios adicionales para mostrar/ocultar columnas
     const tieneDistribuidor = useMemo(() =>
@@ -117,6 +144,8 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
         empresa:    { icon: AlertTriangle, bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800", icon_color: "text-orange-500" },
         categorias: { icon: Info,          bg: "bg-blue-50",   border: "border-blue-200",   text: "text-blue-800",   icon_color: "text-blue-500"   },
         unidad:     { icon: Info,          bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-800", icon_color: "text-yellow-500" },
+        stock_cero: { icon: Info,          bg: "bg-gray-50",   border: "border-gray-200",   text: "text-gray-700",   icon_color: "text-gray-500"   },
+        duplicados: { icon: XCircle,       bg: "bg-red-50",    border: "border-red-200",    text: "text-red-800",    icon_color: "text-red-500"    },
     };
 
     const totalCols = 4 + (tieneDetalle ? 1 : 0) + (tieneDistribuidor ? 1 : 0) + (tieneMayorista ? 1 : 0);
@@ -126,7 +155,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
             isOpen={isOpen}
             onClose={handleClose}
             title="Lista de productos a importar"
-            size="full"
+            size="xl"
             footer={
                 <>
                     <Button
@@ -138,8 +167,9 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                     </Button>
                     <Button
                         onClick={handleGuardar}
-                        disabled={loading || listaProductos.length === 0}
+                        disabled={loading || listaProductos.length === 0 || hayDuplicados}
                         className="gap-2"
+                        title={hayDuplicados ? "Corrige los códigos duplicados antes de importar" : undefined}
                     >
                         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                         {loading ? "Importando..." : `Importar ${listaProductos.length} productos`}
@@ -150,9 +180,10 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
             <div className="space-y-4">
 
                 {/* ── Banners de advertencia ── */}
-                {warnings.length > 0 && (
+                {(warnings.length > 0 || warnings.some(w => w.tipo === 'duplicados')) && (
                     <div className="space-y-2">
-                        {warnings.map((w, i) => {
+                        {/* Warnings estáticos (excluir duplicados, se muestran dinámicamente abajo) */}
+                        {warnings.filter(w => w.tipo !== 'duplicados').map((w, i) => {
                             const cfg = warningConfig[w.tipo] || warningConfig.categorias;
                             const Icon = cfg.icon;
                             return (
@@ -162,6 +193,25 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                                 </div>
                             );
                         })}
+
+                        {/* Banner dinámico de duplicados */}
+                        {warnings.some(w => w.tipo === 'duplicados') && (
+                            hayDuplicados ? (
+                                <div className="flex items-start gap-3 px-4 py-3 rounded-lg border bg-red-50 border-red-200">
+                                    <XCircle className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+                                    <p className="text-sm text-red-800">
+                                        <strong>{codigosDuplicados.size}</strong> código(s) duplicado(s): {[...codigosDuplicados].join(', ')}. Edita los códigos antes de importar para evitar que se sobreescriban.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex items-start gap-3 px-4 py-3 rounded-lg border bg-green-50 border-green-200">
+                                    <CheckCircle className="h-4 w-4 mt-0.5 shrink-0 text-green-500" />
+                                    <p className="text-sm text-green-800">
+                                        Todos los códigos duplicados han sido corregidos. Ya puedes importar.
+                                    </p>
+                                </div>
+                            )
+                        )}
                     </div>
                 )}
 
@@ -184,15 +234,34 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                             <Search className="inline h-4 w-4 mr-1" />
                             Buscar Producto:
                         </label>
-                        <Input
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                            placeholder="Buscar por código, nombre, categoría..."
-                        />
+                        <div className="flex gap-2">
+                            <Input
+                                value={busqueda}
+                                onChange={(e) => setBusqueda(e.target.value)}
+                                placeholder="Buscar por código, nombre, categoría..."
+                            />
+                            {hayDuplicados && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setFiltrarDuplicados(v => !v); setBusqueda(""); }}
+                                    className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                                        filtrarDuplicados
+                                            ? "bg-red-500 border-red-500 text-white"
+                                            : "bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
+                                    }`}
+                                    title="Filtrar solo productos con código duplicado"
+                                >
+                                    <XCircle className="h-3.5 w-3.5" />
+                                    Duplicados ({codigosDuplicados.size})
+                                </button>
+                            )}
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            {busqueda
-                                ? `Mostrando ${productosFiltrados.length} de ${listaProductos.length} productos`
-                                : `Total: ${listaProductos.length} productos`
+                            {filtrarDuplicados
+                                ? `Mostrando ${productosFiltrados.length} producto(s) con código duplicado`
+                                : busqueda
+                                    ? `Mostrando ${productosFiltrados.length} de ${listaProductos.length} productos`
+                                    : `Total: ${listaProductos.length} productos`
                             }
                         </p>
                     </div>
@@ -215,7 +284,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
 
                 {/* ── Tabla de productos ── */}
                 <div className="border rounded-lg overflow-hidden">
-                    <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+                    <div className="max-h-[380px] overflow-y-auto overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <tr>
@@ -237,8 +306,9 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                             <TableBody>
                                 {productosFiltrados.map((item, index) => {
                                     const indexOriginal = listaProductos.indexOf(item);
+                                    const esDuplicado = codigosDuplicados.has((item.codigoProd || '').trim());
                                     return (
-                                        <TableRow key={index}>
+                                        <TableRow key={index} className={esDuplicado ? "bg-red-50 border-l-4 border-l-red-400" : ""}>
                                             <TableCell className="text-gray-400 text-xs">{indexOriginal + 1}</TableCell>
                                             {modoEdicion ? (
                                                 <>
@@ -287,7 +357,17 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                                                 </>
                                             ) : (
                                                 <>
-                                                    <TableCell className="font-mono text-xs text-gray-600">{item.codigoProd || <span className="text-gray-300 italic">auto</span>}</TableCell>
+                                                    <TableCell className="font-mono text-xs">
+                                                        {item.codigoProd
+                                                            ? <span className={esDuplicado ? "text-red-600 font-bold" : "text-gray-600"}>{item.codigoProd}</span>
+                                                            : <span className="text-gray-300 italic">auto</span>
+                                                        }
+                                                        {esDuplicado && (
+                                                            <span className="ml-1.5 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-semibold uppercase tracking-wide">
+                                                                Duplicado
+                                                            </span>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell className="font-medium max-w-[200px] truncate" title={item.producto}>{item.producto}</TableCell>
                                                     {tieneDetalle && (
                                                         <TableCell className="text-gray-500 text-xs max-w-[200px] truncate" title={item.descripcicon}>{item.descripcicon || <span className="text-gray-300">—</span>}</TableCell>
@@ -345,13 +425,23 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
 
                 {/* Resumen inferior */}
                 {listaProductos.length > 0 && (
-                    <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border">
-                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                        <span>
-                            <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>Almacén {almacenDestino}</strong>.
-                            Las categorías y unidades nuevas se crearán automáticamente.
-                        </span>
-                    </div>
+                    hayDuplicados ? (
+                        <div className="flex items-center gap-2 text-xs text-red-700 bg-red-50 px-4 py-2.5 rounded-lg border border-red-200">
+                            <XCircle className="h-4 w-4 shrink-0" />
+                            <span>
+                                <strong>{codigosDuplicados.size}</strong> código(s) duplicado(s) resaltados en rojo.
+                                Edita los códigos en la tabla para desbloquear la importación.
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border">
+                            <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                            <span>
+                                <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>Almacén {almacenDestino}</strong>.
+                                Las categorías y unidades nuevas se crearán automáticamente.
+                            </span>
+                        </div>
+                    )
                 )}
             </div>
         </Modal>

@@ -43,7 +43,7 @@ class ProductoImportController extends Controller
             // Cargar Excel
             $spreadsheet = IOFactory::load($file->getPathname());
             $sheet       = $spreadsheet->getActiveSheet();
-            $rows        = $sheet->toArray(null, true, true, false); // índice 0-based
+            $rows        = $sheet->toArray(null, true, false, false); // índice 0-based, sin formato (valores numéricos crudos)
 
             if (empty($rows)) {
                 return response()->json(['success' => false, 'message' => 'El archivo está vacío'], 422);
@@ -52,9 +52,14 @@ class ProductoImportController extends Controller
             // ── Detección de formato ──────────────────────────────────────
             $primeraFila = array_map('strval', $rows[0]);
             $primeraFila = array_map('trim', $primeraFila);
+            $headerUpper = array_map(fn($s) => mb_strtoupper($s, 'UTF-8'), $primeraFila);
 
-            $formatoCliente = in_array('CODIGOITEM', $primeraFila);
-            $formatoPropio  = in_array('Código', $primeraFila) || in_array('Producto', $primeraFila);
+            $formatoCliente = in_array('CODIGOITEM', $headerUpper);
+            $formatoPropio  = !$formatoCliente && (
+                in_array('PRODUCTO', $headerUpper) ||
+                in_array('CÓDIGO',   $headerUpper) ||
+                in_array('CODIGO',   $headerUpper)
+            );
 
             if (!$formatoCliente && !$formatoPropio) {
                 return response()->json([
@@ -74,9 +79,6 @@ class ProductoImportController extends Controller
             // ── Mapeador según formato ────────────────────────────────────
             if ($formatoCliente) {
                 // Detectar posición de cada columna por nombre (flexible ante columnas extra)
-                // $primeraFila ya fue capturada ANTES del array_shift, usarla directamente
-                $headerUpper = array_map('strtoupper', $primeraFila);
-
                 $colCodigo      = array_search('CODIGOITEM',        $headerUpper);
                 $colNombre      = array_search('DESCRIPCIONITEM',    $headerUpper);
                 $colCategoria   = array_search('MARCAITEM',          $headerUpper);
@@ -175,18 +177,34 @@ class ProductoImportController extends Controller
                 }
 
             } else {
-                // Formato propio: Código | Producto | Detalle | Categoría | Unidad | Moneda | Costo | Stock | Precio Venta | Precio Distribuidor | Precio Mayorista
+                // Formato propio (flexible): detecta columnas por nombre, no por posición fija.
+                // Soporta plantilla del sistema y cualquier variante con encabezados similares.
+                $pC  = $this->buscarColumna($headerUpper, ['CÓDIGO', 'CODIGO', 'COD']);
+                $pN  = $this->buscarColumna($headerUpper, ['PRODUCTO', 'NOMBRE', 'DESCRIPCION', 'DESCRIPCIÓN']);
+                $pD  = $this->buscarColumna($headerUpper, ['DETALLE']);
+                $pCa = $this->buscarColumna($headerUpper, ['CATEGORÍA', 'CATEGORIA', 'MARCA', 'MARCAITEM']);
+                $pU  = $this->buscarColumna($headerUpper, ['UNIDAD', 'MEDIDA', 'UNIDAD DE MEDIDA']);
+                $pMo = $this->buscarColumna($headerUpper, ['MONEDA']);
+                $pCo = $this->buscarColumna($headerUpper, ['COSTO', 'COSTOPROMEDIO', 'COSTO PROMEDIO', 'PRECIO COSTO']);
+                $pSt = $this->buscarColumna($headerUpper, ['STOCK', 'CANTIDAD', 'EXISTENCIA']);
+                $pPv = $this->buscarColumna($headerUpper, ['PRECIO VTA', 'PRECIO VENTA', 'PRECIO UNITARIO', 'PRECIO UNIDAD', 'PRECIOVTA', 'VALORTOTAL', 'VALOR TOTAL']);
+                $pPm = $this->buscarColumna($headerUpper, ['PRECIO DISTRIBUIDOR', 'PRECIO DIST', 'PRECIO MAYOR']);
+                $pPn = $this->buscarColumna($headerUpper, ['PRECIO MAYORISTA', 'PRECIO MENOR', 'PRECIO MINORISTA']);
+
                 foreach ($rows as $index => $row) {
-                    // Saltar fila de ejemplo (fila 2 con texto "Nombre del producto")
-                    if (trim((string)($row[1] ?? '')) === 'Nombre del producto') {
+                    $nombreVal  = trim((string)(($pN  !== null ? $row[$pN]  : null) ?? ''));
+                    $codigoVal  = trim((string)(($pC  !== null ? $row[$pC]  : null) ?? ''));
+
+                    // Saltar fila de ejemplo
+                    if ($nombreVal === 'Nombre del producto') {
                         continue;
                     }
                     // Saltar filas vacías
-                    if (empty(trim((string)($row[0] ?? ''))) && empty(trim((string)($row[1] ?? '')))) {
+                    if (empty($codigoVal) && empty($nombreVal)) {
                         continue;
                     }
 
-                    $stockVal = !empty($row[7]) ? floatval($row[7]) : 0;
+                    $stockVal = ($pSt !== null && !empty($row[$pSt])) ? floatval($row[$pSt]) : 0;
 
                     // Omitir productos sin stock
                     if ($stockVal <= 0) {
@@ -194,21 +212,21 @@ class ProductoImportController extends Controller
                         continue;
                     }
 
-                    $monedaRaw = strtoupper(trim((string)($row[5] ?? '')));
+                    $monedaRaw = $pMo !== null ? strtoupper(trim((string)($row[$pMo] ?? ''))) : '';
                     $moneda    = $this->mapearMoneda($monedaRaw);
 
                     $productos[] = [
-                        'codigoProd'      => trim((string)($row[0] ?? '')),
-                        'producto'        => trim((string)($row[1] ?? '')),
-                        'descripcicon'    => trim((string)($row[2] ?? '')),
-                        'categoria'       => trim((string)($row[3] ?? '')),
-                        'unidad'          => trim((string)($row[4] ?? '')),
-                        'moneda'          => $moneda,
-                        'costo'           => !empty($row[6]) ? floatval($row[6]) : 0,
-                        'cantidad'        => $stockVal,
-                        'precio_unidad'   => !empty($row[8]) ? floatval($row[8]) : 0,
-                        'precio_mayor'    => !empty($row[9]) ? floatval($row[9]) : 0,
-                        'precio_menor'    => !empty($row[10]) ? floatval($row[10]) : 0,
+                        'codigoProd'    => $codigoVal,
+                        'producto'      => $nombreVal,
+                        'descripcicon'  => trim((string)(($pD  !== null ? $row[$pD]  : null) ?? '')),
+                        'categoria'     => trim((string)(($pCa !== null ? $row[$pCa] : null) ?? '')),
+                        'unidad'        => trim((string)(($pU  !== null ? $row[$pU]  : null) ?? '')),
+                        'moneda'        => $moneda,
+                        'costo'         => ($pCo !== null && !empty($row[$pCo])) ? floatval($row[$pCo]) : 0,
+                        'cantidad'      => $stockVal,
+                        'precio_unidad' => ($pPv !== null && !empty($row[$pPv])) ? floatval($row[$pPv]) : 0,
+                        'precio_mayor'  => ($pPm !== null && !empty($row[$pPm])) ? floatval($row[$pPm]) : 0,
+                        'precio_menor'  => ($pPn !== null && !empty($row[$pPn])) ? floatval($row[$pPn]) : 0,
                     ];
                 }
 
@@ -559,5 +577,18 @@ class ProductoImportController extends Controller
         }
 
         return $nuevas;
+    }
+
+    /**
+     * Busca el índice de una columna en los encabezados (en mayúsculas).
+     * Acepta múltiples nombres alternativos.
+     */
+    private function buscarColumna(array $headers, array $nombres): ?int
+    {
+        foreach ($nombres as $nombre) {
+            $idx = array_search(mb_strtoupper($nombre, 'UTF-8'), $headers);
+            if ($idx !== false) return $idx;
+        }
+        return null;
     }
 }

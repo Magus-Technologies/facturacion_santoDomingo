@@ -45,6 +45,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'destroy'])->middleware('permission:clientes.delete');
     Route::post('clientes/buscar-documento', [\App\Http\Controllers\Api\ClienteController::class, 'buscarPorDocumento']);
 
+    // Plantilla de Impresión
+    Route::get('plantilla-impresion', [\App\Http\Controllers\PlantillaImpresionController::class, 'show']);
+    Route::post('plantilla-impresion', [\App\Http\Controllers\PlantillaImpresionController::class, 'update']);
+
     // Empresas
     Route::get('empresas', [\App\Http\Controllers\EmpresaController::class, 'index']);
     Route::get('empresas/{id}', [\App\Http\Controllers\EmpresaController::class, 'show']);

@@ -104,8 +104,13 @@
           "name": "Permisos",
           "icon": "Shield",
           "path": "/configuracion/permisos"
+        },
+        {
+          "id": "plantilla-impresion",
+          "name": "Plantillas de Impresión",
+          "icon": "Printer",
+          "path": "/configuracion/plantilla-impresion"
         }
-        
       ]
     }
   ]

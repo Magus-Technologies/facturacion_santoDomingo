@@ -74,6 +74,12 @@
             font-size: 9pt;
             color: #666;
         }
+        /* Quill HTML output en PDF */
+        .ql-output p { margin: 0; padding: 0; line-height: 1.3; }
+        .ql-output ol, .ql-output ul { margin: 0; padding-left: 16px; }
+        .ql-output h1 { font-size: 14pt; margin: 0; }
+        .ql-output h2 { font-size: 12pt; margin: 0; }
+        .ql-output h3 { font-size: 10pt; margin: 0; }
     </style>
 </head>
 <body>
@@ -91,13 +97,17 @@
                                 @endif
                             </td>
                             <td style="width: 55%; vertical-align: top; text-align: left;">
-                                <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">ILIDESAVA & DESAVA<br>S.R.L.</div>
-                                <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
-                                    VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
-                                    DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
-                                    CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
-                                    PARA TU EMPRENDIMIENTO
-                                </div>
+                                @if(!empty($plantilla) && $plantilla->cabecera_activo && $plantilla->mensaje_cabecera)
+                                    <div class="ql-output" style="font-size: 8pt;">{!! $plantilla->mensaje_cabecera !!}</div>
+                                @else
+                                    <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">ILIDESAVA & DESAVA<br>S.R.L.</div>
+                                    <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
+                                        VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
+                                        DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
+                                        CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
+                                        PARA TU EMPRENDIMIENTO
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     </table>
@@ -266,7 +276,9 @@
                 <!-- Cuentas Bancarias (Left side) -->
                 <td style="width: 55%; vertical-align: top; padding-right: 10px;">
                     <div style="font-size: 7.5pt; font-weight: bold; line-height: 1.3;">
-                        @if($venta->empresa->cuentas_bancarias)
+                        @if(!empty($plantilla) && $plantilla->inferior_activo && $plantilla->mensaje_inferior)
+                            <div class="ql-output">{!! $plantilla->mensaje_inferior !!}</div>
+                        @elseif($venta->empresa->cuentas_bancarias ?? false)
                             {!! nl2br(e($venta->empresa->cuentas_bancarias)) !!}
                         @else
                             BCP Cta Cte soles: 1912490742008<br>
@@ -324,9 +336,13 @@
 
         <!-- Footer -->
         <div style="clear: both; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd;">
-            <p style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center;">
-                <strong>{{ $venta->empresa->propaganda ?? 'DIOS NUNCA SE CANSARA DE CUIDARTE Y BENDECIRTE DE PELEAR TUS BATALLAS Y DE CUMPLIR TUS SUEÑOS' }}</strong>
-            </p>
+            @if(!empty($plantilla) && $plantilla->despedida_activo && $plantilla->mensaje_despedida)
+                <div class="ql-output" style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center; font-weight: bold;">{!! $plantilla->mensaje_despedida !!}</div>
+            @else
+                <p style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center;">
+                    <strong>{{ $venta->empresa->propaganda ?? 'DIOS NUNCA SE CANSARA DE CUIDARTE Y BENDECIRTE DE PELEAR TUS BATALLAS Y DE CUMPLIR TUS SUEÑOS' }}</strong>
+                </p>
+            @endif
             <p style="font-size: 7pt; color: #555; text-align: center;">
                 USUARIO: {{ $venta->usuario->name ?? 'Sistema' }} {{ now()->format('d/m/Y H:i') }}
             </p>

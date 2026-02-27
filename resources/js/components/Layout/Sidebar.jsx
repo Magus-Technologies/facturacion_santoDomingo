@@ -20,6 +20,7 @@ import {
     Circle,
     ChevronLeft,
     Shield,
+    Printer,
 } from "lucide-react";
 import menuData from "@/data/menuModules.json";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -41,6 +42,7 @@ const iconMap = {
     FileCheck,
     TrendingUp,
     Shield,
+    Printer,
     FileInvoice: FileText,
 };
 
@@ -151,17 +153,19 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="flex items-center justify-center h-20 border-b border-primary-500/30 px-4">
-                        {isCollapsed ? (
-                            <div className="h-10 w-10 bg-accent-500 rounded-lg flex items-center justify-center font-bold text-gray-900 text-xl">
-                                I
-                            </div>
-                        ) : (
-                            <img
-                                src="/images/logos/logo.svg"
-                                alt="ilidesava"
-                                className="h-12 w-auto"
-                            />
-                        )}
+                        <a href="/inicio" className="flex items-center justify-center">
+                            {isCollapsed ? (
+                                <div className="h-10 w-10 bg-accent-500 rounded-lg flex items-center justify-center font-bold text-gray-900 text-xl">
+                                    I
+                                </div>
+                            ) : (
+                                <img
+                                    src="/images/logos/logo.svg"
+                                    alt="ilidesava"
+                                    className="h-12 w-auto"
+                                />
+                            )}
+                        </a>
                     </div>
 
                     {/* Menu Navigation */}

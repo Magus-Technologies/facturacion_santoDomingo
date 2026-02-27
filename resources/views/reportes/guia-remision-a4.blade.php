@@ -6,6 +6,11 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Arial', sans-serif; font-size: 9pt; color: #333; }
+        .ql-output p { margin: 0; padding: 0; line-height: 1.3; }
+        .ql-output ol, .ql-output ul { margin: 0; padding-left: 16px; }
+        .ql-output h1 { font-size: 14pt; margin: 0; }
+        .ql-output h2 { font-size: 12pt; margin: 0; }
+        .ql-output h3 { font-size: 10pt; margin: 0; }
         .section-box {
             border: 1px solid #777;
             border-radius: 6px;
@@ -69,13 +74,17 @@
                                 @endif
                             </td>
                             <td style="width: 55%; vertical-align: top; text-align: left;">
-                                <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">{{ $empresa->comercial ?? $empresa->razon_social ?? '' }}</div>
-                                <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
-                                    VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
-                                    DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
-                                    CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
-                                    PARA TU EMPRENDIMIENTO
-                                </div>
+                                @if(!empty($plantilla) && $plantilla->cabecera_activo && $plantilla->mensaje_cabecera)
+                                    <div class="ql-output" style="font-size: 8pt;">{!! $plantilla->mensaje_cabecera !!}</div>
+                                @else
+                                    <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">{{ $empresa->comercial ?? $empresa->razon_social ?? '' }}</div>
+                                    <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
+                                        VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
+                                        DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
+                                        CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
+                                        PARA TU EMPRENDIMIENTO
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     </table>
@@ -311,9 +320,13 @@
 
         <!-- Footer -->
         <div style="clear: both; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd;">
-            <p style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center;">
-                <strong>{{ $empresa->propaganda ?? 'DIOS NUNCA SE CANSARA DE CUIDARTE Y BENDECIRTE DE PELEAR TUS BATALLAS Y DE CUMPLIR TUS SUEÑOS' }}</strong>
-            </p>
+            @if(!empty($plantilla) && $plantilla->despedida_activo && $plantilla->mensaje_despedida)
+                <div class="ql-output" style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center; font-weight: bold;">{!! $plantilla->mensaje_despedida !!}</div>
+            @else
+                <p style="font-size: 8pt; color: #333; margin-bottom: 3px; text-align: center;">
+                    <strong>{{ $empresa->propaganda ?? 'DIOS NUNCA SE CANSARA DE CUIDARTE Y BENDECIRTE DE PELEAR TUS BATALLAS Y DE CUMPLIR TUS SUEÑOS' }}</strong>
+                </p>
+            @endif
             <p style="font-size: 7pt; color: #555; text-align: center; margin-top: 2px;">
                 Representación impresa de la GUÍA DE REMISIÓN ELECTRÓNICA REMITENTE.
                 Autorizado mediante resolución N° 054-006-0001490 /SUNAT. Consulte su comprobante en www.smartclic.pe

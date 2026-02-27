@@ -53,12 +53,12 @@ class AuthController extends Controller
         if ($user->rol_id == 1) {
             // Admin: todas las empresas
             $empresas = \App\Models\Empresa::where('estado', '1')
-                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social', 'logo', 'direccion')
                 ->get();
         } elseif ($user->id_empresa) {
             // Usuario normal: solo su empresa
             $empresa = \App\Models\Empresa::where('id_empresa', $user->id_empresa)
-                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social', 'logo', 'direccion')
                 ->first();
             if ($empresa) {
                 $empresas = [$empresa];
@@ -120,11 +120,11 @@ class AuthController extends Controller
         $empresas = [];
         if ($user->rol_id == 1) {
             $empresas = \App\Models\Empresa::where('estado', '1')
-                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social', 'logo', 'direccion')
                 ->get();
         } elseif ($user->id_empresa) {
             $empresa = \App\Models\Empresa::where('id_empresa', $user->id_empresa)
-                ->select('id_empresa', 'comercial', 'ruc', 'razon_social')
+                ->select('id_empresa', 'comercial', 'ruc', 'razon_social', 'logo', 'direccion')
                 ->first();
             if ($empresa) {
                 $empresas = [$empresa];

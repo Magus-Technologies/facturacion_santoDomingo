@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Reportes;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cotizacion;
+use App\Models\PlantillaImpresion;
 use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Log;
 
@@ -68,8 +69,13 @@ class CotizacionPdfController extends Controller
             $empresa = \App\Models\Empresa::find($cotizacion->id_empresa);
             $cotizacion->empresa = $empresa;
 
+            // Cargar plantilla de impresión
+            $plantilla = $empresa
+                ? PlantillaImpresion::obtenerPara($empresa->id_empresa)
+                : null;
+
             // Renderizar vista Blade a HTML
-            $html = view('reportes.cotizacion-a4', compact('cotizacion'))->render();
+            $html = view('reportes.cotizacion-a4', compact('cotizacion', 'plantilla'))->render();
 
             // Crear PDF con mPDF
             $mpdf = new Mpdf([

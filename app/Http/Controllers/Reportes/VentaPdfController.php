@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Reportes;
 
 use App\Helpers\QrHelper;
 use App\Http\Controllers\Controller;
+use App\Models\PlantillaImpresion;
 use App\Models\Venta;
 use Mpdf\Mpdf;
 
@@ -28,8 +29,13 @@ class VentaPdfController extends Controller
             $qrBase64 = QrHelper::generarQrBase64($qrString);
             $consultaUrl = config('app.consulta_url');
 
+            // Cargar plantilla de impresión
+            $plantilla = $venta->empresa
+                ? PlantillaImpresion::obtenerPara($venta->empresa->id_empresa)
+                : null;
+
             // Renderizar vista Blade a HTML
-            $html = view("reportes.venta-a4", compact("venta", "qrBase64", "consultaUrl"))->render();
+            $html = view("reportes.venta-a4", compact("venta", "qrBase64", "consultaUrl", "plantilla"))->render();
 
             // Crear PDF con mPDF
             $mpdf = new Mpdf([

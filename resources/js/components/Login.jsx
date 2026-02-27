@@ -44,7 +44,7 @@ export default function Login({ onLoginSuccess }) {
 
                 if (response.ok) {
                     // Token válido, redirigir al dashboard
-                    window.location.href = "/dashboard";
+                    window.location.href = "/inicio";
                 } else {
                     // Token inválido, limpiar localStorage
                     localStorage.removeItem("auth_token");
@@ -113,7 +113,7 @@ export default function Login({ onLoginSuccess }) {
                 }
 
                 // Redirigir al dashboard
-                window.location.href = "/dashboard";
+                window.location.href = "/inicio";
 
                 if (onLoginSuccess) {
                     onLoginSuccess(data);

@@ -381,11 +381,8 @@ export default function ProductoModal({
                         </div>
 
                         {!isEditing && (
-                            <p className="text-[10px] text-blue-700 leading-tight bg-blue-50 p-2 rounded-md border border-blue-100">
-                                💡 El producto existirá en{" "}
-                                <strong>ambos almacenes</strong>. El stock
-                                inicial se asignará al almacén seleccionado, el
-                                otro empieza con 0.
+                            <p className="text-[10px] text-gray-500 leading-tight bg-gray-50 p-2 rounded-md border border-gray-100">
+                                El producto se registrará solo en el almacén seleccionado.
                             </p>
                         )}
 

@@ -168,11 +168,11 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                 {/* ── Controles superiores ── */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
 
-                    {/* Almacén destino de stock inicial */}
+                    {/* Almacén destino */}
                     <div className="md:col-span-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                             <Warehouse className="inline h-4 w-4 mr-1" />
-                            Almacenes de destino:
+                            Almacén de destino:
                         </label>
                         <div className="flex gap-2">
                             {["1", "2"].map((num) => {
@@ -184,21 +184,18 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                                         onClick={() => setAlmacenDestino(num)}
                                         className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-3 rounded-md border text-sm font-medium transition-all ${
                                             activo
-                                                ? "border-gray-400 bg-white text-gray-800 shadow-sm"
+                                                ? "border-primary-500 bg-primary-50 text-primary-700 shadow-sm"
                                                 : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
                                         }`}
                                     >
                                         <span>Almacén {num}</span>
-                                        {activo
-                                            ? <span className="text-[10px] font-normal text-orange-600 leading-tight">← stock inicial</span>
-                                            : <span className="text-[10px] font-normal text-green-600 leading-tight">stock = 0</span>
-                                        }
+                                        {activo && <span className="text-[10px] font-normal text-primary-600 leading-tight">← seleccionado</span>}
                                     </button>
                                 );
                             })}
                         </div>
                         <p className="text-xs text-gray-400 mt-1">
-                            Ambos almacenes recibirán el producto. El stock del archivo va al seleccionado.
+                            Los productos se importarán solo al almacén seleccionado.
                         </p>
                     </div>
 
@@ -372,10 +369,8 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                     <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border">
                         <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
                         <span>
-                            <strong>{listaProductos.length}</strong> producto(s) listos para importar.
-                            Stock del archivo → <strong>Almacén {almacenDestino}</strong>.
+                            <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>Almacén {almacenDestino}</strong>.
                             Las categorías y unidades nuevas se crearán automáticamente.
-                            Ambos almacenes recibirán el producto.
                         </span>
                     </div>
                 )}

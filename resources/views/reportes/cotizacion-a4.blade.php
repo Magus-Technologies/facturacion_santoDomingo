@@ -135,6 +135,11 @@
             font-size: 9pt;
             color: #666;
         }
+        .ql-output p { margin: 0; padding: 0; line-height: 1.3; }
+        .ql-output ol, .ql-output ul { margin: 0; padding-left: 16px; }
+        .ql-output h1 { font-size: 14pt; margin: 0; }
+        .ql-output h2 { font-size: 12pt; margin: 0; }
+        .ql-output h3 { font-size: 10pt; margin: 0; }
         .badge-estado { display: inline-block; padding: 3px 10px; border-radius: 12px;
                         font-size: 8pt; font-weight: bold; }
         .badge-pendiente { background: #fef3c7; color: #92400e; }
@@ -158,13 +163,17 @@
                                 @endif
                             </td>
                             <td style="width: 55%; vertical-align: top; text-align: left;">
-                                <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">ILIDESAVA & DESAVA<br>S.R.L.</div>
-                                <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
-                                    VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
-                                    DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
-                                    CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
-                                    PARA TU EMPRENDIMIENTO
-                                </div>
+                                @if(!empty($plantilla) && $plantilla->cabecera_activo && $plantilla->mensaje_cabecera)
+                                    <div class="ql-output" style="font-size: 8pt;">{!! $plantilla->mensaje_cabecera !!}</div>
+                                @else
+                                    <div style="font-size: 15pt; font-weight: bold; color: #dc2626; line-height: 1.1; margin-top: 5px;">ILIDESAVA & DESAVA<br>S.R.L.</div>
+                                    <div style="font-size: 7.5pt; font-weight: bold; color: #333; margin-top: 6px; line-height: 1.2;">
+                                        VENTA POR MAYOR Y MENOR DE ARTICULOS<br>
+                                        DE CAMPAÑA A PRECIOS BAJOS, MAYOR<br>
+                                        CALIDAD. " ILIDESAVA & DESAVA" EL ALIADO<br>
+                                        PARA TU EMPRENDIMIENTO
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     </table>
@@ -349,7 +358,9 @@
                 <!-- Cuentas Bancarias (Left side) -->
                 <td style="width: 55%; vertical-align: top; padding-right: 10px;">
                     <div style="font-size: 7.5pt; font-weight: bold; line-height: 1.3;">
-                        @if($cotizacion->empresa->cuentas_bancarias)
+                        @if(!empty($plantilla) && $plantilla->inferior_activo && $plantilla->mensaje_inferior)
+                            <div class="ql-output">{!! $plantilla->mensaje_inferior !!}</div>
+                        @elseif($cotizacion->empresa->cuentas_bancarias ?? false)
                             {!! nl2br(e($cotizacion->empresa->cuentas_bancarias)) !!}
                         @else
                             BCP Cta Cte soles: 1912490742008<br>
@@ -432,6 +443,9 @@
 
         <!-- Footer -->
         <div class="footer">
+            @if(!empty($plantilla) && $plantilla->despedida_activo && $plantilla->mensaje_despedida)
+                <div class="ql-output" style="font-size: 8pt; color: #333; margin-bottom: 5px; font-weight: bold;">{!! $plantilla->mensaje_despedida !!}</div>
+            @endif
             <p>Esta cotización es válida por 30 días a partir de la fecha de emisión.</p>
             <p style="margin-top: 4px;">{{ $cotizacion->empresa->razon_social ?? '' }} | RUC: {{ $cotizacion->empresa->ruc ?? '' }}</p>
             

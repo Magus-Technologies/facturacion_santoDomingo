@@ -40,7 +40,7 @@ class ProductoService
     }
 
     /**
-     * Crear producto en ambos almacenes
+     * Crear producto en el almacén indicado
      */
     public function crear(array $data, int $idEmpresa): Producto
     {
@@ -53,30 +53,21 @@ class ProductoService
 
         $producto = Producto::create($data);
 
-        // Crear automáticamente en el otro almacén
-        $otroAlmacen = $data['almacen'] === '1' ? '2' : '1';
-        $dataCopia = $data;
-        $dataCopia['almacen'] = $otroAlmacen;
-        $dataCopia['cantidad'] = 0;
-        Producto::create($dataCopia);
-
         $producto->load(['categoria', 'unidad']);
 
         return $producto;
     }
 
     /**
-     * Actualizar producto y sincronizar con almacén hermano
+     * Actualizar producto
      */
     public function actualizar(Producto $producto, array $data): array
     {
         $producto->update($data);
 
-        $sincronizado = $this->sincronizarHermano($producto, $data);
-
         $producto->load(['categoria', 'unidad']);
 
-        return ['producto' => $producto, 'sincronizado' => $sincronizado];
+        return ['producto' => $producto, 'sincronizado' => false];
     }
 
     /**
@@ -98,42 +89,6 @@ class ProductoService
 
         $nombreImagen = time() . '_' . $file->getClientOriginalName();
         return $file->storeAs('productos', $nombreImagen, 'public');
-    }
-
-    /**
-     * Sincronizar datos con producto hermano en otro almacén
-     */
-    private function sincronizarHermano(Producto $producto, array $data): bool
-    {
-        $otroAlmacen = $producto->almacen === '1' ? '2' : '1';
-        $hermano = Producto::where('codigo', $producto->codigo)
-            ->where('almacen', $otroAlmacen)
-            ->where('id_empresa', $producto->id_empresa)
-            ->first();
-
-        if (!$hermano) {
-            return false;
-        }
-
-        $camposSincronizar = [
-            'nombre', 'descripcion', 'precio', 'costo',
-            'precio_mayor', 'precio_menor', 'precio_unidad',
-            'stock_minimo', 'stock_maximo', 'categoria_id', 'unidad_id',
-            'codsunat', 'usar_barra', 'usar_multiprecio', 'moneda',
-        ];
-
-        $datosSync = [];
-        foreach ($camposSincronizar as $campo) {
-            $datosSync[$campo] = $data[$campo] ?? null;
-        }
-
-        if (isset($data['imagen'])) {
-            $datosSync['imagen'] = $data['imagen'];
-        }
-
-        $hermano->update($datosSync);
-
-        return true;
     }
 
     /**

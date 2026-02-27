@@ -36,20 +36,23 @@ export default function Dashboard() {
         try {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/dashboard/stats", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
-            });
+            const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            };
+            if (empresaActiva.id_empresa) {
+                headers["X-Empresa-Activa"] = empresaActiva.id_empresa;
+            }
+
+            const response = await fetch("/api/dashboard/stats", { headers });
 
             if (!response.ok) {
                 throw new Error("Error al cargar datos del dashboard");
             }
 
             const data = await response.json();
-            
-            // Manejar error de empresa no asignada o cualquier otro error
+
             if (data.success === false) {
                 setError(data.message || "Error al cargar datos del dashboard");
                 setStats([]);
@@ -152,15 +155,11 @@ export default function Dashboard() {
                                             {stat.change}
                                         </span>
                                         <span className="text-xs text-gray-500">
-                                            {stat.id === 4
-                                                ? ""
-                                                : "vs mes anterior"}
+                                            {stat.id === 4 ? "" : "vs mes anterior"}
                                         </span>
                                     </div>
                                 </div>
-                                <div
-                                    className={`${stat.bgColor} p-3 rounded-lg`}
-                                >
+                                <div className={`${stat.bgColor} p-3 rounded-lg`}>
                                     <Icon className="h-6 w-6 text-white" />
                                 </div>
                             </div>
@@ -221,11 +220,9 @@ export default function Dashboard() {
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span
                                                     className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                                        invoice.status ===
-                                                        "Aceptado"
+                                                        invoice.status === "Aceptado"
                                                             ? "bg-green-100 text-green-700"
-                                                            : invoice.status ===
-                                                                "Anulado"
+                                                            : invoice.status === "Anulado"
                                                               ? "bg-red-100 text-red-700"
                                                               : "bg-yellow-100 text-yellow-700"
                                                     }`}
@@ -248,7 +245,6 @@ export default function Dashboard() {
 
                 {/* Quick Actions */}
                 <div className="space-y-6">
-                    {/* Quick Actions Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">
                             Acciones Rápidas
@@ -266,18 +262,14 @@ export default function Dashboard() {
                                 className="w-full flex items-center gap-3 px-4 py-3 bg-accent-500 hover:bg-accent-600 text-gray-900 rounded-lg transition-colors no-underline"
                             >
                                 <Package className="h-5 w-5" />
-                                <span className="font-medium">
-                                    Ver Inventario
-                                </span>
+                                <span className="font-medium">Ver Inventario</span>
                             </a>
                             <a
                                 href="/clientes"
                                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors no-underline"
                             >
                                 <Users className="h-5 w-5" />
-                                <span className="font-medium">
-                                    Nuevo Cliente
-                                </span>
+                                <span className="font-medium">Nuevo Cliente</span>
                             </a>
                         </div>
                     </div>
@@ -297,9 +289,7 @@ export default function Dashboard() {
                                     <p className="text-xs text-gray-500">
                                         Última sincronización:{" "}
                                         {sunatStatus?.ultima_conexion
-                                            ? new Date(
-                                                  sunatStatus.ultima_conexion,
-                                              ).toLocaleTimeString()
+                                            ? new Date(sunatStatus.ultima_conexion).toLocaleTimeString()
                                             : "---"}
                                     </p>
                                 </div>
@@ -312,8 +302,7 @@ export default function Dashboard() {
                                 )}
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-700">
-                                        {sunatStatus?.pendientes || 0}{" "}
-                                        documentos pendientes
+                                        {sunatStatus?.pendientes || 0} documentos pendientes
                                     </p>
                                     <p className="text-xs text-gray-500">
                                         {sunatStatus?.pendientes > 0

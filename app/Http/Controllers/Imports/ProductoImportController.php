@@ -263,7 +263,6 @@ class ProductoImportController extends Controller
             }
 
             $almacenDestino = $request->almacen;
-            $otroAlmacen    = $almacenDestino === '1' ? '2' : '1';
             $lista          = $request->lista;
 
             $importados         = 0;
@@ -400,22 +399,6 @@ class ProductoImportController extends Controller
 
                         DB::table('productos')->insert($datos);
                         $importados++;
-
-                        // Crear copia en el otro almacén (stock 0)
-                        if (!empty($codigo)) {
-                            $yaExisteOtro = DB::table('productos')
-                                ->where('codigo', $codigo)
-                                ->where('id_empresa', $idEmpresa)
-                                ->where('almacen', $otroAlmacen)
-                                ->exists();
-
-                            if (!$yaExisteOtro) {
-                                $dataCopia            = $datos;
-                                $dataCopia['almacen'] = $otroAlmacen;
-                                // El otro almacén recibe el mismo stock
-                                DB::table('productos')->insert($dataCopia);
-                            }
-                        }
                     }
 
                 } catch (\Exception $e) {

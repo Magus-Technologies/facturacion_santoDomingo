@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reportes;
 use App\Helpers\QrHelper;
 use App\Http\Controllers\Controller;
 use App\Models\GuiaRemision;
+use App\Models\PlantillaImpresion;
 use Mpdf\Mpdf;
 
 class GuiaRemisionPdfController extends Controller
@@ -23,8 +24,13 @@ class GuiaRemisionPdfController extends Controller
             $qrBase64 = QrHelper::generarQrBase64($qrString);
             $consultaUrl = config('app.consulta_url');
 
+            // Cargar plantilla de impresión
+            $plantilla = $guia->empresa
+                ? PlantillaImpresion::obtenerPara($guia->empresa->id_empresa)
+                : null;
+
             // Renderizar vista Blade a HTML
-            $html = view('reportes.guia-remision-a4', compact('guia', 'qrBase64', 'consultaUrl'))->render();
+            $html = view('reportes.guia-remision-a4', compact('guia', 'qrBase64', 'consultaUrl', 'plantilla'))->render();
 
             // Crear PDF con mPDF
             $mpdf = new Mpdf([

@@ -15,8 +15,12 @@ use Illuminate\Http\Request;
 // --- RUTAS PÚBLICAS Y AUTENTICACIÓN ---
 
 Route::get('/', function () {
-    return redirect('/login');
+    return redirect('/inicio');
 });
+
+Route::get('/inicio', function () {
+    return view('inicio');
+})->name('inicio');
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -37,9 +41,13 @@ Route::get('/configuracion/permisos', function () {
     return view('configuracion.rolePermissions'); 
 })->name('rolePermissions');
 
-Route::get('/configuracion/empresa', function () { 
-    return view('configuracion.misEmpresas'); 
+Route::get('/configuracion/empresa', function () {
+    return view('configuracion.misEmpresas');
 })->name('misEmpresas');
+
+Route::get('/configuracion/plantilla-impresion', function () {
+    return view('configuracion.plantillaImpresion');
+})->name('plantillaImpresion');
 
 // Ventas
 Route::get('/ventas', function () { 

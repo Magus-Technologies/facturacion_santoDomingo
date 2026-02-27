@@ -19,6 +19,8 @@ import GuiaRemisionForm from "./components/GuiaRemision/GuiaRemisionForm";
 import NotaCredito from "./components/NotaCredito/page";
 import NotaCreditoForm from "./components/NotaCredito/NotaCreditoForm";
 import ConsultaComprobante from "./components/Consulta/ConsultaComprobante";
+import Inicio from "./components/Inicio/Inicio";
+import PlantillaImpresion from "./components/Configuracion/PlantillaImpresion";
 
 import "./bootstrap";
 import "../css/app.css";
@@ -46,6 +48,8 @@ const components = {
     NotaCredito,
     NotaCreditoForm,
     ConsultaComprobante,
+    Inicio,
+    PlantillaImpresion,
 };
 
 // Monta cada elemento con atributo data-react-component

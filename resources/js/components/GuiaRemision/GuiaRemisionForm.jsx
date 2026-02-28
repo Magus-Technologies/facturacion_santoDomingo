@@ -390,21 +390,25 @@ export default function GuiaRemisionForm() {
             }
         }
         if (form.mod_transporte === "02") {
-            if (!form.conductor_documento?.trim()) {
-                newErrors.conductor_documento = "El DNI del conductor es requerido";
+            if (!form.vehiculo_m1l) {
+                // Sin M1L: todos los campos del conductor y placa son obligatorios
+                if (!form.conductor_documento?.trim()) {
+                    newErrors.conductor_documento = "El DNI del conductor es requerido";
+                }
+                if (!form.conductor_nombres?.trim()) {
+                    newErrors.conductor_nombres = "Los nombres del conductor son requeridos";
+                }
+                if (!form.conductor_apellidos?.trim()) {
+                    newErrors.conductor_apellidos = "Los apellidos del conductor son requeridos";
+                }
+                if (!form.conductor_licencia?.trim()) {
+                    newErrors.conductor_licencia = "La licencia de conducir es requerida";
+                }
+                if (!form.vehiculo_placa?.trim()) {
+                    newErrors.vehiculo_placa = "La placa del vehículo es requerida";
+                }
             }
-            if (!form.conductor_nombres?.trim()) {
-                newErrors.conductor_nombres = "Los nombres del conductor son requeridos";
-            }
-            if (!form.conductor_apellidos?.trim()) {
-                newErrors.conductor_apellidos = "Los apellidos del conductor son requeridos";
-            }
-            if (!form.conductor_licencia?.trim()) {
-                newErrors.conductor_licencia = "La licencia de conducir es requerida";
-            }
-            if (!form.vehiculo_m1l && !form.vehiculo_placa?.trim()) {
-                newErrors.vehiculo_placa = "La placa del vehículo es requerida";
-            }
+            // Con M1L: placa opcional, datos del conductor no requeridos
         }
 
         const detallesValidos = detalles.filter(
@@ -820,152 +824,155 @@ export default function GuiaRemisionForm() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div>
-                                        <Label className="text-xs text-gray-500 mb-1 block">
-                                            DNI Conductor <span className="text-red-500">*</span>
-                                        </Label>
-                                        <div className="flex gap-1">
-                                            <Input
-                                                value={
-                                                    form.conductor_documento
+                                <div className="space-y-3">
+                                    {/* Checkbox M1L arriba de todo */}
+                                    <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-amber-50 border border-amber-200">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.vehiculo_m1l}
+                                            onChange={(e) => {
+                                                handleChange("vehiculo_m1l", e.target.checked);
+                                                if (e.target.checked) {
+                                                    handleChange("vehiculo_placa", "");
+                                                    handleChange("conductor_documento", "");
+                                                    handleChange("conductor_nombres", "");
+                                                    handleChange("conductor_apellidos", "");
+                                                    handleChange("conductor_licencia", "");
+                                                    setErrors((prev) => ({
+                                                        ...prev,
+                                                        vehiculo_placa: undefined,
+                                                        conductor_documento: undefined,
+                                                        conductor_nombres: undefined,
+                                                        conductor_apellidos: undefined,
+                                                        conductor_licencia: undefined,
+                                                    }));
                                                 }
-                                                onChange={(e) =>
-                                                    handleChange(
-                                                        "conductor_documento",
-                                                        e.target.value.replace(
-                                                            /\D/g,
-                                                            ""
-                                                        )
-                                                    )
-                                                }
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") {
-                                                        e.preventDefault();
-                                                        handleConsultarConductor();
-                                                    }
-                                                }}
-                                                placeholder="xxxxxxxx"
-                                                maxLength={8}
-                                                className={errors.conductor_documento ? "border-red-500" : ""}
-                                            />
-                                            <Button
-                                                type="button"
-                                                size="icon"
-                                                onClick={
-                                                    handleConsultarConductor
-                                                }
-                                                disabled={
-                                                    consultandoConductor ||
-                                                    form.conductor_documento
-                                                        .trim().length !== 8
-                                                }
-                                                className="shrink-0"
-                                            >
-                                                {consultandoConductor ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <Search className="h-4 w-4" />
+                                            }}
+                                            className="rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+                                        />
+                                        <span className="text-xs text-amber-800 font-medium">
+                                            Traslado en vehículos de categoría M1 o L (moto, mototaxi, auto particular)
+                                        </span>
+                                    </label>
+
+                                    {/* Campos del conductor: solo si NO es M1L */}
+                                    {!form.vehiculo_m1l && (
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div>
+                                                <Label className="text-xs text-gray-500 mb-1 block">
+                                                    DNI Conductor <span className="text-red-500">*</span>
+                                                </Label>
+                                                <div className="flex gap-1">
+                                                    <Input
+                                                        value={form.conductor_documento}
+                                                        onChange={(e) =>
+                                                            handleChange(
+                                                                "conductor_documento",
+                                                                e.target.value.replace(/\D/g, "")
+                                                            )
+                                                        }
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                handleConsultarConductor();
+                                                            }
+                                                        }}
+                                                        placeholder="xxxxxxxx"
+                                                        maxLength={8}
+                                                        className={errors.conductor_documento ? "border-red-500" : ""}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        size="icon"
+                                                        onClick={handleConsultarConductor}
+                                                        disabled={
+                                                            consultandoConductor ||
+                                                            form.conductor_documento.trim().length !== 8
+                                                        }
+                                                        className="shrink-0"
+                                                    >
+                                                        {consultandoConductor ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <Search className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                                {errors.conductor_documento && (
+                                                    <p className="text-xs text-red-600 mt-1">{errors.conductor_documento}</p>
                                                 )}
-                                            </Button>
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-gray-500 mb-1 block">
+                                                    Nombres <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    value={form.conductor_nombres}
+                                                    onChange={(e) => handleChange("conductor_nombres", e.target.value)}
+                                                    className={errors.conductor_nombres ? "border-red-500" : ""}
+                                                />
+                                                {errors.conductor_nombres && (
+                                                    <p className="text-xs text-red-600 mt-1">{errors.conductor_nombres}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-gray-500 mb-1 block">
+                                                    Apellidos <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    value={form.conductor_apellidos}
+                                                    onChange={(e) => handleChange("conductor_apellidos", e.target.value)}
+                                                    className={errors.conductor_apellidos ? "border-red-500" : ""}
+                                                />
+                                                {errors.conductor_apellidos && (
+                                                    <p className="text-xs text-red-600 mt-1">{errors.conductor_apellidos}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-gray-500 mb-1 block">
+                                                    N° Licencia <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    value={form.conductor_licencia}
+                                                    onChange={(e) => handleChange("conductor_licencia", e.target.value)}
+                                                    className={errors.conductor_licencia ? "border-red-500" : ""}
+                                                />
+                                                {errors.conductor_licencia && (
+                                                    <p className="text-xs text-red-600 mt-1">{errors.conductor_licencia}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-gray-500 mb-1 block">
+                                                    Placa Vehículo <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    value={form.vehiculo_placa}
+                                                    onChange={(e) => handleChange("vehiculo_placa", e.target.value.toUpperCase())}
+                                                    className={errors.vehiculo_placa ? "border-red-500" : ""}
+                                                    placeholder="ABC-123"
+                                                />
+                                                {errors.vehiculo_placa && (
+                                                    <p className="text-xs text-red-600 mt-1">{errors.vehiculo_placa}</p>
+                                                )}
+                                            </div>
                                         </div>
-                                        {errors.conductor_documento && (
-                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_documento}</p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-gray-500 mb-1 block">
-                                            Nombres <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            value={form.conductor_nombres}
-                                            onChange={(e) =>
-                                                handleChange(
-                                                    "conductor_nombres",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className={errors.conductor_nombres ? "border-red-500" : ""}
-                                        />
-                                        {errors.conductor_nombres && (
-                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_nombres}</p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-gray-500 mb-1 block">
-                                            Apellidos <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            value={form.conductor_apellidos}
-                                            onChange={(e) =>
-                                                handleChange(
-                                                    "conductor_apellidos",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className={errors.conductor_apellidos ? "border-red-500" : ""}
-                                        />
-                                        {errors.conductor_apellidos && (
-                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_apellidos}</p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-gray-500 mb-1 block">
-                                            N° Licencia <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            value={form.conductor_licencia}
-                                            onChange={(e) =>
-                                                handleChange(
-                                                    "conductor_licencia",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className={errors.conductor_licencia ? "border-red-500" : ""}
-                                        />
-                                        {errors.conductor_licencia && (
-                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_licencia}</p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-gray-500 mb-1 block">
-                                            Placa Vehículo {!form.vehiculo_m1l && <span className="text-red-500">*</span>}
-                                        </Label>
-                                        <Input
-                                            value={form.vehiculo_placa}
-                                            onChange={(e) =>
-                                                handleChange(
-                                                    "vehiculo_placa",
-                                                    e.target.value.toUpperCase()
-                                                )
-                                            }
-                                            className={errors.vehiculo_placa ? "border-red-500" : ""}
-                                            placeholder="ABC-123"
-                                            disabled={form.vehiculo_m1l}
-                                        />
-                                        {errors.vehiculo_placa && (
-                                            <p className="text-xs text-red-600 mt-1">{errors.vehiculo_placa}</p>
-                                        )}
-                                    </div>
-                                    <div className="col-span-3">
-                                        <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-amber-50 border border-amber-200">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.vehiculo_m1l}
-                                                onChange={(e) => {
-                                                    handleChange("vehiculo_m1l", e.target.checked);
-                                                    if (e.target.checked) {
-                                                        handleChange("vehiculo_placa", "");
-                                                        setErrors((prev) => ({ ...prev, vehiculo_placa: undefined }));
-                                                    }
-                                                }}
-                                                className="rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+                                    )}
+
+                                    {/* Con M1L: solo placa opcional */}
+                                    {form.vehiculo_m1l && (
+                                        <div>
+                                            <Label className="text-xs text-gray-500 mb-1 block">
+                                                Placa Vehículo
+                                            </Label>
+                                            <Input
+                                                value={form.vehiculo_placa}
+                                                onChange={(e) => handleChange("vehiculo_placa", e.target.value.toUpperCase())}
+                                                placeholder="ABC123/DEF123/GHI123"
+                                                className="max-w-xs"
                                             />
-                                            <span className="text-xs text-amber-800 font-medium">
-                                                Vehículo categoría M1 o L (sin placa) — moto, mototaxi, auto particular
-                                            </span>
-                                        </label>
-                                    </div>
+                                            <p className="text-xs text-amber-600 mt-1">El ingreso de placa es opcional</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </CardContent>

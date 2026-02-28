@@ -75,17 +75,25 @@ class GuiaRemisionController extends Controller
         }
 
         // Transporte privado: conductor y vehículo requeridos
+        $rules['vehiculo_m1l'] = 'nullable|boolean';
         if ($request->mod_transporte === '02') {
-            $rules['conductor_tipo_doc'] = 'required|string|max:1';
-            $rules['conductor_documento'] = 'required|string|max:15';
-            $rules['conductor_nombres'] = 'required|string|max:255';
-            $rules['conductor_apellidos'] = 'required|string|max:255';
-            $rules['conductor_licencia'] = 'required|string|max:20';
-            $rules['vehiculo_m1l'] = 'nullable|boolean';
-            // Si es vehículo M1/L (sin placa), la placa no es requerida
-            $rules['vehiculo_placa'] = $request->boolean('vehiculo_m1l')
-                ? 'nullable|string|max:10'
-                : 'required|string|max:10';
+            if ($request->boolean('vehiculo_m1l')) {
+                // M1/L: todos los campos del conductor y placa son opcionales
+                $rules['conductor_tipo_doc'] = 'nullable|string|max:1';
+                $rules['conductor_documento'] = 'nullable|string|max:15';
+                $rules['conductor_nombres'] = 'nullable|string|max:255';
+                $rules['conductor_apellidos'] = 'nullable|string|max:255';
+                $rules['conductor_licencia'] = 'nullable|string|max:20';
+                $rules['vehiculo_placa'] = 'nullable|string|max:10';
+            } else {
+                // Sin M1/L: todos obligatorios
+                $rules['conductor_tipo_doc'] = 'required|string|max:1';
+                $rules['conductor_documento'] = 'required|string|max:15';
+                $rules['conductor_nombres'] = 'required|string|max:255';
+                $rules['conductor_apellidos'] = 'required|string|max:255';
+                $rules['conductor_licencia'] = 'required|string|max:20';
+                $rules['vehiculo_placa'] = 'required|string|max:10';
+            }
         } else {
             $rules['conductor_tipo_doc'] = 'nullable|string|max:1';
             $rules['conductor_documento'] = 'nullable|string|max:15';

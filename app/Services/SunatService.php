@@ -812,21 +812,24 @@ class SunatService
         }
 
         $error = $status->getError();
+        $codError = $error ? $error->getNumError() : $codRespuesta;
+        $desError = $error ? $error->getDesError() : 'Error desconocido';
+
         Log::error('SUNAT - Guía de remisión rechazada', [
             'guia' => $guia->serie . '-' . $guia->numero,
-            'codigo' => $error ? $error->getCodError() : $codRespuesta,
-            'mensaje' => $error ? $error->getDesError() : 'Error desconocido',
+            'codigo' => $codError,
+            'mensaje' => $desError,
         ]);
         $guia->update([
             'estado' => 'rechazado',
-            'codigo_sunat' => $error ? $error->getCodError() : $codRespuesta,
-            'mensaje_sunat' => $error ? $error->getDesError() : 'Error desconocido',
+            'codigo_sunat' => $codError,
+            'mensaje_sunat' => $desError,
         ]);
 
         return [
             'success' => false,
-            'codigo' => $error ? $error->getCodError() : $codRespuesta,
-            'message' => $error ? $error->getDesError() : 'Error desconocido',
+            'codigo' => $codError,
+            'message' => $desError,
         ];
     }
 

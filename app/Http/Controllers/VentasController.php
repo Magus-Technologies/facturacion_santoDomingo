@@ -125,7 +125,7 @@ class VentasController extends Controller
             $user = $request->user();
 
             return DB::transaction(function () use ($validated, $user, $request) {
-                $idCliente = $validated['id_cliente'];
+                $idCliente = $validated['id_cliente'] ?? null;
 
                 // Si no hay id_cliente, buscar por documento o crear
                 if (!$idCliente) {

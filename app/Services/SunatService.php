@@ -81,6 +81,32 @@ class SunatService
         throw new \RuntimeException('No se encontró certificado PEM para la empresa ' . $empresa->ruc);
     }
 
+    /**
+     * Crea un DateTime en timezone America/Lima para Greenter.
+     * Greenter configura Twig con timezone Peru, así que los DateTime deben estar en esa zona
+     * para evitar que las fechas se desplacen un día atrás al convertir desde UTC.
+     */
+    private function fechaParaGreenter($fechaRaw, $createdAt = null): \DateTime
+    {
+        $peruTz = new \DateTimeZone('America/Lima');
+        $fechaStr = substr((string) ($fechaRaw ?? date('Y-m-d')), 0, 10);
+
+        // Usar hora de creación real en Perú, o 08:00 por defecto
+        $hora = '08:00:00';
+        if ($createdAt) {
+            try {
+                $dt = $createdAt instanceof \DateTimeInterface
+                    ? (new \DateTime($createdAt->format('Y-m-d H:i:s'), new \DateTimeZone('UTC')))->setTimezone($peruTz)
+                    : (new \DateTime((string) $createdAt))->setTimezone($peruTz);
+                $hora = $dt->format('H:i:s');
+            } catch (\Exception $e) {
+                // fallback
+            }
+        }
+
+        return new \DateTime("{$fechaStr} {$hora}", $peruTz);
+    }
+
     public function buildCompany(Empresa $empresa): Company
     {
         $company = new Company();
@@ -150,7 +176,7 @@ class SunatService
             ->setTipoDoc($codSunat)
             ->setSerie($venta->serie)
             ->setCorrelativo((string) $venta->numero)
-            ->setFechaEmision($venta->fecha_emision ?? new \DateTime())
+            ->setFechaEmision($this->fechaParaGreenter($venta->getRawOriginal('fecha_emision'), $venta->created_at))
             ->setTipoMoneda($venta->tipo_moneda ?? 'PEN')
             ->setCompany($company)
             ->setClient($client);
@@ -304,7 +330,7 @@ class SunatService
             ->setTipoDoc('07')
             ->setSerie($nota->serie)
             ->setCorrelativo((string) $nota->numero)
-            ->setFechaEmision($nota->fecha_emision ?? new \DateTime())
+            ->setFechaEmision($this->fechaParaGreenter($nota->getRawOriginal('fecha_emision'), $nota->created_at))
             ->setTipDocAfectado($nota->tipo_doc_afectado)
             ->setNumDocfectado($nota->serie_num_afectado)
             ->setCodMotivo($nota->motivo->codigo_sunat)
@@ -431,7 +457,7 @@ class SunatService
             ->setTipoDoc('08')
             ->setSerie($nota->serie)
             ->setCorrelativo((string) $nota->numero)
-            ->setFechaEmision($nota->fecha_emision ?? new \DateTime())
+            ->setFechaEmision($this->fechaParaGreenter($nota->getRawOriginal('fecha_emision'), $nota->created_at))
             ->setTipDocAfectado($nota->tipo_doc_afectado)
             ->setNumDocfectado($nota->serie_num_afectado)
             ->setCodMotivo($nota->motivo->codigo_sunat)
@@ -540,6 +566,10 @@ class SunatService
 
         $company = $this->buildCompany($empresa);
 
+        // Greenter usa timezone America/Lima en Twig, crear DateTimes en esa zona
+        $fechaEmision = $this->fechaParaGreenter($guia->getRawOriginal('fecha_emision'), $guia->created_at);
+        $fechaTraslado = $this->fechaParaGreenter($guia->getRawOriginal('fecha_traslado'));
+
         $destinatario = (new Client())
             ->setTipoDoc($guia->destinatario_tipo_doc)
             ->setNumDoc($guia->destinatario_documento)
@@ -549,7 +579,7 @@ class SunatService
             ->setCodTraslado($guia->motivo_traslado)
             ->setDesTraslado($guia->descripcion_motivo)
             ->setModTraslado($guia->mod_transporte)
-            ->setFecTraslado(new \DateTime($guia->fecha_traslado->format('Y-m-d')))
+            ->setFecTraslado($fechaTraslado)
             ->setPesoTotal((float) $guia->peso_total)
             ->setUndPesoTotal($guia->und_peso_total ?? 'KGM')
             ->setPartida(new Direction($guia->ubigeo_partida, $guia->dir_partida))
@@ -594,7 +624,7 @@ class SunatService
             ->setTipoDoc('09')
             ->setSerie($guia->serie)
             ->setCorrelativo((string) $guia->numero)
-            ->setFechaEmision(new \DateTime($guia->fecha_emision->format('Y-m-d')))
+            ->setFechaEmision($fechaEmision)
             ->setCompany($company)
             ->setDestinatario($destinatario)
             ->setEnvio($shipment)

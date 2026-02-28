@@ -39,12 +39,12 @@ class GuiaRemisionController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $rules = [
             'id_venta' => 'nullable|exists:ventas,id_venta',
             'destinatario_tipo_doc' => 'required|in:1,6',
             'destinatario_documento' => 'required|string|max:15',
             'destinatario_nombre' => 'required|string|max:255',
-            'destinatario_direccion' => 'nullable|string|max:500',
+            'destinatario_direccion' => 'required|string|max:500',
             'destinatario_ubigeo' => 'nullable|string|max:6',
             'motivo_traslado' => 'required|string|max:2',
             'descripcion_motivo' => 'nullable|string|max:255',
@@ -52,16 +52,6 @@ class GuiaRemisionController extends Controller
             'fecha_traslado' => 'required|date',
             'peso_total' => 'required|numeric|min:0.001',
             'und_peso_total' => 'nullable|string|max:3',
-            'transportista_tipo_doc' => 'nullable|string|max:1',
-            'transportista_documento' => 'nullable|string|max:15',
-            'transportista_nombre' => 'nullable|string|max:255',
-            'transportista_nro_mtc' => 'nullable|string|max:20',
-            'conductor_tipo_doc' => 'nullable|string|max:1',
-            'conductor_documento' => 'nullable|string|max:15',
-            'conductor_nombres' => 'nullable|string|max:255',
-            'conductor_apellidos' => 'nullable|string|max:255',
-            'conductor_licencia' => 'nullable|string|max:20',
-            'vehiculo_placa' => 'nullable|string|max:10',
             'observaciones' => 'nullable|string',
             'detalles' => 'required|array|min:1',
             'detalles.*.descripcion' => 'required|string',
@@ -69,7 +59,39 @@ class GuiaRemisionController extends Controller
             'detalles.*.unidad' => 'nullable|string|max:5',
             'detalles.*.codigo' => 'nullable|string|max:30',
             'detalles.*.id_producto' => 'nullable|integer',
-        ]);
+        ];
+
+        // Transporte público: transportista requerido
+        if ($request->mod_transporte === '01') {
+            $rules['transportista_tipo_doc'] = 'required|string|max:1';
+            $rules['transportista_documento'] = 'required|string|max:15';
+            $rules['transportista_nombre'] = 'required|string|max:255';
+            $rules['transportista_nro_mtc'] = 'nullable|string|max:20';
+        } else {
+            $rules['transportista_tipo_doc'] = 'nullable|string|max:1';
+            $rules['transportista_documento'] = 'nullable|string|max:15';
+            $rules['transportista_nombre'] = 'nullable|string|max:255';
+            $rules['transportista_nro_mtc'] = 'nullable|string|max:20';
+        }
+
+        // Transporte privado: conductor y vehículo requeridos
+        if ($request->mod_transporte === '02') {
+            $rules['conductor_tipo_doc'] = 'required|string|max:1';
+            $rules['conductor_documento'] = 'required|string|max:15';
+            $rules['conductor_nombres'] = 'required|string|max:255';
+            $rules['conductor_apellidos'] = 'required|string|max:255';
+            $rules['conductor_licencia'] = 'required|string|max:20';
+            $rules['vehiculo_placa'] = 'required|string|max:10';
+        } else {
+            $rules['conductor_tipo_doc'] = 'nullable|string|max:1';
+            $rules['conductor_documento'] = 'nullable|string|max:15';
+            $rules['conductor_nombres'] = 'nullable|string|max:255';
+            $rules['conductor_apellidos'] = 'nullable|string|max:255';
+            $rules['conductor_licencia'] = 'nullable|string|max:20';
+            $rules['vehiculo_placa'] = 'nullable|string|max:10';
+        }
+
+        $request->validate($rules);
 
         try {
             return DB::transaction(function () use ($request) {

@@ -349,9 +349,43 @@ export default function GuiaRemisionForm() {
             toast.error("Seleccione un destinatario");
             return;
         }
+        if (!destinatario.direccion?.trim()) {
+            toast.error("Ingrese la dirección de llegada del destinatario");
+            return;
+        }
         if (!form.peso_total || parseFloat(form.peso_total) <= 0) {
             toast.error("Ingrese el peso total");
             return;
+        }
+
+        // Validar datos de transporte según modalidad
+        if (form.mod_transporte === "01") {
+            if (!form.transportista_documento?.trim()) {
+                toast.error("Ingrese el RUC del transportista");
+                return;
+            }
+            if (!form.transportista_nombre?.trim()) {
+                toast.error("Ingrese el nombre del transportista");
+                return;
+            }
+        }
+        if (form.mod_transporte === "02") {
+            if (!form.conductor_documento?.trim()) {
+                toast.error("Ingrese el DNI del conductor");
+                return;
+            }
+            if (!form.conductor_nombres?.trim() || !form.conductor_apellidos?.trim()) {
+                toast.error("Ingrese nombres y apellidos del conductor");
+                return;
+            }
+            if (!form.conductor_licencia?.trim()) {
+                toast.error("Ingrese la licencia de conducir");
+                return;
+            }
+            if (!form.vehiculo_placa?.trim()) {
+                toast.error("Ingrese la placa del vehículo");
+                return;
+            }
         }
 
         const detallesValidos = detalles.filter(

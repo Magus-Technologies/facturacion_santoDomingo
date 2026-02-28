@@ -138,6 +138,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('notas-debito/{id}/enviar', [\App\Http\Controllers\NotaDebitoController::class, 'enviar']);
 
     // Guías de Remisión
+    Route::get('guias-remision/proximo-numero', [\App\Http\Controllers\GuiaRemisionController::class, 'proximoNumero']);
     Route::get('guias-remision/motivos', [\App\Http\Controllers\GuiaRemisionController::class, 'motivos']);
     Route::get('guias-remision/empresa', [\App\Http\Controllers\GuiaRemisionController::class, 'empresaActiva']);
     Route::get('guias-remision/ubigeos', [\App\Http\Controllers\GuiaRemisionController::class, 'ubigeos']);

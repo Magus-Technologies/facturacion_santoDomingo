@@ -241,6 +241,29 @@ class GuiaRemisionController extends Controller
         }
     }
 
+    public function proximoNumero(Request $request): JsonResponse
+    {
+        $idEmpresa = $request->user()->id_empresa;
+        $serie = 'T001';
+
+        $ultimoNumero = GuiaRemision::where('serie', $serie)
+            ->where('id_empresa', $idEmpresa)
+            ->max('numero') ?? 0;
+
+        $numeroBase = DB::table('documentos_empresas')
+            ->where('id_empresa', $idEmpresa)
+            ->where('serie', $serie)
+            ->value('numero') ?? 0;
+
+        $proximoNumero = max($ultimoNumero, $numeroBase) + 1;
+
+        return response()->json([
+            'success' => true,
+            'numero' => $proximoNumero,
+            'numero_completo' => $serie . '-' . str_pad($proximoNumero, 8, '0', STR_PAD_LEFT),
+        ]);
+    }
+
     public function motivos(): JsonResponse
     {
         $motivos = MotivoTraslado::where('estado', true)

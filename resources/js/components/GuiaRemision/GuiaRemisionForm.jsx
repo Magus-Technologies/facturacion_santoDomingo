@@ -58,6 +58,7 @@ export default function GuiaRemisionForm() {
     const [submitting, setSubmitting] = useState(false);
     const [motivos, setMotivos] = useState([]);
     const [empresa, setEmpresa] = useState(null);
+    const [proximoNumero, setProximoNumero] = useState(null);
 
     // Búsqueda de venta
     const [serie, setSerie] = useState("");
@@ -99,6 +100,8 @@ export default function GuiaRemisionForm() {
     const [detalles, setDetalles] = useState([
         { codigo: "", descripcion: "", cantidad: "1", unidad: "NIU" },
     ]);
+
+    const [errors, setErrors] = useState({});
 
     const [consultandoTransportista, setConsultandoTransportista] =
         useState(false);
@@ -157,6 +160,7 @@ export default function GuiaRemisionForm() {
     useEffect(() => {
         fetchMotivos();
         fetchEmpresa();
+        fetchProximoNumero();
 
         // Si viene venta_id en la URL, cargar automáticamente
         const params = new URLSearchParams(window.location.search);
@@ -175,6 +179,20 @@ export default function GuiaRemisionForm() {
             setMotivos(data || []);
         } catch (err) {
             console.error("Error cargando motivos:", err);
+        }
+    };
+
+    const fetchProximoNumero = async () => {
+        try {
+            const res = await fetch("/api/guias-remision/proximo-numero", {
+                headers: getAuthHeaders(),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setProximoNumero(data);
+            }
+        } catch (err) {
+            console.error("Error obteniendo próximo número:", err);
         }
     };
 
@@ -309,10 +327,14 @@ export default function GuiaRemisionForm() {
             ubigeo: cliente.ubigeo || "",
         });
         setClienteNombre(cliente.datos || "");
+        if (errors.destinatario || errors.direccion) {
+            setErrors((prev) => ({ ...prev, destinatario: undefined, direccion: undefined }));
+        }
     };
 
     const handleChange = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
+        if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
     const handleDetalleChange = (index, field, value) => {
@@ -345,46 +367,42 @@ export default function GuiaRemisionForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const newErrors = {};
+
         if (!destinatario.documento || !destinatario.nombre) {
-            toast.error("Seleccione un destinatario");
-            return;
+            newErrors.destinatario = "Seleccione un destinatario";
         }
         if (!destinatario.direccion?.trim()) {
-            toast.error("Ingrese la dirección de llegada del destinatario");
-            return;
+            newErrors.direccion = "La dirección de llegada es requerida";
         }
         if (!form.peso_total || parseFloat(form.peso_total) <= 0) {
-            toast.error("Ingrese el peso total");
-            return;
+            newErrors.peso_total = "Ingrese el peso total";
         }
 
         // Validar datos de transporte según modalidad
         if (form.mod_transporte === "01") {
             if (!form.transportista_documento?.trim()) {
-                toast.error("Ingrese el RUC del transportista");
-                return;
+                newErrors.transportista_documento = "El RUC del transportista es requerido";
             }
             if (!form.transportista_nombre?.trim()) {
-                toast.error("Ingrese el nombre del transportista");
-                return;
+                newErrors.transportista_nombre = "El nombre del transportista es requerido";
             }
         }
         if (form.mod_transporte === "02") {
             if (!form.conductor_documento?.trim()) {
-                toast.error("Ingrese el DNI del conductor");
-                return;
+                newErrors.conductor_documento = "El DNI del conductor es requerido";
             }
-            if (!form.conductor_nombres?.trim() || !form.conductor_apellidos?.trim()) {
-                toast.error("Ingrese nombres y apellidos del conductor");
-                return;
+            if (!form.conductor_nombres?.trim()) {
+                newErrors.conductor_nombres = "Los nombres del conductor son requeridos";
+            }
+            if (!form.conductor_apellidos?.trim()) {
+                newErrors.conductor_apellidos = "Los apellidos del conductor son requeridos";
             }
             if (!form.conductor_licencia?.trim()) {
-                toast.error("Ingrese la licencia de conducir");
-                return;
+                newErrors.conductor_licencia = "La licencia de conducir es requerida";
             }
             if (!form.vehiculo_placa?.trim()) {
-                toast.error("Ingrese la placa del vehículo");
-                return;
+                newErrors.vehiculo_placa = "La placa del vehículo es requerida";
             }
         }
 
@@ -392,9 +410,15 @@ export default function GuiaRemisionForm() {
             (d) => d.descripcion && parseFloat(d.cantidad) > 0
         );
         if (detallesValidos.length === 0) {
-            toast.error("Agregue al menos un item");
+            newErrors.detalles = "Agregue al menos un item";
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Complete los campos requeridos");
             return;
         }
+        setErrors({});
 
         setSubmitting(true);
         try {
@@ -450,8 +474,13 @@ export default function GuiaRemisionForm() {
                             <span className="mx-2">/</span>
                             <span className="text-gray-900">Nueva</span>
                         </nav>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                             Nueva Guía de Remisión
+                            {proximoNumero && (
+                                <span className="text-sm font-mono px-3 py-1 rounded-md bg-gray-100 text-gray-700 border border-gray-300">
+                                    {proximoNumero.numero_completo}
+                                </span>
+                            )}
                         </h1>
                     </div>
                     <div className="flex gap-3">
@@ -595,6 +624,9 @@ export default function GuiaRemisionForm() {
                                 value={clienteNombre}
                                 placeholder="Buscar por nombre, RUC o DNI..."
                             />
+                            {errors.destinatario && !destinatario.documento && (
+                                <p className="text-xs text-red-600 mt-1">{errors.destinatario}</p>
+                            )}
 
                             {destinatario.documento && (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 rounded-lg p-3">
@@ -624,17 +656,27 @@ export default function GuiaRemisionForm() {
                                             {destinatario.nombre}
                                         </p>
                                     </div>
-                                    {destinatario.direccion && (
-                                        <div className="md:col-span-3">
-                                            <p className="text-xs text-gray-500">
-                                                Dirección (punto de llegada)
-                                            </p>
-                                            <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                                                <MapPin className="h-3 w-3 text-red-500" />
-                                                {destinatario.direccion}
-                                            </p>
-                                        </div>
-                                    )}
+                                    <div className="md:col-span-3">
+                                        <Label className="text-xs text-gray-500 flex items-center gap-1">
+                                            <MapPin className="h-3 w-3 text-red-500" />
+                                            Dirección de llegada <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Input
+                                            value={destinatario.direccion}
+                                            onChange={(e) => {
+                                                setDestinatario((prev) => ({
+                                                    ...prev,
+                                                    direccion: e.target.value,
+                                                }));
+                                                if (errors.direccion) setErrors((prev) => ({ ...prev, direccion: undefined }));
+                                            }}
+                                            placeholder="Ingrese la dirección de destino"
+                                            className={`mt-1 ${errors.direccion ? "border-red-500" : ""}`}
+                                        />
+                                        {errors.direccion && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.direccion}</p>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </CardContent>
@@ -691,7 +733,7 @@ export default function GuiaRemisionForm() {
                                 <div className="grid grid-cols-3 gap-3">
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            RUC Transportista
+                                            RUC Transportista <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="flex gap-1">
                                             <Input
@@ -715,6 +757,7 @@ export default function GuiaRemisionForm() {
                                                 }}
                                                 placeholder="20xxxxxxxxx"
                                                 maxLength={11}
+                                                className={errors.transportista_documento ? "border-red-500" : ""}
                                             />
                                             <Button
                                                 type="button"
@@ -736,10 +779,13 @@ export default function GuiaRemisionForm() {
                                                 )}
                                             </Button>
                                         </div>
+                                        {errors.transportista_documento && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.transportista_documento}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            Razón Social
+                                            Razón Social <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
                                             value={form.transportista_nombre}
@@ -750,7 +796,11 @@ export default function GuiaRemisionForm() {
                                                 )
                                             }
                                             placeholder="Transportes SAC"
+                                            className={errors.transportista_nombre ? "border-red-500" : ""}
                                         />
+                                        {errors.transportista_nombre && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.transportista_nombre}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
@@ -772,7 +822,7 @@ export default function GuiaRemisionForm() {
                                 <div className="grid grid-cols-3 gap-3">
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            DNI Conductor
+                                            DNI Conductor <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="flex gap-1">
                                             <Input
@@ -796,6 +846,7 @@ export default function GuiaRemisionForm() {
                                                 }}
                                                 placeholder="xxxxxxxx"
                                                 maxLength={8}
+                                                className={errors.conductor_documento ? "border-red-500" : ""}
                                             />
                                             <Button
                                                 type="button"
@@ -817,10 +868,13 @@ export default function GuiaRemisionForm() {
                                                 )}
                                             </Button>
                                         </div>
+                                        {errors.conductor_documento && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_documento}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            Nombres
+                                            Nombres <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
                                             value={form.conductor_nombres}
@@ -830,11 +884,15 @@ export default function GuiaRemisionForm() {
                                                     e.target.value
                                                 )
                                             }
+                                            className={errors.conductor_nombres ? "border-red-500" : ""}
                                         />
+                                        {errors.conductor_nombres && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_nombres}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            Apellidos
+                                            Apellidos <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
                                             value={form.conductor_apellidos}
@@ -844,11 +902,15 @@ export default function GuiaRemisionForm() {
                                                     e.target.value
                                                 )
                                             }
+                                            className={errors.conductor_apellidos ? "border-red-500" : ""}
                                         />
+                                        {errors.conductor_apellidos && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_apellidos}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            N° Licencia
+                                            N° Licencia <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
                                             value={form.conductor_licencia}
@@ -858,11 +920,15 @@ export default function GuiaRemisionForm() {
                                                     e.target.value
                                                 )
                                             }
+                                            className={errors.conductor_licencia ? "border-red-500" : ""}
                                         />
+                                        {errors.conductor_licencia && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.conductor_licencia}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            Placa Vehículo
+                                            Placa Vehículo <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
                                             value={form.vehiculo_placa}
@@ -872,8 +938,12 @@ export default function GuiaRemisionForm() {
                                                     e.target.value.toUpperCase()
                                                 )
                                             }
+                                            className={errors.vehiculo_placa ? "border-red-500" : ""}
                                             placeholder="ABC-123"
                                         />
+                                        {errors.vehiculo_placa && (
+                                            <p className="text-xs text-red-600 mt-1">{errors.vehiculo_placa}</p>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -908,6 +978,9 @@ export default function GuiaRemisionForm() {
                                     Agregar
                                 </Button>
                             </div>
+                            {errors.detalles && (
+                                <p className="text-xs text-red-600 mt-1">{errors.detalles}</p>
+                            )}
                         </CardHeader>
                         <CardContent className="p-0">
                             <Table>
@@ -1082,9 +1155,19 @@ export default function GuiaRemisionForm() {
                                 </Label>
                                 <Select
                                     value={form.mod_transporte}
-                                    onValueChange={(v) =>
-                                        handleChange("mod_transporte", v)
-                                    }
+                                    onValueChange={(v) => {
+                                        handleChange("mod_transporte", v);
+                                        setErrors((prev) => ({
+                                            ...prev,
+                                            transportista_documento: undefined,
+                                            transportista_nombre: undefined,
+                                            conductor_documento: undefined,
+                                            conductor_nombres: undefined,
+                                            conductor_apellidos: undefined,
+                                            conductor_licencia: undefined,
+                                            vehiculo_placa: undefined,
+                                        }));
+                                    }}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
@@ -1135,7 +1218,11 @@ export default function GuiaRemisionForm() {
                                             )
                                         }
                                         placeholder="0.000"
+                                        className={errors.peso_total ? "border-red-500" : ""}
                                     />
+                                    {errors.peso_total && (
+                                        <p className="text-xs text-red-600 mt-1">{errors.peso_total}</p>
+                                    )}
                                 </div>
                                 <div>
                                     <Label className="text-xs text-gray-500 mb-1.5 block">

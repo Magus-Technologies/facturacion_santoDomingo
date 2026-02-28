@@ -124,6 +124,27 @@ class VentasController extends Controller
 
             $user = $request->user();
 
+            // Validar documento según tipo de comprobante
+            $documento = $validated['cliente_documento'] ?? '';
+            if (!$documento && isset($validated['id_cliente'])) {
+                $clienteExistente = \App\Models\Cliente::find($validated['id_cliente']);
+                $documento = $clienteExistente?->documento ?? '';
+            }
+            // Factura (id_tido=2) requiere RUC (11 dígitos)
+            if ($validated['id_tido'] == 2 && strlen($documento) !== 11) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Para FACTURA se requiere RUC (11 dígitos). No se puede emitir factura con DNI.',
+                ], 422);
+            }
+            // Boleta (id_tido=1) no permite RUC
+            if ($validated['id_tido'] == 1 && strlen($documento) === 11) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Para BOLETA use DNI (8 dígitos). Para RUC emita una Factura.',
+                ], 422);
+            }
+
             return DB::transaction(function () use ($validated, $user, $request) {
                 $idCliente = $validated['id_cliente'] ?? null;
 

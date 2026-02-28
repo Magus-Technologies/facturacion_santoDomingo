@@ -134,10 +134,27 @@ export const validarProductos = (productos) => {
  */
 export const validarCliente = (cliente, formData) => {
     // Permitir si ya tiene ID (cliente existente) o si tiene documento y nombre (nuevo cliente)
-    if ((cliente && cliente.id_cliente) || (formData.num_doc && formData.nom_cli)) {
-        return { valid: true };
+    if (!((cliente && cliente.id_cliente) || (formData.num_doc && formData.nom_cli))) {
+        return { valid: false, message: 'Seleccione un cliente o ingrese los datos del mismo' };
     }
-    return { valid: false, message: 'Seleccione un cliente o ingrese los datos del mismo' };
+
+    const documento = formData.num_doc || cliente?.documento || '';
+
+    // Factura requiere RUC (11 dígitos)
+    if (formData.id_tido === '2' || formData.id_tido === 2) {
+        if (documento.length !== 11) {
+            return { valid: false, message: 'Para FACTURA se requiere RUC (11 dígitos). No se puede emitir factura con DNI.' };
+        }
+    }
+
+    // Boleta requiere DNI (8 dígitos) o CE u otro doc
+    if (formData.id_tido === '1' || formData.id_tido === 1) {
+        if (documento.length === 11) {
+            return { valid: false, message: 'Para BOLETA use DNI (8 dígitos). Para RUC emita una Factura.' };
+        }
+    }
+
+    return { valid: true };
 };
 
 /**

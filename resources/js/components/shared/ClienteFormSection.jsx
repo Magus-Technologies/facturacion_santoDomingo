@@ -23,9 +23,10 @@ export default function ClienteFormSection({
         <>
             <h3 className="text-sm font-semibold mb-3 text-center">Cliente</h3>
             <div className="space-y-3">
-                <ClienteAutocomplete 
-                    onClienteSelect={onClienteSelect} 
-                    value={formData.nom_cli} 
+                <ClienteAutocomplete
+                    onClienteSelect={onClienteSelect}
+                    value={formData.nom_cli}
+                    tipoComprobante={formData.id_tido}
                 />
                 
                 <div>

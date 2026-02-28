@@ -15,6 +15,7 @@ export default function ClienteAutocomplete({
     placeholder = "Buscar cliente por nombre o documento...",
     className = "",
     showConsultarButton = true,
+    tipoComprobante = null, // "1"=Boleta(DNI), "2"=Factura(RUC)
 }) {
     const [searchTerm, setSearchTerm] = useState(value);
     const [clientes, setClientes] = useState([]);
@@ -72,8 +73,15 @@ export default function ClienteAutocomplete({
             const data = await response.json();
 
             if (data.success && data.data) {
-                setClientes(data.data);
-                setShowDropdown(data.data.length > 0);
+                // Filtrar por tipo de comprobante: Boleta=DNI, Factura=RUC
+                let resultados = data.data;
+                if (tipoComprobante === "2" || tipoComprobante === 2) {
+                    resultados = resultados.filter((c) => c.documento?.length === 11);
+                } else if (tipoComprobante === "1" || tipoComprobante === 1) {
+                    resultados = resultados.filter((c) => c.documento?.length !== 11);
+                }
+                setClientes(resultados);
+                setShowDropdown(resultados.length > 0);
                 setSelectedIndex(-1);
             } else {
                 setClientes([]);

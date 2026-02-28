@@ -19,7 +19,7 @@ class CotizacionController extends Controller
     {
         try {
             $user = $request->user();
-            $idEmpresa = $request->query('id_empresa') ?: ($request->header('X-Empresa-Id') ?: $user->id_empresa);
+            $idEmpresa = $user->id_empresa;
             
             $cotizaciones = DB::table('view_cotizaciones')
                 ->where('id_empresa', $idEmpresa)
@@ -66,11 +66,14 @@ class CotizacionController extends Controller
     {
         try {
             $user = $request->user();
-            
+
             $validator = Validator::make($request->all(), [
                 'fecha' => 'required|date',
                 'id_empresa' => 'nullable|exists:empresas,id_empresa',
-                'id_cliente' => 'required|exists:clientes,id_cliente',
+                'id_cliente' => 'nullable|exists:clientes,id_cliente',
+                'cliente_documento' => 'required_without:id_cliente|string|max:11',
+                'cliente_datos' => 'required_without:id_cliente|string|max:245',
+                'cliente_direccion' => 'nullable|string|max:500',
                 'direccion' => 'nullable|string|max:255',
                 'moneda' => 'required|in:PEN,USD',
                 'tipo_cambio' => 'nullable|numeric',
@@ -100,8 +103,25 @@ class CotizacionController extends Controller
 
             DB::beginTransaction();
 
-            // Usar empresa del request o la del usuario
-            $idEmpresa = $request->id_empresa ?? $user->id_empresa;
+            $idEmpresa = $user->id_empresa;
+
+            // Si no hay id_cliente, buscar por documento o crear
+            $idCliente = $request->id_cliente;
+            if (!$idCliente && $request->cliente_documento) {
+                $clienteModel = Cliente::where('documento', $request->cliente_documento)
+                    ->where('id_empresa', $idEmpresa)
+                    ->first();
+
+                if (!$clienteModel) {
+                    $clienteModel = Cliente::create([
+                        'documento' => $request->cliente_documento,
+                        'datos' => $request->cliente_datos,
+                        'direccion' => $request->cliente_direccion ?? '',
+                        'id_empresa' => $idEmpresa,
+                    ]);
+                }
+                $idCliente = $clienteModel->id_cliente;
+            }
 
             // Generar número correlativo
             $ultimaCotizacion = Cotizacion::where('id_empresa', $idEmpresa)
@@ -131,7 +151,7 @@ class CotizacionController extends Controller
             $cotizacion = Cotizacion::create([
                 'numero' => $numero,
                 'fecha' => $request->fecha,
-                'id_cliente' => $request->id_cliente,
+                'id_cliente' => $idCliente,
                 'direccion' => $request->direccion,
                 'subtotal' => $subtotal,
                 'igv' => $igv,
@@ -205,12 +225,16 @@ class CotizacionController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $user = $request->user();
             $cotizacion = Cotizacion::findOrFail($id);
-            
+
             $validator = Validator::make($request->all(), [
                 'fecha' => 'required|date',
                 'id_empresa' => 'nullable|exists:empresas,id_empresa',
-                'id_cliente' => 'required|exists:clientes,id_cliente',
+                'id_cliente' => 'nullable|exists:clientes,id_cliente',
+                'cliente_documento' => 'required_without:id_cliente|string|max:11',
+                'cliente_datos' => 'required_without:id_cliente|string|max:245',
+                'cliente_direccion' => 'nullable|string|max:500',
                 'direccion' => 'nullable|string|max:255',
                 'moneda' => 'required|in:PEN,USD',
                 'tipo_cambio' => 'nullable|numeric',
@@ -234,6 +258,26 @@ class CotizacionController extends Controller
 
             DB::beginTransaction();
 
+            $idEmpresa = $user->id_empresa;
+
+            // Si no hay id_cliente, buscar por documento o crear
+            $idCliente = $request->id_cliente;
+            if (!$idCliente && $request->cliente_documento) {
+                $clienteModel = Cliente::where('documento', $request->cliente_documento)
+                    ->where('id_empresa', $idEmpresa)
+                    ->first();
+
+                if (!$clienteModel) {
+                    $clienteModel = Cliente::create([
+                        'documento' => $request->cliente_documento,
+                        'datos' => $request->cliente_datos,
+                        'direccion' => $request->cliente_direccion ?? '',
+                        'id_empresa' => $idEmpresa,
+                    ]);
+                }
+                $idCliente = $clienteModel->id_cliente;
+            }
+
             // Calcular totales considerando que los precios ya INCLUYEN IGV
             $montoBruto = 0;
             foreach ($request->productos as $prod) {
@@ -243,7 +287,7 @@ class CotizacionController extends Controller
 
             $descuento = $request->descuento ?? 0;
             $total = $montoBruto - $descuento; // El Total final (incluyendo IGV si aplica)
-            
+
             $igv = 0;
             $subtotal = $total; // Base imponible
 
@@ -255,7 +299,7 @@ class CotizacionController extends Controller
             // Actualizar cotización
             $datosActualizar = [
                 'fecha' => $request->fecha,
-                'id_cliente' => $request->id_cliente,
+                'id_cliente' => $idCliente,
                 'direccion' => $request->direccion,
                 'subtotal' => $subtotal,
                 'igv' => $igv,

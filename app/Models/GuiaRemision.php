@@ -40,6 +40,7 @@ class GuiaRemision extends Model
         'conductor_apellidos',
         'conductor_licencia',
         'vehiculo_placa',
+        'vehiculo_m1l',
         'observaciones',
         'estado',
         'nombre_xml',

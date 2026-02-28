@@ -595,6 +595,16 @@ class SunatService
         }
 
         if ($guia->mod_transporte === '02') {
+            $indicadores = [];
+
+            if ($guia->vehiculo_m1l) {
+                $indicadores[] = 'SUNAT_Envio_IndicadorTrasladoVehiculoM1L';
+            }
+
+            if (!empty($indicadores)) {
+                $shipment->setIndicadores($indicadores);
+            }
+
             if ($guia->conductor_documento) {
                 $driver = (new Driver())
                     ->setTipo('Principal')

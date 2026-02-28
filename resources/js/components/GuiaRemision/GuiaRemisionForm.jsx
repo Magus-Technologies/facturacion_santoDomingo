@@ -94,6 +94,7 @@ export default function GuiaRemisionForm() {
         conductor_apellidos: "",
         conductor_licencia: "",
         vehiculo_placa: "",
+        vehiculo_m1l: false,
         observaciones: "",
     });
 
@@ -401,7 +402,7 @@ export default function GuiaRemisionForm() {
             if (!form.conductor_licencia?.trim()) {
                 newErrors.conductor_licencia = "La licencia de conducir es requerida";
             }
-            if (!form.vehiculo_placa?.trim()) {
+            if (!form.vehiculo_m1l && !form.vehiculo_placa?.trim()) {
                 newErrors.vehiculo_placa = "La placa del vehículo es requerida";
             }
         }
@@ -928,7 +929,7 @@ export default function GuiaRemisionForm() {
                                     </div>
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
-                                            Placa Vehículo <span className="text-red-500">*</span>
+                                            Placa Vehículo {!form.vehiculo_m1l && <span className="text-red-500">*</span>}
                                         </Label>
                                         <Input
                                             value={form.vehiculo_placa}
@@ -940,10 +941,30 @@ export default function GuiaRemisionForm() {
                                             }
                                             className={errors.vehiculo_placa ? "border-red-500" : ""}
                                             placeholder="ABC-123"
+                                            disabled={form.vehiculo_m1l}
                                         />
                                         {errors.vehiculo_placa && (
                                             <p className="text-xs text-red-600 mt-1">{errors.vehiculo_placa}</p>
                                         )}
+                                    </div>
+                                    <div className="col-span-3">
+                                        <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-amber-50 border border-amber-200">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.vehiculo_m1l}
+                                                onChange={(e) => {
+                                                    handleChange("vehiculo_m1l", e.target.checked);
+                                                    if (e.target.checked) {
+                                                        handleChange("vehiculo_placa", "");
+                                                        setErrors((prev) => ({ ...prev, vehiculo_placa: undefined }));
+                                                    }
+                                                }}
+                                                className="rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+                                            />
+                                            <span className="text-xs text-amber-800 font-medium">
+                                                Vehículo categoría M1 o L (sin placa) — moto, mototaxi, auto particular
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
                             )}

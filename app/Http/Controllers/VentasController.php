@@ -177,7 +177,13 @@ class VentasController extends Controller
                     ->value('numero') ?? 0;
 
                 $proximoNumero = max($ultimaVenta, $numeroBase) + 1;
-                
+
+                // Sincronizar documentos_empresas
+                DB::table('documentos_empresas')
+                    ->where('id_empresa', $user->id_empresa)
+                    ->where('serie', $validated['serie'])
+                    ->update(['numero' => $proximoNumero]);
+
                 // Crear venta
                 $venta = Venta::create([
                     'id_tido' => $validated['id_tido'],

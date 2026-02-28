@@ -59,6 +59,12 @@ class NotaCreditoController extends Controller
 
                 $ultimoNumero = max($ultimoNumero, $numeroBase);
 
+                // Sincronizar documentos_empresas
+                DB::table('documentos_empresas')
+                    ->where('id_empresa', $empresa->id_empresa)
+                    ->where('serie', $serieNC)
+                    ->update(['numero' => $ultimoNumero + 1]);
+
                 $nota = NotaCredito::create([
                     'id_venta' => $venta->id_venta,
                     'motivo_id' => $motivo->id,

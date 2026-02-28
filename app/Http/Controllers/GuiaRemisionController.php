@@ -88,6 +88,12 @@ class GuiaRemisionController extends Controller
 
                 $ultimoNumero = max($ultimoNumero, $numeroBase);
 
+                // Sincronizar documentos_empresas
+                DB::table('documentos_empresas')
+                    ->where('id_empresa', $idEmpresa)
+                    ->where('serie', 'T001')
+                    ->update(['numero' => $ultimoNumero + 1]);
+
                 // Partida = dirección de la empresa
                 $ubigeoPartida = $empresa->ubigeo ?: '150101';
                 $dirPartida = $empresa->direccion ?: '';

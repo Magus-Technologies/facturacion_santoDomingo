@@ -6,6 +6,7 @@ import {
     Send,
     Eye,
     FileCode,
+    FileDown,
     MoreHorizontal,
     Loader2,
 } from "lucide-react";
@@ -171,6 +172,20 @@ export const getNotaCreditoColumns = (handlers, enviandoId = null) => [
                                         <FileCode className="h-4 w-4" />
                                     </Button>
                                 )}
+                                {nota.cdr_url && handlers.handleDescargarCdr && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlers.handleDescargarCdr(nota);
+                                        }}
+                                        title="Descargar CDR"
+                                        className="text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                                    >
+                                        <FileDown className="h-4 w-4" />
+                                    </Button>
+                                )}
                                 {puedeEnviar && handlers.handleEnviar && (
                                     <Button
                                         variant="ghost"
@@ -225,6 +240,18 @@ export const getNotaCreditoColumns = (handlers, enviandoId = null) => [
                                             >
                                                 <FileCode className="mr-2 h-4 w-4" />
                                                 Ver XML
+                                            </DropdownMenuItem>
+                                        )}
+                                        {nota.cdr_url && handlers.handleDescargarCdr && (
+                                            <DropdownMenuItem
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handlers.handleDescargarCdr(nota);
+                                                }}
+                                                className="text-teal-600 focus:bg-teal-50 focus:text-teal-700"
+                                            >
+                                                <FileDown className="mr-2 h-4 w-4" />
+                                                Descargar CDR
                                             </DropdownMenuItem>
                                         )}
                                         {puedeEnviar && handlers.handleEnviar && (

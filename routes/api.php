@@ -128,6 +128,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('notas-credito', [\App\Http\Controllers\NotaCreditoController::class, 'store']);
     Route::get('notas-credito/{id}', [\App\Http\Controllers\NotaCreditoController::class, 'show']);
     Route::post('notas-credito/{id}/enviar', [\App\Http\Controllers\NotaCreditoController::class, 'enviar']);
+    Route::get('notas-credito/{id}/cdr', [\App\Http\Controllers\NotaCreditoController::class, 'cdr']);
     Route::get('notas-credito/xml/{nombre}', [\App\Http\Controllers\NotaCreditoController::class, 'xml'])->where('nombre', '.*');
 
     // Notas de Débito

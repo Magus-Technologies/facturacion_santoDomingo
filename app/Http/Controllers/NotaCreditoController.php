@@ -142,6 +142,29 @@ class NotaCreditoController extends Controller
         }
     }
 
+    public function cdr(int $id)
+    {
+        $nota = NotaCredito::findOrFail($id);
+
+        if (!$nota->cdr_url) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CDR no disponible.',
+            ], 404);
+        }
+
+        $path = storage_path("app/{$nota->cdr_url}");
+
+        if (!file_exists($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Archivo CDR no encontrado en el servidor.',
+            ], 404);
+        }
+
+        return response()->download($path, "R-{$nota->nombre_xml}.zip");
+    }
+
     public function xml(string $nombre)
     {
         $nombreXml = preg_replace('/\.xml$/i', '', $nombre);

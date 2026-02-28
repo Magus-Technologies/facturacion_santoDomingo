@@ -27,6 +27,28 @@ export default function NotaCreditoPage() {
         window.open(`/api/notas-credito/xml/${nota.nombre_xml}.xml?token=${token}`, "_blank");
     };
 
+    const handleDescargarCdr = async (nota) => {
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/notas-credito/${nota.id}/cdr`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error("Error al descargar CDR");
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `R-${nota.nombre_xml || nota.serie + "-" + nota.numero}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            const { toast } = await import("@/lib/sweetalert");
+            toast.error("No se pudo descargar el CDR");
+        }
+    };
+
     const handleEnviar = async (nota) => {
         setEnviandoId(nota.id);
         await enviarNota(nota.id);
@@ -39,6 +61,7 @@ export default function NotaCreditoPage() {
         },
         handleEnviar,
         handleVerXml,
+        handleDescargarCdr,
     };
 
     const columns = getNotaCreditoColumns(handlers, enviandoId);

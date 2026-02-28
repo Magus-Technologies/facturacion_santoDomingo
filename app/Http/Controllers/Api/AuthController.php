@@ -164,6 +164,46 @@ class AuthController extends Controller
     }
 
     /**
+     * Cambiar empresa activa del usuario
+     */
+    public function switchEmpresa(Request $request)
+    {
+        $request->validate([
+            'id_empresa' => 'required|exists:empresas,id_empresa',
+        ]);
+
+        $user = $request->user();
+
+        // Admin puede cambiar a cualquier empresa activa
+        if ($user->rol_id == 1) {
+            $empresa = \App\Models\Empresa::where('id_empresa', $request->id_empresa)
+                ->where('estado', '1')
+                ->first();
+
+            if (!$empresa) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empresa no encontrada o inactiva',
+                ], 404);
+            }
+
+            $user->id_empresa = $empresa->id_empresa;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Empresa cambiada exitosamente',
+                'id_empresa' => $empresa->id_empresa,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No tiene permisos para cambiar de empresa',
+        ], 403);
+    }
+
+    /**
      * Verificar si el token es válido
      */
     public function verify(Request $request)

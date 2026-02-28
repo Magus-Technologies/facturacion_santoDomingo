@@ -23,6 +23,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/verify', [AuthController::class, 'verify']);
+    Route::post('/switch-empresa', [AuthController::class, 'switchEmpresa']);
 
     // Usuarios
     Route::get('users/roles', [\App\Http\Controllers\Api\UserController::class, 'getRoles']);

@@ -36,8 +36,11 @@ class ClienteController extends Controller
                     'updated_at'
                 );
 
-            // Filtrar por empresa si se proporciona
-            if ($request->has('empresa_id')) {
+            // Siempre filtrar por la empresa del usuario autenticado
+            $user = $request->user();
+            if ($user && $user->id_empresa) {
+                $query->byEmpresa($user->id_empresa);
+            } elseif ($request->has('empresa_id')) {
                 $query->byEmpresa($request->empresa_id);
             }
 

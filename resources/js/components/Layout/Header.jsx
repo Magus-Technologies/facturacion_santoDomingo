@@ -38,10 +38,30 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
 
     const isAdmin = user?.rol_id === 1;
 
-    const handleCambiarEmpresa = (empresa) => {
+    const handleCambiarEmpresa = async (empresa) => {
+        setShowEmpresaMenu(false);
+        try {
+            const token = localStorage.getItem("auth_token");
+            const res = await fetch("/api/switch-empresa", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ id_empresa: empresa.id_empresa }),
+            });
+            const data = await res.json();
+            if (!data.success) {
+                console.error("Error al cambiar empresa:", data.message);
+                return;
+            }
+        } catch (err) {
+            console.error("Error al cambiar empresa:", err);
+            return;
+        }
         setEmpresaActiva(empresa);
         localStorage.setItem("empresa_activa", JSON.stringify(empresa));
-        setShowEmpresaMenu(false);
         // Recargar para que todos los componentes usen la nueva empresa
         window.location.reload();
     };

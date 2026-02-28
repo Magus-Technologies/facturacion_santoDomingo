@@ -20,16 +20,22 @@ export default function VentasList() {
         handleNuevaVenta,
     } = useVentas();
 
-    const { handleGenerarYEnviar: _handleGenerarYEnviar, sunatLoading } = useSunat(fetchVentas);
+    const { handleGenerarXml: _handleGenerarXml, handleEnviarSunat: _handleEnviarSunat } = useSunat(fetchVentas);
 
     const [filtroTipo, setFiltroTipo] = useState(null);
     const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sunatLoadingId, setSunatLoadingId] = useState(null);
 
-    const handleGenerarYEnviar = async (venta) => {
+    const handleGenerarXml = async (venta) => {
         setSunatLoadingId(venta.id_venta);
-        await _handleGenerarYEnviar(venta);
+        await _handleGenerarXml(venta);
+        setSunatLoadingId(null);
+    };
+
+    const handleEnviarSunat = async (venta) => {
+        setSunatLoadingId(venta.id_venta);
+        await _handleEnviarSunat(venta);
         setSunatLoadingId(null);
     };
 
@@ -157,7 +163,8 @@ export default function VentasList() {
             handleView,
             handlePrint,
             handleAnular,
-            handleGenerarYEnviar,
+            handleGenerarXml,
+            handleEnviarSunat,
             handleVerXml,
             handleDescargarCdr,
             handleGenerarGuia,

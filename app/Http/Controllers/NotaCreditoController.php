@@ -51,6 +51,14 @@ class NotaCreditoController extends Controller
                     ->where('id_empresa', $empresa->id_empresa)
                     ->max('numero') ?? 0;
 
+                // Consultar documentos_empresas como número base configurable
+                $numeroBase = DB::table('documentos_empresas')
+                    ->where('id_empresa', $empresa->id_empresa)
+                    ->where('serie', $serieNC)
+                    ->value('numero') ?? 0;
+
+                $ultimoNumero = max($ultimoNumero, $numeroBase);
+
                 $nota = NotaCredito::create([
                     'id_venta' => $venta->id_venta,
                     'motivo_id' => $motivo->id,

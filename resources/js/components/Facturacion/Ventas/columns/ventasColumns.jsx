@@ -335,8 +335,10 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                     venta.estado === "2" || venta.estado === "A";
                 const estaVendida = venta.estado === "3";
                 const yaEnviado = venta.estado_sunat === "1";
+                const tieneXml = !!venta.nombre_xml;
                 const isSunatLoading = sunatLoadingId === venta.id_venta;
-                const puedeEnviar = !estaAnulada && !yaEnviado && !ocultarSunat;
+                const puedeGenerarXml = !estaAnulada && !tieneXml && !ocultarSunat;
+                const puedeEnviar = !estaAnulada && tieneXml && !yaEnviado && !ocultarSunat;
 
                 return (
                     <div className="flex items-center gap-1 justify-end md:justify-start">
@@ -397,21 +399,35 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                     <PackageMinus className="h-4 w-4" />
                                 </Button>
                             )}
-                            {puedeEnviar && handlers.handleGenerarYEnviar && (
+                            {puedeGenerarXml && handlers.handleGenerarXml && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handlers.handleGenerarYEnviar(venta);
+                                        handlers.handleGenerarXml(venta);
                                     }}
-                                    title="Generar XML y enviar a SUNAT"
+                                    title="Generar XML"
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                    <FileCode className="h-4 w-4" />
+                                </Button>
+                            )}
+                            {puedeEnviar && handlers.handleEnviarSunat && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleEnviarSunat(venta);
+                                    }}
+                                    title="Enviar a SUNAT"
                                     className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                                 >
                                     <Send className="h-4 w-4" />
                                 </Button>
                             )}
-                            {!ocultarSunat && yaEnviado && handlers.handleVerXml && (
+                            {!ocultarSunat && tieneXml && handlers.handleVerXml && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -425,7 +441,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                     <FileCode className="h-4 w-4" />
                                 </Button>
                             )}
-                            {!ocultarSunat && yaEnviado && venta.cdr_url && handlers.handleDescargarCdr && (
+                            {!ocultarSunat && venta.cdr_url && handlers.handleDescargarCdr && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -525,11 +541,23 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                             Descontar Almacen Real
                                         </DropdownMenuItem>
                                     )}
-                                    {puedeEnviar && handlers.handleGenerarYEnviar && (
+                                    {puedeGenerarXml && handlers.handleGenerarXml && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handlers.handleGenerarYEnviar(venta);
+                                                handlers.handleGenerarXml(venta);
+                                            }}
+                                            className="text-blue-600 focus:bg-blue-50 focus:text-blue-700"
+                                        >
+                                            <FileCode className="mr-2 h-4 w-4" />
+                                            Generar XML
+                                        </DropdownMenuItem>
+                                    )}
+                                    {puedeEnviar && handlers.handleEnviarSunat && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleEnviarSunat(venta);
                                             }}
                                             className="text-orange-600 focus:bg-orange-50 focus:text-orange-700"
                                         >
@@ -537,7 +565,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                             Enviar a SUNAT
                                         </DropdownMenuItem>
                                     )}
-                                    {!ocultarSunat && yaEnviado && handlers.handleVerXml && (
+                                    {!ocultarSunat && tieneXml && handlers.handleVerXml && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -549,7 +577,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                             Ver XML
                                         </DropdownMenuItem>
                                     )}
-                                    {!ocultarSunat && yaEnviado && venta.cdr_url && handlers.handleDescargarCdr && (
+                                    {!ocultarSunat && venta.cdr_url && handlers.handleDescargarCdr && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();

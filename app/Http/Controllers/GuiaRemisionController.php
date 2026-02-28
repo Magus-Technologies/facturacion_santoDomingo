@@ -80,6 +80,14 @@ class GuiaRemisionController extends Controller
                     ->where('id_empresa', $idEmpresa)
                     ->max('numero') ?? 0;
 
+                // Consultar documentos_empresas como número base configurable
+                $numeroBase = DB::table('documentos_empresas')
+                    ->where('id_empresa', $idEmpresa)
+                    ->where('serie', 'T001')
+                    ->value('numero') ?? 0;
+
+                $ultimoNumero = max($ultimoNumero, $numeroBase);
+
                 // Partida = dirección de la empresa
                 $ubigeoPartida = $empresa->ubigeo ?: '150101';
                 $dirPartida = $empresa->direccion ?: '';

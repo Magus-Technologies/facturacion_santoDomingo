@@ -147,10 +147,15 @@ class VentasController extends Controller
                 // Obtener el próximo número para la serie
                 $ultimaVenta = Venta::where('id_empresa', $user->id_empresa)
                     ->where('serie', $validated['serie'])
-                    ->orderBy('numero', 'desc')
-                    ->first();
-                
-                $proximoNumero = $ultimaVenta ? $ultimaVenta->numero + 1 : 1;
+                    ->max('numero') ?? 0;
+
+                // Consultar documentos_empresas como número base configurable
+                $numeroBase = DB::table('documentos_empresas')
+                    ->where('id_empresa', $user->id_empresa)
+                    ->where('serie', $validated['serie'])
+                    ->value('numero') ?? 0;
+
+                $proximoNumero = max($ultimaVenta, $numeroBase) + 1;
                 
                 // Crear venta
                 $venta = Venta::create([
@@ -434,10 +439,15 @@ class VentasController extends Controller
 
             $ultimaVenta = Venta::where('id_empresa', $user->id_empresa)
                 ->where('serie', $serie)
-                ->orderBy('numero', 'desc')
-                ->first();
+                ->max('numero') ?? 0;
 
-            $proximoNumero = $ultimaVenta ? $ultimaVenta->numero + 1 : 1;
+            // Consultar documentos_empresas como número base configurable
+            $numeroBase = DB::table('documentos_empresas')
+                ->where('id_empresa', $user->id_empresa)
+                ->where('serie', $serie)
+                ->value('numero') ?? 0;
+
+            $proximoNumero = max($ultimaVenta, $numeroBase) + 1;
 
             return response()->json([
                 'success' => true,

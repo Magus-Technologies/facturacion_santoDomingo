@@ -10,6 +10,7 @@ use App\Services\SunatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class NotaCreditoController extends Controller
 {
@@ -79,6 +80,11 @@ class NotaCreditoController extends Controller
                 ], 201);
             });
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al crear nota de crédito', [
+                'venta_id' => $request->id_venta,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear nota de crédito: ' . $e->getMessage(),
@@ -109,6 +115,12 @@ class NotaCreditoController extends Controller
             $resultado = $this->sunatService->enviarNotaCredito($nota);
             return response()->json($resultado);
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al enviar nota de crédito', [
+                'nota_id' => $id,
+                'serie' => $nota->serie . '-' . $nota->numero,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al enviar NC a SUNAT: ' . $e->getMessage(),
@@ -116,14 +128,16 @@ class NotaCreditoController extends Controller
         }
     }
 
-    public function xml(int $id)
+    public function xml(string $nombre)
     {
-        $nota = NotaCredito::findOrFail($id);
+        $nombreXml = preg_replace('/\.xml$/i', '', $nombre);
 
-        if (!$nota->xml_url) {
+        $nota = NotaCredito::where('nombre_xml', $nombreXml)->first();
+
+        if (!$nota || !$nota->xml_url) {
             return response()->json([
                 'success' => false,
-                'message' => 'Esta nota de crédito no tiene XML generado.',
+                'message' => 'XML no encontrado.',
             ], 404);
         }
 
@@ -138,6 +152,7 @@ class NotaCreditoController extends Controller
 
         return response()->file($path, [
             'Content-Type' => 'application/xml',
+            'Content-Disposition' => "inline; filename=\"{$nombreXml}.xml\"",
         ]);
     }
 

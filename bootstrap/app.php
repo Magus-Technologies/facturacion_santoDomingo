@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Registrar middleware de permisos
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'token.query' => \App\Http\Middleware\TokenFromQuery::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

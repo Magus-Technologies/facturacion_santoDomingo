@@ -24,6 +24,10 @@ use Greenter\Model\Despatch\Driver;
 use Greenter\Model\Despatch\Shipment;
 use Greenter\Model\Despatch\Transportist;
 use Greenter\Model\Despatch\Vehicle;
+use Greenter\Model\Summary\Summary;
+use Greenter\Model\Summary\SummaryDetail;
+use Greenter\Model\Voided\Voided;
+use Greenter\Model\Voided\VoidedDetail;
 use Greenter\See;
 use Greenter\Ws\Services\SunatEndpoints;
 use Greenter\Sunat\GRE\Api\AuthApi;
@@ -31,6 +35,7 @@ use Greenter\Sunat\GRE\Api\CpeApi;
 use Greenter\Sunat\GRE\Configuration;
 use Greenter\Sunat\GRE\Model\CpeDocument;
 use Greenter\Sunat\GRE\Model\CpeDocumentArchivo;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class SunatService
@@ -261,6 +266,11 @@ class SunatService
         }
 
         $error = $result->getError();
+        Log::error('SUNAT - Comprobante rechazado', [
+            'venta' => $venta->serie . '-' . $venta->numero,
+            'codigo' => $error->getCode(),
+            'mensaje' => $error->getMessage(),
+        ]);
         $venta->update([
             'estado_sunat' => '2',
             'codigo_sunat' => $error->getCode(),
@@ -384,6 +394,11 @@ class SunatService
         }
 
         $error = $result->getError();
+        Log::error('SUNAT - Nota de crédito rechazada', [
+            'nota' => $nota->serie . '-' . $nota->numero,
+            'codigo' => $error->getCode(),
+            'mensaje' => $error->getMessage(),
+        ]);
         $nota->update([
             'estado' => 'rechazado',
             'codigo_sunat' => $error->getCode(),
@@ -500,6 +515,11 @@ class SunatService
         }
 
         $error = $result->getError();
+        Log::error('SUNAT - Nota de débito rechazada', [
+            'nota' => $nota->serie . '-' . $nota->numero,
+            'codigo' => $error->getCode(),
+            'mensaje' => $error->getMessage(),
+        ]);
         $nota->update([
             'estado' => 'rechazado',
             'codigo_sunat' => $error->getCode(),
@@ -747,6 +767,11 @@ class SunatService
         }
 
         $error = $status->getError();
+        Log::error('SUNAT - Guía de remisión rechazada', [
+            'guia' => $guia->serie . '-' . $guia->numero,
+            'codigo' => $error ? $error->getCodError() : $codRespuesta,
+            'mensaje' => $error ? $error->getDesError() : 'Error desconocido',
+        ]);
         $guia->update([
             'estado' => 'rechazado',
             'codigo_sunat' => $error ? $error->getCodError() : $codRespuesta,
@@ -874,6 +899,221 @@ class SunatService
 
         preg_match('/<ds:DigestValue>([^<]+)<\/ds:DigestValue>/', $xml, $matches);
         return $matches[1] ?? null;
+    }
+
+    /**
+     * Comunicación de Baja - Para anular FACTURAS ya enviadas a SUNAT
+     */
+    public function comunicacionBaja(Empresa $empresa, array $documentos, string $correlativo = '001'): array
+    {
+        $company = $this->buildCompany($empresa);
+
+        $details = [];
+        foreach ($documentos as $doc) {
+            $details[] = (new VoidedDetail())
+                ->setTipoDoc($doc['tipo_doc'] ?? '01')
+                ->setSerie($doc['serie'])
+                ->setCorrelativo($doc['correlativo'])
+                ->setDesMotivoBaja($doc['motivo'] ?? 'ERROR EN EMISION');
+        }
+
+        if (empty($details)) {
+            return ['success' => false, 'message' => 'No hay documentos para dar de baja.'];
+        }
+
+        $voided = (new Voided())
+            ->setCorrelativo($correlativo)
+            ->setFecGeneracion(new \DateTime())
+            ->setFecComunicacion(new \DateTime())
+            ->setCompany($company)
+            ->setDetails($details);
+
+        $see = $this->getSee($empresa);
+        $nombreArchivo = $voided->getName();
+
+        $result = $see->send($voided);
+
+        $ruc = $this->getRuc($empresa);
+        $xmlContent = $see->getFactory()->getLastXml();
+        if ($xmlContent) {
+            $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+        }
+
+        if ($result->isSuccess()) {
+            $ticket = $result->getTicket();
+
+            return [
+                'success' => true,
+                'ticket' => $ticket,
+                'nombre_archivo' => $nombreArchivo,
+                'message' => 'Comunicación de baja enviada. Use el ticket para consultar el estado.',
+            ];
+        }
+
+        $error = $result->getError();
+        Log::error('SUNAT - Comunicación de baja rechazada', [
+            'codigo' => $error->getCode(),
+            'mensaje' => $error->getMessage(),
+        ]);
+        return [
+            'success' => false,
+            'codigo' => $error->getCode(),
+            'message' => $error->getMessage(),
+        ];
+    }
+
+    /**
+     * Resumen Diario - Para enviar BOLETAS a SUNAT (obligatorio)
+     * $estado: '1' = Adición, '2' = Modificación, '3' = Anulación
+     */
+    public function resumenDiario(Empresa $empresa, array $ventas, string $fechaResumen, string $correlativo = '001', string $estado = '1'): array
+    {
+        $company = $this->buildCompany($empresa);
+        $igvRate = (float) ($empresa->igv ?? config('sunat.igv'));
+
+        $details = [];
+        foreach ($ventas as $venta) {
+            $total = (float) $venta->total;
+            $apliIgv = (float) $venta->igv > 0;
+
+            $montoGravada = $apliIgv ? round($total / ($igvRate + 1), 2) : 0;
+            $igvMonto = $apliIgv ? round($total / ($igvRate + 1) * $igvRate, 2) : 0;
+            $montoExonerada = $apliIgv ? 0 : $total;
+
+            $cliente = $venta->cliente;
+            $tipoDocCliente = '0';
+            $numDocCliente = '00000000';
+            $documento = $cliente->documento ?? '';
+
+            if (strlen($documento) === 11) {
+                $tipoDocCliente = '6';
+                $numDocCliente = $documento;
+            } elseif (strlen($documento) === 8) {
+                $tipoDocCliente = '1';
+                $numDocCliente = $documento;
+            }
+
+            $codSunat = $venta->tipoDocumento->cod_sunat ?? '03';
+
+            $detail = (new SummaryDetail())
+                ->setTipoDoc($codSunat)
+                ->setSerieNro($venta->serie . '-' . $venta->numero)
+                ->setEstado($estado)
+                ->setClienteTipo($tipoDocCliente)
+                ->setClienteNro($numDocCliente)
+                ->setTotal($total)
+                ->setMtoOperGravadas($montoGravada)
+                ->setMtoOperExoneradas($montoExonerada)
+                ->setMtoOperInafectas(0)
+                ->setMtoOtrosCargos(0)
+                ->setMtoIGV($igvMonto);
+
+            $details[] = $detail;
+        }
+
+        if (empty($details)) {
+            return ['success' => false, 'message' => 'No hay documentos para el resumen.'];
+        }
+
+        $summary = (new Summary())
+            ->setFecGeneracion(new \DateTime())
+            ->setFecResumen(\DateTime::createFromFormat('Y-m-d', $fechaResumen))
+            ->setCorrelativo($correlativo)
+            ->setCompany($company)
+            ->setDetails($details);
+
+        $see = $this->getSee($empresa);
+        $nombreArchivo = $summary->getName();
+
+        $result = $see->send($summary);
+
+        $xmlContent = $see->getFactory()->getLastXml();
+        if ($xmlContent) {
+            $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+        }
+
+        if ($result->isSuccess()) {
+            $ticket = $result->getTicket();
+
+            return [
+                'success' => true,
+                'ticket' => $ticket,
+                'nombre_archivo' => $nombreArchivo,
+                'cantidad' => count($details),
+                'message' => 'Resumen diario enviado. Use el ticket para consultar el estado.',
+            ];
+        }
+
+        $error = $result->getError();
+        Log::error('SUNAT - Resumen diario rechazado', [
+            'codigo' => $error->getCode(),
+            'mensaje' => $error->getMessage(),
+        ]);
+        return [
+            'success' => false,
+            'codigo' => $error->getCode(),
+            'message' => $error->getMessage(),
+        ];
+    }
+
+    /**
+     * Resumen Diario de Baja - Para anular BOLETAS previamente enviadas
+     */
+    public function resumenDiarioBaja(Empresa $empresa, array $ventas, string $fechaResumen, string $correlativo = '001'): array
+    {
+        return $this->resumenDiario($empresa, $ventas, $fechaResumen, $correlativo, '3');
+    }
+
+    /**
+     * Consultar Ticket - Para verificar estado de comunicación de baja o resumen diario
+     */
+    public function consultarTicket(Empresa $empresa, string $ticket): array
+    {
+        $see = $this->getSee($empresa);
+        $result = $see->getStatus($ticket);
+        $ruc = $this->getRuc($empresa);
+
+        if ($result->isSuccess()) {
+            $cdr = $result->getCdrResponse();
+            $cdrZip = $result->getCdrZip();
+
+            if ($cdrZip) {
+                $cdrDir = storage_path("app/sunat/cdr/{$ruc}");
+                if (!is_dir($cdrDir)) {
+                    mkdir($cdrDir, 0755, true);
+                }
+                file_put_contents("{$cdrDir}/R-ticket-{$ticket}.zip", $cdrZip);
+            }
+
+            return [
+                'success' => true,
+                'codigo' => $cdr->getCode(),
+                'mensaje' => $cdr->getDescription(),
+                'notas' => $cdr->getNotes() ?? [],
+            ];
+        }
+
+        $code = $result->getCode();
+        if ($code === '98') {
+            return [
+                'success' => true,
+                'codigo' => '98',
+                'mensaje' => 'En proceso. Intente nuevamente en unos segundos.',
+                'en_proceso' => true,
+            ];
+        }
+
+        $error = $result->getError();
+        Log::error('SUNAT - Consulta ticket baja/resumen rechazada', [
+            'ticket' => $ticket,
+            'codigo' => $error ? $error->getCode() : $code,
+            'mensaje' => $error ? $error->getMessage() : 'Error desconocido',
+        ]);
+        return [
+            'success' => false,
+            'codigo' => $error ? $error->getCode() : $code,
+            'message' => $error ? $error->getMessage() : 'Error desconocido',
+        ];
     }
 
     private function numberToWords(float $number): string

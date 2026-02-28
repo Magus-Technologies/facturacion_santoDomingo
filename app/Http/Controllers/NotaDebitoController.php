@@ -9,6 +9,7 @@ use App\Services\SunatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class NotaDebitoController extends Controller
 {
@@ -84,6 +85,11 @@ class NotaDebitoController extends Controller
                 ], 201);
             });
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al crear nota de débito', [
+                'venta_id' => $request->id_venta,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear nota de débito: ' . $e->getMessage(),
@@ -114,6 +120,12 @@ class NotaDebitoController extends Controller
             $resultado = $this->sunatService->enviarNotaDebito($nota);
             return response()->json($resultado);
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al enviar nota de débito', [
+                'nota_id' => $id,
+                'serie' => $nota->serie . '-' . $nota->numero,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al enviar ND a SUNAT: ' . $e->getMessage(),

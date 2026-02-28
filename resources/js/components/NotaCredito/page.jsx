@@ -21,31 +21,10 @@ export default function NotaCreditoPage() {
 
     const [enviandoId, setEnviandoId] = useState(null);
 
-    const handleVerXml = async (nota) => {
+    const handleVerXml = (nota) => {
         if (!nota.nombre_xml) return;
         const token = localStorage.getItem("auth_token");
-        try {
-            const res = await fetch(`/api/notas-credito/${nota.id}/xml`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/xml",
-                },
-            });
-
-            if (!res.ok) {
-                const { toast } = await import("@/lib/sweetalert");
-                toast.error("XML no encontrado");
-                return;
-            }
-
-            const xmlText = await res.text();
-            const blob = new Blob([xmlText], { type: "application/xml" });
-            const url = URL.createObjectURL(blob);
-            window.open(url, "_blank");
-        } catch {
-            const { toast } = await import("@/lib/sweetalert");
-            toast.error("Error al obtener el XML");
-        }
+        window.open(`/api/notas-credito/xml/${nota.nombre_xml}.xml?token=${token}`, "_blank");
     };
 
     const handleEnviar = async (nota) => {

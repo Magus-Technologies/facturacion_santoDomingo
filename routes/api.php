@@ -17,7 +17,7 @@ use App\Http\Controllers\CotizacionController;
 Route::post('/login', [AuthController::class, 'login']);
 
 // Rutas protegidas (requieren autenticación)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     // Autenticación
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -116,7 +116,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Comprobantes Electrónicos (SUNAT)
     Route::post('comprobantes/generar-xml/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'generarXml']);
     Route::post('comprobantes/enviar/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'enviar']);
-    Route::get('comprobantes/xml/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'xml']);
+    Route::get('comprobantes/xml/{nombre}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'xml'])->where('nombre', '.*');
+    Route::get('comprobantes/{ventaId}/cdr', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'cdr']);
     Route::get('comprobantes/estado/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'estado']);
 
     // Notas de Crédito
@@ -126,7 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('notas-credito', [\App\Http\Controllers\NotaCreditoController::class, 'store']);
     Route::get('notas-credito/{id}', [\App\Http\Controllers\NotaCreditoController::class, 'show']);
     Route::post('notas-credito/{id}/enviar', [\App\Http\Controllers\NotaCreditoController::class, 'enviar']);
-    Route::get('notas-credito/{id}/xml', [\App\Http\Controllers\NotaCreditoController::class, 'xml']);
+    Route::get('notas-credito/xml/{nombre}', [\App\Http\Controllers\NotaCreditoController::class, 'xml'])->where('nombre', '.*');
 
     // Notas de Débito
     Route::get('notas-debito/motivos', [\App\Http\Controllers\NotaDebitoController::class, 'motivos']);
@@ -139,12 +140,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('guias-remision/motivos', [\App\Http\Controllers\GuiaRemisionController::class, 'motivos']);
     Route::get('guias-remision/empresa', [\App\Http\Controllers\GuiaRemisionController::class, 'empresaActiva']);
     Route::get('guias-remision/ubigeos', [\App\Http\Controllers\GuiaRemisionController::class, 'ubigeos']);
+    Route::get('guias-remision/exportar-excel', [\App\Http\Controllers\Exports\GuiaRemisionExportController::class, 'descargarExcel']);
     Route::get('guias-remision', [\App\Http\Controllers\GuiaRemisionController::class, 'index']);
     Route::post('guias-remision', [\App\Http\Controllers\GuiaRemisionController::class, 'store']);
+    Route::get('guias-remision/{id}/cdr', [\App\Http\Controllers\GuiaRemisionController::class, 'cdr']);
     Route::get('guias-remision/{id}', [\App\Http\Controllers\GuiaRemisionController::class, 'show']);
     Route::post('guias-remision/{id}/enviar', [\App\Http\Controllers\GuiaRemisionController::class, 'enviar']);
     Route::get('guias-remision/{id}/ticket', [\App\Http\Controllers\GuiaRemisionController::class, 'consultarTicket']);
-    Route::get('guias-remision/{id}/xml', [\App\Http\Controllers\GuiaRemisionController::class, 'xml']);
+    Route::get('guias-remision/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionController::class, 'xml'])->where('nombre', '.*');
+
+    // Comunicación de Baja (anular facturas, NC, ND)
+    Route::post('comunicacion-baja', [\App\Http\Controllers\ComunicacionBajaController::class, 'store']);
+    Route::post('comunicacion-baja/consultar', [\App\Http\Controllers\ComunicacionBajaController::class, 'consultarTicket']);
+
+    // Resumen Diario (enviar/anular boletas)
+    Route::post('resumen-diario', [\App\Http\Controllers\ResumenDiarioController::class, 'store']);
+    Route::post('resumen-diario/anular', [\App\Http\Controllers\ResumenDiarioController::class, 'anular']);
+    Route::post('resumen-diario/consultar', [\App\Http\Controllers\ResumenDiarioController::class, 'consultarTicket']);
 });
 
 Route::get('/departamentos' ,[UbicacionesControlller::class,'obtenerDepartamentos']);

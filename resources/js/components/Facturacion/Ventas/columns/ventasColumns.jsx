@@ -8,6 +8,7 @@ import {
     Clock,
     MoreHorizontal,
     FileCode,
+    FileDown,
     Send,
     Truck,
     Banknote,
@@ -17,6 +18,7 @@ import {
     PackageMinus,
     PackageCheck,
     Image,
+    Loader2,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -143,7 +145,7 @@ const DocumentCell = ({ venta }) => {
  * @param {Object} handlers - Objeto con funciones: { handleView, handlePrint, handleAnular }
  * @param {boolean} ocultarSunat - Si es true, oculta la columna de estado SUNAT (para notas de venta)
  */
-export const getVentasColumns = (handlers, ocultarSunat = false) => {
+export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId = null) => {
     const columnas = [
         {
             accessorKey: "serie",
@@ -289,6 +291,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                           const iconos = {
                               Enviado: <CheckCircle className="h-3 w-3" />,
                               Pendiente: <Clock className="h-3 w-3" />,
+                              "Anulado (NC)": <XCircle className="h-3 w-3" />,
                           };
                           return (
                               <span
@@ -331,9 +334,21 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                 const estaAnulada =
                     venta.estado === "2" || venta.estado === "A";
                 const estaVendida = venta.estado === "3";
+                const yaEnviado = venta.estado_sunat === "1";
+                const isSunatLoading = sunatLoadingId === venta.id_venta;
+                const puedeEnviar = !estaAnulada && !yaEnviado && !ocultarSunat;
 
                 return (
                     <div className="flex items-center gap-1 justify-end md:justify-start">
+                        {isSunatLoading ? (
+                            <div className="flex items-center gap-2 text-orange-600 px-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-xs font-medium hidden md:inline">
+                                    Enviando...
+                                </span>
+                            </div>
+                        ) : (
+                        <>
                         {/* Escritorio */}
                         <div className="hidden md:flex items-center gap-1">
                             <Button
@@ -363,7 +378,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                     variant="ghost"
                                     size="sm"
                                     className="text-green-600 cursor-default hover:bg-transparent"
-                                    title="Ya descontado del Almacén Real"
+                                    title="Ya descontado del Almacen Real"
                                 >
                                     <PackageCheck className="h-4 w-4" />
                                 </Button>
@@ -376,13 +391,13 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                         e.stopPropagation();
                                         handlers.handleDescontarStock(venta);
                                     }}
-                                    title="Descontar del Almacén Real"
+                                    title="Descontar del Almacen Real"
                                     className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                                 >
                                     <PackageMinus className="h-4 w-4" />
                                 </Button>
                             )}
-                            {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
+                            {puedeEnviar && handlers.handleGenerarYEnviar && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -396,7 +411,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                     <Send className="h-4 w-4" />
                                 </Button>
                             )}
-                            {!ocultarSunat && venta.estado_sunat === "1" && handlers.handleVerXml && (
+                            {!ocultarSunat && yaEnviado && handlers.handleVerXml && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -410,6 +425,20 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                     <FileCode className="h-4 w-4" />
                                 </Button>
                             )}
+                            {!ocultarSunat && yaEnviado && venta.cdr_url && handlers.handleDescargarCdr && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlers.handleDescargarCdr(venta);
+                                    }}
+                                    title="Descargar CDR"
+                                    className="text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                                >
+                                    <FileDown className="h-4 w-4" />
+                                </Button>
+                            )}
                             {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
                                 <Button
                                     variant="ghost"
@@ -418,7 +447,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                         e.stopPropagation();
                                         handlers.handleGenerarGuia(venta);
                                     }}
-                                    title="Generar Guía de Remisión"
+                                    title="Generar Guia de Remision"
                                     className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
                                 >
                                     <Truck className="h-4 w-4" />
@@ -439,7 +468,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                 </Button>
                             )}
                         </div>
-                        {/* Móvil */}
+                        {/* Movil */}
                         <div className="md:hidden">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -448,7 +477,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                         className="h-8 w-8 p-0"
                                     >
                                         <span className="sr-only">
-                                            Abrir menú
+                                            Abrir menu
                                         </span>
                                         <MoreHorizontal className="h-4 w-4" />
                                     </Button>
@@ -493,10 +522,10 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                             className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
                                         >
                                             <PackageMinus className="mr-2 h-4 w-4" />
-                                            Descontar Almacén Real
+                                            Descontar Almacen Real
                                         </DropdownMenuItem>
                                     )}
-                                    {!estaAnulada && !ocultarSunat && handlers.handleGenerarYEnviar && (
+                                    {puedeEnviar && handlers.handleGenerarYEnviar && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -508,7 +537,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                             Enviar a SUNAT
                                         </DropdownMenuItem>
                                     )}
-                                    {!ocultarSunat && venta.estado_sunat === "1" && handlers.handleVerXml && (
+                                    {!ocultarSunat && yaEnviado && handlers.handleVerXml && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -520,6 +549,18 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                             Ver XML
                                         </DropdownMenuItem>
                                     )}
+                                    {!ocultarSunat && yaEnviado && venta.cdr_url && handlers.handleDescargarCdr && (
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlers.handleDescargarCdr(venta);
+                                            }}
+                                            className="text-teal-600 focus:bg-teal-50 focus:text-teal-700"
+                                        >
+                                            <FileDown className="mr-2 h-4 w-4" />
+                                            Descargar CDR
+                                        </DropdownMenuItem>
+                                    )}
                                     {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
                                         <DropdownMenuItem
                                             onClick={(e) => {
@@ -529,7 +570,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                             className="text-purple-600 focus:bg-purple-50 focus:text-purple-700"
                                         >
                                             <Truck className="mr-2 h-4 w-4" />
-                                            Guía de Remisión
+                                            Guia de Remision
                                         </DropdownMenuItem>
                                     )}
                                     {!estaAnulada && !estaVendida && (
@@ -547,6 +588,8 @@ export const getVentasColumns = (handlers, ocultarSunat = false) => {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
+                        </>
+                        )}
                     </div>
                 );
             },

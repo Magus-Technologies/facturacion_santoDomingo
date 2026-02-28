@@ -20,11 +20,18 @@ export default function VentasList() {
         handleNuevaVenta,
     } = useVentas();
 
-    const { handleGenerarYEnviar, sunatLoading } = useSunat(fetchVentas);
+    const { handleGenerarYEnviar: _handleGenerarYEnviar, sunatLoading } = useSunat(fetchVentas);
 
     const [filtroTipo, setFiltroTipo] = useState(null);
     const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sunatLoadingId, setSunatLoadingId] = useState(null);
+
+    const handleGenerarYEnviar = async (venta) => {
+        setSunatLoadingId(venta.id_venta);
+        await _handleGenerarYEnviar(venta);
+        setSunatLoadingId(null);
+    };
 
     // Leer parámetro 'tipo' de la URL para filtrar
     useEffect(() => {
@@ -81,19 +88,31 @@ export default function VentasList() {
         setIsModalOpen(true);
     };
 
-    const handleVerXml = async (venta) => {
+    const handleVerXml = (venta) => {
+        if (!venta.nombre_xml) return;
+        const token = localStorage.getItem("auth_token");
+        window.open(`/api/comprobantes/xml/${venta.nombre_xml}.xml?token=${token}`, "_blank");
+    };
+
+    const handleDescargarCdr = async (venta) => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/comprobantes/xml/${venta.id_venta}`, {
-                headers: { Authorization: `Bearer ${token}`, Accept: "application/xml" },
+            const res = await fetch(`/api/comprobantes/${venta.id_venta}/cdr`, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            const xmlText = await res.text();
-            const blob = new Blob([xmlText], { type: "application/xml" });
-            const url = URL.createObjectURL(blob);
-            window.open(url, "_blank");
+            if (!res.ok) throw new Error("Error al descargar CDR");
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `R-${venta.nombre_xml || venta.serie + "-" + venta.numero}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
         } catch {
             const { toast } = await import("@/lib/sweetalert");
-            toast.error("Error al obtener el XML");
+            toast.error("No se pudo descargar el CDR");
         }
     };
 
@@ -140,11 +159,13 @@ export default function VentasList() {
             handleAnular,
             handleGenerarYEnviar,
             handleVerXml,
+            handleDescargarCdr,
             handleGenerarGuia,
             handleDescontarStock,
         },
         filtroTipo === "6",
-    ); // Ocultar columna Sunat si es nota de venta
+        sunatLoadingId,
+    );
 
     // Vista principal
     return (

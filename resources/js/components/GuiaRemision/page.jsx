@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import MainLayout from "../Layout/MainLayout";
 import { useGuiasRemision } from "./hooks/useGuiasRemision";
 import { getGuiaRemisionColumns } from "./columns/guiaRemisionColumns";
+import DetallesGuiaModal from "./DetallesGuiaModal";
 
 export default function GuiaRemisionPage() {
     const {
@@ -21,32 +22,13 @@ export default function GuiaRemisionPage() {
     } = useGuiasRemision();
 
     const [enviandoId, setEnviandoId] = useState(null);
+    const [guiaSeleccionada, setGuiaSeleccionada] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleVerXml = async (guia) => {
+    const handleVerXml = (guia) => {
         if (!guia.nombre_xml) return;
         const token = localStorage.getItem("auth_token");
-        try {
-            const res = await fetch(`/api/guias-remision/${guia.id}/xml`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/xml",
-                },
-            });
-
-            if (!res.ok) {
-                const { toast } = await import("@/lib/sweetalert");
-                toast.error("XML no encontrado");
-                return;
-            }
-
-            const xmlText = await res.text();
-            const blob = new Blob([xmlText], { type: "application/xml" });
-            const url = URL.createObjectURL(blob);
-            window.open(url, "_blank");
-        } catch {
-            const { toast } = await import("@/lib/sweetalert");
-            toast.error("Error al obtener el XML");
-        }
+        window.open(`/api/guias-remision/xml/${guia.nombre_xml}.xml?token=${token}`, "_blank");
     };
 
     const handleEnviar = async (guia) => {
@@ -65,14 +47,98 @@ export default function GuiaRemisionPage() {
         window.open(`/reporteGR/a4.php?id=${guia.id}`, "_blank");
     };
 
+    const handleView = async (guia) => {
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/guias-remision/${guia.id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
+
+            if (!res.ok) {
+                const { toast } = await import("@/lib/sweetalert");
+                toast.error("Error al cargar detalle");
+                return;
+            }
+
+            const data = await res.json();
+            setGuiaSeleccionada(data);
+            setIsModalOpen(true);
+        } catch {
+            const { toast } = await import("@/lib/sweetalert");
+            toast.error("Error al cargar detalle");
+        }
+    };
+
+    const handleDescargarCdr = async (guia) => {
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/guias-remision/${guia.id}/cdr`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!res.ok) {
+                const { toast } = await import("@/lib/sweetalert");
+                toast.error("CDR no disponible");
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `R-${guia.serie}-${String(guia.numero).padStart(6, "0")}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            const { toast } = await import("@/lib/sweetalert");
+            toast.error("Error al descargar CDR");
+        }
+    };
+
+    const handleExportar = async () => {
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch("/api/guias-remision/exportar-excel", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!res.ok) {
+                const { toast } = await import("@/lib/sweetalert");
+                toast.error("Error al exportar");
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `guias-remision-${new Date().toISOString().slice(0, 10)}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            const { toast } = await import("@/lib/sweetalert");
+            toast.error("Error al exportar");
+        }
+    };
+
     const handlers = {
-        handleView: (guia) => {
-            // TODO: Implementar modal de detalle
-        },
+        handleView,
         handleVerPdf,
         handleEnviar,
         handleVerXml,
         handleConsultarTicket,
+        handleDescargarCdr,
     };
 
     const columns = getGuiaRemisionColumns(handlers, enviandoId);
@@ -82,10 +148,10 @@ export default function GuiaRemisionPage() {
             <div className="space-y-6">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Guías de Remisión
+                        Guias de Remision
                     </h2>
                     <p className="text-muted-foreground">
-                        Gestiona y emite tus guías de remisión electrónicas
+                        Gestiona y emite tus guias de remision electronicas
                     </p>
                 </div>
 
@@ -95,6 +161,7 @@ export default function GuiaRemisionPage() {
                             variant="outline"
                             size="sm"
                             className="gap-2"
+                            onClick={handleExportar}
                         >
                             <FileSpreadsheet className="h-4 w-4" />
                             <span className="hidden sm:inline">Exportar</span>
@@ -107,7 +174,7 @@ export default function GuiaRemisionPage() {
                         className="gap-2 ml-auto"
                     >
                         <Plus className="h-5 w-5" />
-                        Nueva Guía
+                        Nueva Guia
                     </Button>
                 </div>
 
@@ -137,6 +204,16 @@ export default function GuiaRemisionPage() {
                     />
                 )}
             </div>
+
+            <DetallesGuiaModal
+                guia={guiaSeleccionada}
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setGuiaSeleccionada(null);
+                }}
+                onDescargarCdr={handleDescargarCdr}
+            />
         </MainLayout>
     );
 }

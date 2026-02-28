@@ -6,6 +6,7 @@ import {
     Send,
     Eye,
     FileCode,
+    FileDown,
     Printer,
     MoreHorizontal,
     Loader2,
@@ -116,6 +117,7 @@ export const getGuiaRemisionColumns = (handlers, enviandoId = null) => [
             const guia = row.original;
             const puedeEnviar = guia.estado === "pendiente" && guia.nombre_xml;
             const puedeConsultar = guia.estado === "enviado" && guia.ticket_sunat;
+            const puedeCdr = guia.estado === "aceptado" && guia.cdr_url;
             const isEnviando = enviandoId === guia.id;
 
             return (
@@ -170,6 +172,20 @@ export const getGuiaRemisionColumns = (handlers, enviandoId = null) => [
                                         className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                                     >
                                         <FileCode className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                {puedeCdr && handlers.handleDescargarCdr && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlers.handleDescargarCdr(guia);
+                                        }}
+                                        title="Descargar CDR"
+                                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    >
+                                        <FileDown className="h-4 w-4" />
                                     </Button>
                                 )}
                                 {puedeEnviar && handlers.handleEnviar && (
@@ -241,6 +257,17 @@ export const getGuiaRemisionColumns = (handlers, enviandoId = null) => [
                                             >
                                                 <FileCode className="mr-2 h-4 w-4 text-emerald-600" />
                                                 Ver XML
+                                            </DropdownMenuItem>
+                                        )}
+                                        {puedeCdr && handlers.handleDescargarCdr && (
+                                            <DropdownMenuItem
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handlers.handleDescargarCdr(guia);
+                                                }}
+                                            >
+                                                <FileDown className="mr-2 h-4 w-4 text-green-600" />
+                                                Descargar CDR
                                             </DropdownMenuItem>
                                         )}
                                         {puedeEnviar && handlers.handleEnviar && (

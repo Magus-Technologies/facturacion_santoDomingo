@@ -53,6 +53,7 @@ class Venta extends Model
         'cotizacion_id',
         'nota_venta_id',
         'stock_real_descontado',
+        'nombre_xml',
     ];
 
     protected $casts = [

@@ -10,6 +10,7 @@ use App\Services\SunatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GuiaRemisionController extends Controller
 {
@@ -143,6 +144,10 @@ class GuiaRemisionController extends Controller
                 ], 201);
             });
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al crear guía de remisión', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear la guía: ' . $e->getMessage(),
@@ -166,6 +171,12 @@ class GuiaRemisionController extends Controller
             $resultado = $this->sunatService->enviarGuiaRemision($guia);
             return response()->json($resultado);
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al enviar guía de remisión', [
+                'guia_id' => $id,
+                'serie' => $guia->serie . '-' . $guia->numero,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al enviar: ' . $e->getMessage(),
@@ -182,6 +193,11 @@ class GuiaRemisionController extends Controller
             $resultado = $this->sunatService->consultarTicketGuia($guia);
             return response()->json($resultado);
         } catch (\Exception $e) {
+            Log::error('SUNAT - Error al consultar ticket guía', [
+                'guia_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al consultar: ' . $e->getMessage(),
@@ -198,13 +214,33 @@ class GuiaRemisionController extends Controller
         return response()->json($motivos);
     }
 
-    public function xml(int $id, Request $request)
+    public function cdr(int $id, Request $request)
     {
         $guia = GuiaRemision::where('id_empresa', $request->user()->id_empresa)
             ->findOrFail($id);
 
-        if (!$guia->xml_url) {
-            return response()->json(['message' => 'XML no disponible'], 404);
+        if (!$guia->cdr_url) {
+            return response()->json(['message' => 'CDR no disponible'], 404);
+        }
+
+        $cdrPath = storage_path("app/{$guia->cdr_url}");
+        if (!file_exists($cdrPath)) {
+            return response()->json(['message' => 'Archivo CDR no encontrado'], 404);
+        }
+
+        $filename = "R-{$guia->serie}-{$guia->numero}.zip";
+
+        return response()->download($cdrPath, $filename);
+    }
+
+    public function xml(string $nombre)
+    {
+        $nombreXml = preg_replace('/\.xml$/i', '', $nombre);
+
+        $guia = GuiaRemision::where('nombre_xml', $nombreXml)->first();
+
+        if (!$guia || !$guia->xml_url) {
+            return response()->json(['message' => 'XML no encontrado'], 404);
         }
 
         $xmlPath = storage_path("app/{$guia->xml_url}");
@@ -214,6 +250,7 @@ class GuiaRemisionController extends Controller
 
         return response()->file($xmlPath, [
             'Content-Type' => 'application/xml',
+            'Content-Disposition' => "inline; filename=\"{$nombreXml}.xml\"",
         ]);
     }
 

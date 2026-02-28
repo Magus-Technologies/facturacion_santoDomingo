@@ -26,7 +26,7 @@ return [
         'clave_sol' => 'moddatos',
     ],
 
-    'certificado_prueba' => base_path('sunat/resources/cert.pem'),
+    'certificado_prueba' => storage_path('app/sunat/certificados/cert.pem'),
 
     'storage' => [
         'xml' => 'sunat/xml',

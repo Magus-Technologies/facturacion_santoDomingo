@@ -695,15 +695,30 @@ class SunatService
         $cpeConfig->setAccessToken($token->getAccessToken());
         $cpeApi = new CpeApi(null, $cpeConfig);
 
+        $zipContent = $this->createZip($guia->nombre_xml . '.xml', $xmlContent);
+
         $archivo = new CpeDocumentArchivo();
         $archivo->setNomArchivo($guia->nombre_xml . '.zip');
-        $archivo->setArcGreZip(base64_encode($this->createZip($guia->nombre_xml . '.xml', $xmlContent)));
-        $archivo->setHashZip(hash('sha256', $xmlContent));
+        $archivo->setArcGreZip(base64_encode($zipContent));
+        $archivo->setHashZip(hash('sha256', $zipContent));
 
         $cpeDoc = new CpeDocument();
         $cpeDoc->setArchivo($archivo);
 
-        $response = $cpeApi->enviarCpe($guia->nombre_xml, $cpeDoc);
+        try {
+            $response = $cpeApi->enviarCpe($guia->nombre_xml, $cpeDoc);
+        } catch (\GuzzleHttp\Exception\ClientException $apiEx) {
+            $responseBody = $apiEx->hasResponse()
+                ? $apiEx->getResponse()->getBody()->getContents()
+                : 'Sin respuesta';
+            Log::error('SUNAT GRE - Error API al enviar guía', [
+                'guia' => $guia->nombre_xml,
+                'status' => $apiEx->hasResponse() ? $apiEx->getResponse()->getStatusCode() : null,
+                'response' => $responseBody,
+            ]);
+            throw new \Exception("SUNAT rechazó la guía: {$responseBody}");
+        }
+
         $ticket = $response->getNumTicket();
 
         $guia->update([

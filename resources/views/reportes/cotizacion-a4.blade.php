@@ -226,11 +226,11 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; width: 22%; vertical-align: top; color: #000;">CLIENTE:</td>
-                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $cotizacion->cliente->datos ?? '-' }}</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $cotizacion->cliente?->datos ?? $cotizacion->cliente_nombre ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">RUC:</td>
-                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $cotizacion->cliente->documento ?? '-' }}</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $cotizacion->cliente?->documento ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold; font-size: 8pt; vertical-align: top; color: #000;">DIRECCIÓN:</td>

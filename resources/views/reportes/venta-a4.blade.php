@@ -197,6 +197,28 @@
                             <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">FORMA DE PAGO:</td>
                             <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->id_tipo_pago == 1 ? 'CONTADO' : 'CRÉDITO' }}</td>
                         </tr>
+                        @php
+                            $pago = $venta->pagos->first();
+                            $metodosPago = [1 => 'EFECTIVO', 2 => 'TARJETA', 4 => 'TRANSFERENCIA', 5 => 'YAPE / PLIN'];
+                        @endphp
+                        @if($pago)
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">MÉTODO PAGO:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $metodosPago[$pago->id_tipo_pago] ?? 'OTRO' }}</td>
+                        </tr>
+                        @if($pago->numero_operacion)
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">N° OPERACIÓN:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $pago->numero_operacion }}</td>
+                        </tr>
+                        @endif
+                        @if($pago->banco)
+                        <tr>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">BANCO:</td>
+                            <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $pago->banco }}</td>
+                        </tr>
+                        @endif
+                        @endif
                         <tr>
                             <td style="font-weight: bold; font-size: 8pt; vertical-align: top; color: #000;">VENDEDOR:</td>
                             <td style="font-size: 8pt; color: #000; vertical-align: top;">{{ $venta->usuario->name ?? 'Sistema' }}</td>

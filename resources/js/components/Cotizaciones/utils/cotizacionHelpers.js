@@ -131,8 +131,12 @@ export const validarProductos = (productos) => {
  * Valida que haya cliente seleccionado
  */
 export const validarCliente = (cliente, formData) => {
+    // Nombre libre (sin documento) es válido para cotizaciones
+    if (formData.nom_cli) {
+        return { valid: true };
+    }
     if (!cliente || !formData.num_doc) {
-        return { valid: false, message: 'Seleccione un cliente' };
+        return { valid: false, message: 'Ingrese un nombre de cliente' };
     }
     return { valid: true };
 };
@@ -159,14 +163,16 @@ export const prepararDatosCotizacion = (cliente, formData, productos, user, tota
         return 'PEN'; // Soles por defecto
     };
     const moneda = normalizarMoneda(formData.moneda || formData.tipo_moneda);
-    
+    const cli = cliente || {};
+
     return {
         fecha: formData.fecha,
         numero: formData.numero,
-        id_cliente: cliente.id_cliente || null,
-        cliente_documento: cliente.documento || formData.num_doc || '',
-        cliente_datos: cliente.datos || formData.nom_cli || '',
-        cliente_direccion: cliente.direccion || formData.dir_cli || '',
+        id_cliente: cli.id_cliente || null,
+        cliente_documento: cli.documento || formData.num_doc || '',
+        cliente_datos: cli.datos || formData.nom_cli || '',
+        cliente_nombre: formData.nom_cli || cli.datos || '',
+        cliente_direccion: cli.direccion || formData.dir_cli || '',
         direccion: formData.dir_cli,
         moneda: moneda,
         tipo_cambio: formData.tipo_cambio,

@@ -38,6 +38,8 @@ export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
                 setNombre("");
                 onSuccess?.(data.data);
                 onClose();
+            } else if (data.errors?.nombre) {
+                toast.error(`La unidad "${nombre.trim()}" ya existe`);
             } else {
                 toast.error(data.message || "Error al crear unidad");
             }

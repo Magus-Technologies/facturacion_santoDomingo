@@ -89,10 +89,10 @@
                 <span class="client-label">FECHA:</span> {{ $cotizacion->fecha->format('d/m/Y') }}
             </div>
             <div class="client-row">
-                <span class="client-label">CLIENTE:</span> {{ $cotizacion->cliente->datos ?? '-' }}
+                <span class="client-label">CLIENTE:</span> {{ $cotizacion->cliente?->datos ?? $cotizacion->cliente_nombre ?? '-' }}
             </div>
             <div class="client-row">
-                <span class="client-label">DOC:</span> {{ $cotizacion->cliente->documento ?? '-' }}
+                <span class="client-label">DOC:</span> {{ $cotizacion->cliente?->documento ?? '-' }}
             </div>
             @if($cotizacion->asunto)
             <div class="client-row">

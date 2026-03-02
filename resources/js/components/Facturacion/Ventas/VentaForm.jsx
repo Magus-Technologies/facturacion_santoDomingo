@@ -102,7 +102,7 @@ export default function VentaForm({ ventaId = null }) {
                                 serie: prev.serie,
                                 cotizacion_id: cot.id,
                                 num_doc: clienteObj.documento || "",
-                                nom_cli: clienteObj.datos || "",
+                                nom_cli: clienteObj.datos || cot.cliente_nombre || "",
                                 dir_cli:
                                     clienteObj.direccion || cot.direccion || "",
                                 tipo_moneda: cot.moneda || "PEN",

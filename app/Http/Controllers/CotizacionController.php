@@ -71,8 +71,9 @@ class CotizacionController extends Controller
                 'fecha' => 'required|date',
                 'id_empresa' => 'nullable|exists:empresas,id_empresa',
                 'id_cliente' => 'nullable|exists:clientes,id_cliente',
-                'cliente_documento' => 'required_without:id_cliente|string|max:11',
-                'cliente_datos' => 'required_without:id_cliente|string|max:245',
+                'cliente_documento' => 'nullable|string|max:11',
+                'cliente_datos' => 'nullable|string|max:245',
+                'cliente_nombre' => 'nullable|string|max:255',
                 'cliente_direccion' => 'nullable|string|max:500',
                 'direccion' => 'nullable|string|max:255',
                 'moneda' => 'required|in:PEN,USD',
@@ -105,9 +106,12 @@ class CotizacionController extends Controller
 
             $idEmpresa = $user->id_empresa;
 
-            // Si no hay id_cliente, buscar por documento o crear
+            // Resolver cliente: por id, por documento, o nombre libre
             $idCliente = $request->id_cliente;
+            $clienteNombre = null;
+
             if (!$idCliente && $request->cliente_documento) {
+                // Buscar o crear cliente por documento
                 $clienteModel = Cliente::where('documento', $request->cliente_documento)
                     ->where('id_empresa', $idEmpresa)
                     ->first();
@@ -121,6 +125,9 @@ class CotizacionController extends Controller
                     ]);
                 }
                 $idCliente = $clienteModel->id_cliente;
+            } elseif (!$idCliente) {
+                // Cliente libre (sin documento) — guardar nombre directamente
+                $clienteNombre = $request->cliente_nombre ?: $request->cliente_datos;
             }
 
             // Generar número correlativo
@@ -152,6 +159,7 @@ class CotizacionController extends Controller
                 'numero' => $numero,
                 'fecha' => $request->fecha,
                 'id_cliente' => $idCliente,
+                'cliente_nombre' => $clienteNombre,
                 'direccion' => $request->direccion,
                 'subtotal' => $subtotal,
                 'igv' => $igv,
@@ -232,8 +240,9 @@ class CotizacionController extends Controller
                 'fecha' => 'required|date',
                 'id_empresa' => 'nullable|exists:empresas,id_empresa',
                 'id_cliente' => 'nullable|exists:clientes,id_cliente',
-                'cliente_documento' => 'required_without:id_cliente|string|max:11',
-                'cliente_datos' => 'required_without:id_cliente|string|max:245',
+                'cliente_documento' => 'nullable|string|max:11',
+                'cliente_datos' => 'nullable|string|max:245',
+                'cliente_nombre' => 'nullable|string|max:255',
                 'cliente_direccion' => 'nullable|string|max:500',
                 'direccion' => 'nullable|string|max:255',
                 'moneda' => 'required|in:PEN,USD',
@@ -260,8 +269,10 @@ class CotizacionController extends Controller
 
             $idEmpresa = $user->id_empresa;
 
-            // Si no hay id_cliente, buscar por documento o crear
+            // Resolver cliente: por id, por documento, o nombre libre
             $idCliente = $request->id_cliente;
+            $clienteNombre = null;
+
             if (!$idCliente && $request->cliente_documento) {
                 $clienteModel = Cliente::where('documento', $request->cliente_documento)
                     ->where('id_empresa', $idEmpresa)
@@ -276,6 +287,8 @@ class CotizacionController extends Controller
                     ]);
                 }
                 $idCliente = $clienteModel->id_cliente;
+            } elseif (!$idCliente) {
+                $clienteNombre = $request->cliente_nombre ?: $request->cliente_datos;
             }
 
             // Calcular totales considerando que los precios ya INCLUYEN IGV
@@ -300,6 +313,7 @@ class CotizacionController extends Controller
             $datosActualizar = [
                 'fecha' => $request->fecha,
                 'id_cliente' => $idCliente,
+                'cliente_nombre' => $clienteNombre,
                 'direccion' => $request->direccion,
                 'subtotal' => $subtotal,
                 'igv' => $igv,

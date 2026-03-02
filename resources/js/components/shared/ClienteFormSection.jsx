@@ -10,7 +10,7 @@ export default function ClienteFormSection({
     formData,
     onFormDataChange,
     onClienteSelect,
-    showAsunto = false
+    showAsunto = false,
 }) {
     const handleChange = (field, value) => {
         onFormDataChange({
@@ -28,7 +28,6 @@ export default function ClienteFormSection({
                     value={formData.num_doc}
                     tipoComprobante={formData.id_tido}
                 />
-                
                 <div>
                     <Input
                         type="text"

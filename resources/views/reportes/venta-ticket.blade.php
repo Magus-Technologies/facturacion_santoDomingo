@@ -246,7 +246,34 @@
                 <div class="total-value">{{ $venta->tipo_moneda }} {{ number_format($venta->total, 2) }}</div>
             </div>
         </div>
-        
+
+        <!-- Payment Method -->
+        @php
+            $pago = $venta->pagos->first();
+            $metodosPago = [1 => 'EFECTIVO', 2 => 'TARJETA', 4 => 'TRANSFERENCIA', 5 => 'YAPE / PLIN'];
+        @endphp
+        <div class="divider"></div>
+        <div class="client-info">
+            <div class="client-row">
+                <span class="client-label">PAGO:</span> {{ $venta->id_tipo_pago == 1 ? 'CONTADO' : 'CRÉDITO' }}
+            </div>
+            @if($pago)
+            <div class="client-row">
+                <span class="client-label">MÉTODO:</span> {{ $metodosPago[$pago->id_tipo_pago] ?? 'OTRO' }}
+            </div>
+            @if($pago->numero_operacion)
+            <div class="client-row">
+                <span class="client-label">N° OPER:</span> {{ $pago->numero_operacion }}
+            </div>
+            @endif
+            @if($pago->banco)
+            <div class="client-row">
+                <span class="client-label">BANCO:</span> {{ $pago->banco }}
+            </div>
+            @endif
+            @endif
+        </div>
+
         <!-- QR -->
         @if(!empty($qrBase64))
         <div style="text-align: center; margin: 8px 0;">

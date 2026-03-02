@@ -12,6 +12,7 @@ class Cotizacion extends Model
         'numero',
         'fecha',
         'id_cliente',
+        'cliente_nombre',
         'direccion',
         'subtotal',
         'igv',

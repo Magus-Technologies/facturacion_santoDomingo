@@ -77,6 +77,15 @@ export default function GuiaRemisionForm() {
         ubigeo: "",
     });
 
+    // Punto de partida (editable)
+    const [partida, setPartida] = useState({
+        direccion: "",
+        ubigeo: "",
+        departamento: "",
+        provincia: "",
+        distrito: "",
+    });
+
     const [form, setForm] = useState({
         motivo_traslado: "01",
         descripcion_motivo: "",
@@ -204,7 +213,28 @@ export default function GuiaRemisionForm() {
             });
             const data = await res.json();
             if (data.success) {
-                setEmpresa(data.data);
+                const emp = data.data;
+                setEmpresa(emp);
+
+                // Dirección alternativa para empresa 3
+                const DIRECCIONES_PARTIDA = {
+                    3: {
+                        direccion: "Jr República de Ecuador # 495 interior C - Lima - Lima - Lima",
+                        ubigeo: "150101",
+                        departamento: "LIMA",
+                        provincia: "LIMA",
+                        distrito: "LIMA",
+                    },
+                };
+
+                const alt = DIRECCIONES_PARTIDA[emp.id_empresa];
+                setPartida({
+                    direccion: alt?.direccion || emp.direccion || "",
+                    ubigeo: alt?.ubigeo || emp.ubigeo || "150101",
+                    departamento: alt?.departamento || emp.departamento || "",
+                    provincia: alt?.provincia || emp.provincia || "",
+                    distrito: alt?.distrito || emp.distrito || "",
+                });
             }
         } catch (err) {
             console.error("Error cargando empresa:", err);
@@ -438,6 +468,8 @@ export default function GuiaRemisionForm() {
                     destinatario_nombre: destinatario.nombre,
                     destinatario_direccion: destinatario.direccion,
                     destinatario_ubigeo: destinatario.ubigeo,
+                    dir_partida: partida.direccion,
+                    ubigeo_partida: partida.ubigeo,
                     peso_total: parseFloat(form.peso_total),
                     detalles: detallesValidos.map((d) => ({
                         ...d,
@@ -687,38 +719,75 @@ export default function GuiaRemisionForm() {
                         </CardContent>
                     </Card>
 
-                    {/* Punto de partida (solo lectura, desde empresa) */}
+                    {/* Punto de partida (editable) */}
                     {empresa && (
                         <Card>
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-sm">
                                     <Building2 className="h-4 w-4 text-orange-600" />
                                     Punto de Partida
-                                    <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                    >
-                                        Empresa
-                                    </Badge>
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                    <p className="text-sm font-medium text-gray-900">
-                                        {empresa.razon_social}
-                                    </p>
-                                    <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                                        <MapPin className="h-3 w-3 text-orange-500" />
-                                        {empresa.direccion || "Sin dirección registrada"}
-                                    </p>
-                                    {empresa.departamento && (
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            {empresa.distrito},{" "}
-                                            {empresa.provincia},{" "}
-                                            {empresa.departamento}
-                                        </p>
-                                    )}
+                            <CardContent className="space-y-3">
+                                <div>
+                                    <Label className="text-xs text-gray-500 mb-1 block">
+                                        Dirección de partida <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                        value={partida.direccion}
+                                        onChange={(e) =>
+                                            setPartida((prev) => ({
+                                                ...prev,
+                                                direccion: e.target.value,
+                                            }))
+                                        }
+                                        placeholder="Dirección de partida"
+                                    />
                                 </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">Departamento</Label>
+                                        <Input
+                                            value={partida.departamento}
+                                            onChange={(e) =>
+                                                setPartida((prev) => ({
+                                                    ...prev,
+                                                    departamento: e.target.value,
+                                                }))
+                                            }
+                                            placeholder="LIMA"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">Provincia</Label>
+                                        <Input
+                                            value={partida.provincia}
+                                            onChange={(e) =>
+                                                setPartida((prev) => ({
+                                                    ...prev,
+                                                    provincia: e.target.value,
+                                                }))
+                                            }
+                                            placeholder="LIMA"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">Distrito</Label>
+                                        <Input
+                                            value={partida.distrito}
+                                            onChange={(e) =>
+                                                setPartida((prev) => ({
+                                                    ...prev,
+                                                    distrito: e.target.value,
+                                                }))
+                                            }
+                                            placeholder="LIMA"
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-400">
+                                    Empresa: {empresa.razon_social}
+                                </p>
                             </CardContent>
                         </Card>
                     )}

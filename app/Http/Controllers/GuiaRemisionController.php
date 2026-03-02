@@ -128,9 +128,9 @@ class GuiaRemisionController extends Controller
                     ->where('serie', 'T001')
                     ->update(['numero' => $ultimoNumero + 1]);
 
-                // Partida = dirección de la empresa
-                $ubigeoPartida = $empresa->ubigeo ?: '150101';
-                $dirPartida = $empresa->direccion ?: '';
+                // Partida: usar la dirección del request si viene, sino la de la empresa
+                $ubigeoPartida = $request->ubigeo_partida ?: ($empresa->ubigeo ?: '150101');
+                $dirPartida = $request->dir_partida ?: ($empresa->direccion ?: '');
 
                 // Llegada = dirección del destinatario
                 $ubigeoLlegada = $request->destinatario_ubigeo ?: '150101';

@@ -400,6 +400,55 @@ class VentasController extends Controller
     }
 
     /**
+     * Preview: ver qué productos de la venta existen en almacén 2
+     */
+    public function previewDescontarStock(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            $venta = Venta::with(['productosVentas.producto'])
+                ->where('id_empresa', $user->id_empresa)
+                ->findOrFail($id);
+
+            $items = [];
+            foreach ($venta->productosVentas as $detalle) {
+                $productoOriginal = $detalle->producto;
+                $codigo = $productoOriginal?->codigo;
+
+                $productoAlmacen2 = $codigo
+                    ? \App\Models\Producto::where('id_empresa', $user->id_empresa)
+                        ->where('almacen', '2')
+                        ->where('codigo', $codigo)
+                        ->first()
+                    : null;
+
+                $items[] = [
+                    'codigo' => $codigo ?? '-',
+                    'nombre' => $productoOriginal?->nombre ?? $detalle->descripcion ?? '-',
+                    'cantidad_venta' => $detalle->cantidad,
+                    'encontrado' => $productoAlmacen2 !== null,
+                    'stock_almacen2' => $productoAlmacen2?->cantidad ?? 0,
+                    'stock_despues' => $productoAlmacen2
+                        ? $productoAlmacen2->cantidad - $detalle->cantidad
+                        : null,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $items,
+                'stock_real_descontado' => (bool) $venta->stock_real_descontado,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener preview: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Descontar stock del almacén 2 (real) para cualquier venta
      */
     public function descontarStock(Request $request, int $id): JsonResponse

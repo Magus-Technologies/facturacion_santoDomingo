@@ -104,6 +104,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::put('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'update'])->middleware('permission:ventas.edit');
     Route::delete('ventas/{id}', [\App\Http\Controllers\VentasController::class, 'destroy'])->middleware('permission:ventas.delete');
     Route::post('ventas/{id}/anular', [\App\Http\Controllers\VentasController::class, 'anular'])->middleware('permission:ventas.delete');
+    Route::get('ventas/{id}/preview-descontar-stock', [\App\Http\Controllers\VentasController::class, 'previewDescontarStock'])->middleware('permission:ventas.edit');
     Route::post('ventas/{id}/descontar-stock', [\App\Http\Controllers\VentasController::class, 'descontarStock'])->middleware('permission:ventas.edit');
 
     // Compras

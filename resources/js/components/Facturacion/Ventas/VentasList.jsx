@@ -8,6 +8,7 @@ import { useVentas } from "./hooks/useVentas";
 import { useSunat } from "./hooks/useSunat";
 import { getVentasColumns } from "./columns/ventasColumns";
 import DetallesVentaModal from "./DetallesVentaModal";
+import DescontarStockModal from "./DescontarStockModal";
 
 export default function VentasList() {
     const {
@@ -26,6 +27,7 @@ export default function VentasList() {
     const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sunatLoadingId, setSunatLoadingId] = useState(null);
+    const [stockModalVenta, setStockModalVenta] = useState(null);
 
     const handleGenerarXml = async (venta) => {
         setSunatLoadingId(venta.id_venta);
@@ -126,35 +128,31 @@ export default function VentasList() {
         window.location.href = `/guia-remision/add?venta_id=${venta.id_venta}`;
     };
 
-    const handleDescontarStock = async (venta) => {
-        const { toast, confirm } = await import("@/lib/sweetalert");
-        confirm({
-            title: "¿Descontar stock del Almacén Real?",
-            message: "Se descontará el stock de los productos de esta venta del Almacén Real. Esta acción no se puede deshacer.",
-            confirmText: "Sí, descontar",
-            icon: "warning",
-            onConfirm: async () => {
-                const token = localStorage.getItem("auth_token");
-                try {
-                    const res = await fetch(`/api/ventas/${venta.id_venta}/descontar-stock`, {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            Accept: "application/json",
-                        },
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        toast.success(data.message);
-                        fetchVentas();
-                    } else {
-                        toast.error(data.message || "Error al descontar stock");
-                    }
-                } catch {
-                    toast.error("Error al descontar stock");
-                }
-            },
-        });
+    const handleDescontarStock = (venta) => {
+        setStockModalVenta(venta);
+    };
+
+    const confirmarDescontarStock = async (venta) => {
+        const { toast } = await import("@/lib/sweetalert");
+        const token = localStorage.getItem("auth_token");
+        try {
+            const res = await fetch(`/api/ventas/${venta.id_venta}/descontar-stock`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(data.message);
+                fetchVentas();
+            } else {
+                toast.error(data.message || "Error al descontar stock");
+            }
+        } catch {
+            toast.error("Error al descontar stock");
+        }
     };
 
     // Generar columnas con los handlers
@@ -222,6 +220,13 @@ export default function VentasList() {
                 venta={ventaSeleccionada}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+            />
+
+            <DescontarStockModal
+                isOpen={!!stockModalVenta}
+                onClose={() => setStockModalVenta(null)}
+                venta={stockModalVenta}
+                onConfirm={confirmarDescontarStock}
             />
         </MainLayout>
     );

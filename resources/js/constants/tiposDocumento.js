@@ -39,6 +39,7 @@ export const TIPOS_DOCUMENTO_COMPRA = [
 export const TIPOS_DOCUMENTO_COTIZACION = [
     { value: '1', label: 'BOLETA', codigo: '03' },
     { value: '2', label: 'FACTURA', codigo: '01' },
+    { value: '6', label: 'NOTA DE VENTA', codigo: 'NV' },
 ];
 
 // Función helper para obtener el label de un tipo de documento

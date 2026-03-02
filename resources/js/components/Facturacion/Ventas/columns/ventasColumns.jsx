@@ -328,7 +328,8 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
         },
         {
             id: "actions",
-            header: () => <span className="hidden md:inline">Acciones</span>,
+            header: "",
+            size: 50,
             cell: ({ row }) => {
                 const venta = row.original;
                 const estaAnulada =
@@ -340,284 +341,103 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                 const puedeGenerarXml = !estaAnulada && !tieneXml && !ocultarSunat;
                 const puedeEnviar = !estaAnulada && tieneXml && !yaEnviado && !ocultarSunat;
 
+                if (isSunatLoading) {
+                    return (
+                        <div className="flex items-center justify-end gap-2 text-orange-600 px-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-xs font-medium">Enviando...</span>
+                        </div>
+                    );
+                }
+
                 return (
-                    <div className="flex items-center gap-1 justify-end md:justify-start">
-                        {isSunatLoading ? (
-                            <div className="flex items-center gap-2 text-orange-600 px-2">
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                <span className="text-xs font-medium hidden md:inline">
-                                    Enviando...
-                                </span>
-                            </div>
-                        ) : (
-                        <>
-                        {/* Escritorio */}
-                        <div className="hidden md:flex items-center gap-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlers.handleView(venta);
-                                }}
-                                title="Ver detalle"
-                            >
-                                <Eye className="h-4 w-4 text-blue-600" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlers.handlePrint(venta);
-                                }}
-                                title="Imprimir PDF"
-                            >
-                                <Printer className="h-4 w-4 text-gray-600" />
-                            </Button>
-                            {!estaAnulada && venta.stock_real_descontado && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-green-600 cursor-default hover:bg-transparent"
-                                    title="Ya descontado del Almacen Real"
-                                >
-                                    <PackageCheck className="h-4 w-4" />
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
                                 </Button>
-                            )}
-                            {!estaAnulada && !venta.stock_real_descontado && handlers.handleDescontarStock && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleDescontarStock(venta);
-                                    }}
-                                    title="Descontar del Almacen Real"
-                                    className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                >
-                                    <PackageMinus className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {puedeGenerarXml && handlers.handleGenerarXml && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleGenerarXml(venta);
-                                    }}
-                                    title="Generar XML"
-                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                >
-                                    <FileCode className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {puedeEnviar && handlers.handleEnviarSunat && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleEnviarSunat(venta);
-                                    }}
-                                    title="Enviar a SUNAT"
-                                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                >
-                                    <Send className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {!ocultarSunat && tieneXml && handlers.handleVerXml && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleVerXml(venta);
-                                    }}
-                                    title="Ver XML"
-                                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                                >
-                                    <FileCode className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {!ocultarSunat && venta.cdr_url && handlers.handleDescargarCdr && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleDescargarCdr(venta);
-                                    }}
-                                    title="Descargar CDR"
-                                    className="text-teal-600 hover:text-teal-700 hover:bg-teal-50"
-                                >
-                                    <FileDown className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleGenerarGuia(venta);
-                                    }}
-                                    title="Generar Guia de Remision"
-                                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                >
-                                    <Truck className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {!estaAnulada && !estaVendida && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlers.handleAnular(venta);
-                                    }}
-                                    title="Anular venta"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
-                        {/* Movil */}
-                        <div className="md:hidden">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        className="h-8 w-8 p-0"
-                                    >
-                                        <span className="sr-only">
-                                            Abrir menu
-                                        </span>
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    className="w-48"
-                                >
-                                    <DropdownMenuItem
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleView(venta);
-                                        }}
-                                    >
-                                        <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                                        Ver detalle
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-52">
+                                <DropdownMenuItem onClick={() => handlers.handleView(venta)}>
+                                    <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                                    Ver detalle
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handlers.handlePrint(venta)}>
+                                    <Printer className="mr-2 h-4 w-4 text-gray-600" />
+                                    Imprimir PDF
+                                </DropdownMenuItem>
+                                {!estaAnulada && venta.stock_real_descontado && (
+                                    <DropdownMenuItem disabled className="text-green-600 opacity-100">
+                                        <PackageCheck className="mr-2 h-4 w-4" />
+                                        Ya descontado del real
                                     </DropdownMenuItem>
+                                )}
+                                {!estaAnulada && !venta.stock_real_descontado && handlers.handleDescontarStock && (
                                     <DropdownMenuItem
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handlePrint(venta);
-                                        }}
+                                        onClick={() => handlers.handleDescontarStock(venta)}
+                                        className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
                                     >
-                                        <Printer className="mr-2 h-4 w-4 text-gray-600" />
-                                        Imprimir PDF
+                                        <PackageMinus className="mr-2 h-4 w-4" />
+                                        Descontar Almacén Real
                                     </DropdownMenuItem>
-                                    {!estaAnulada && venta.stock_real_descontado && (
-                                        <DropdownMenuItem
-                                            disabled
-                                            className="text-green-600 opacity-100"
-                                        >
-                                            <PackageCheck className="mr-2 h-4 w-4" />
-                                            Ya descontado del real
-                                        </DropdownMenuItem>
-                                    )}
-                                    {!estaAnulada && !venta.stock_real_descontado && handlers.handleDescontarStock && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleDescontarStock(venta);
-                                            }}
-                                            className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
-                                        >
-                                            <PackageMinus className="mr-2 h-4 w-4" />
-                                            Descontar Almacen Real
-                                        </DropdownMenuItem>
-                                    )}
-                                    {puedeGenerarXml && handlers.handleGenerarXml && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleGenerarXml(venta);
-                                            }}
-                                            className="text-blue-600 focus:bg-blue-50 focus:text-blue-700"
-                                        >
-                                            <FileCode className="mr-2 h-4 w-4" />
-                                            Generar XML
-                                        </DropdownMenuItem>
-                                    )}
-                                    {puedeEnviar && handlers.handleEnviarSunat && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleEnviarSunat(venta);
-                                            }}
-                                            className="text-orange-600 focus:bg-orange-50 focus:text-orange-700"
-                                        >
-                                            <Send className="mr-2 h-4 w-4" />
-                                            Enviar a SUNAT
-                                        </DropdownMenuItem>
-                                    )}
-                                    {!ocultarSunat && tieneXml && handlers.handleVerXml && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleVerXml(venta);
-                                            }}
-                                            className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700"
-                                        >
-                                            <FileCode className="mr-2 h-4 w-4" />
-                                            Ver XML
-                                        </DropdownMenuItem>
-                                    )}
-                                    {!ocultarSunat && venta.cdr_url && handlers.handleDescargarCdr && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleDescargarCdr(venta);
-                                            }}
-                                            className="text-teal-600 focus:bg-teal-50 focus:text-teal-700"
-                                        >
-                                            <FileDown className="mr-2 h-4 w-4" />
-                                            Descargar CDR
-                                        </DropdownMenuItem>
-                                    )}
-                                    {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleGenerarGuia(venta);
-                                            }}
-                                            className="text-purple-600 focus:bg-purple-50 focus:text-purple-700"
-                                        >
-                                            <Truck className="mr-2 h-4 w-4" />
-                                            Guia de Remision
-                                        </DropdownMenuItem>
-                                    )}
-                                    {!estaAnulada && !estaVendida && (
-                                        <DropdownMenuItem
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlers.handleAnular(venta);
-                                            }}
-                                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                                        >
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            Anular venta
-                                        </DropdownMenuItem>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        </>
-                        )}
+                                )}
+                                {puedeGenerarXml && handlers.handleGenerarXml && (
+                                    <DropdownMenuItem
+                                        onClick={() => handlers.handleGenerarXml(venta)}
+                                        className="text-blue-600 focus:bg-blue-50 focus:text-blue-700"
+                                    >
+                                        <FileCode className="mr-2 h-4 w-4" />
+                                        Generar XML
+                                    </DropdownMenuItem>
+                                )}
+                                {puedeEnviar && handlers.handleEnviarSunat && (
+                                    <DropdownMenuItem
+                                        onClick={() => handlers.handleEnviarSunat(venta)}
+                                        className="text-orange-600 focus:bg-orange-50 focus:text-orange-700"
+                                    >
+                                        <Send className="mr-2 h-4 w-4" />
+                                        Enviar a SUNAT
+                                    </DropdownMenuItem>
+                                )}
+                                {!ocultarSunat && tieneXml && handlers.handleVerXml && (
+                                    <DropdownMenuItem
+                                        onClick={() => handlers.handleVerXml(venta)}
+                                        className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700"
+                                    >
+                                        <FileCode className="mr-2 h-4 w-4" />
+                                        Ver XML
+                                    </DropdownMenuItem>
+                                )}
+                                {!ocultarSunat && venta.cdr_url && handlers.handleDescargarCdr && (
+                                    <DropdownMenuItem
+                                        onClick={() => handlers.handleDescargarCdr(venta)}
+                                        className="text-teal-600 focus:bg-teal-50 focus:text-teal-700"
+                                    >
+                                        <FileDown className="mr-2 h-4 w-4" />
+                                        Descargar CDR
+                                    </DropdownMenuItem>
+                                )}
+                                {!estaAnulada && !ocultarSunat && handlers.handleGenerarGuia && (
+                                    <DropdownMenuItem
+                                        onClick={() => handlers.handleGenerarGuia(venta)}
+                                        className="text-purple-600 focus:bg-purple-50 focus:text-purple-700"
+                                    >
+                                        <Truck className="mr-2 h-4 w-4" />
+                                        Guía de Remisión
+                                    </DropdownMenuItem>
+                                )}
+                                {!estaAnulada && !estaVendida && (
+                                    <DropdownMenuItem
+                                        onClick={() => handlers.handleAnular(venta)}
+                                        className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Anular venta
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 );
             },

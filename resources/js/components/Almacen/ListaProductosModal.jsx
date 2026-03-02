@@ -223,8 +223,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
                             <Warehouse className="h-4 w-4 text-gray-500 shrink-0" />
                             <p className="text-sm text-gray-600">
-                                Se importará en <span className="font-semibold text-gray-800">Almacén {almacenDestino}</span>
-                                {almacenDestino === "1" && <span className="text-gray-500">, usado para facturación</span>}.
+                                Se importará en <span className="font-semibold text-gray-800">{almacenDestino === "1" ? "Facturación" : "Almacén Real"}</span>.
                             </p>
                         </div>
                     </div>
@@ -438,7 +437,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                         <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border">
                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
                             <span>
-                                <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>Almacén {almacenDestino}</strong>.
+                                <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>{almacenDestino === "1" ? "Facturación" : "Almacén Real"}</strong>.
                                 Las categorías y unidades nuevas se crearán automáticamente.
                             </span>
                         </div>

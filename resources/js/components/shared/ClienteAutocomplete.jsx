@@ -12,7 +12,7 @@ import { toast } from "@/lib/sweetalert";
 export default function ClienteAutocomplete({
     onClienteSelect,
     value = "",
-    placeholder = "Buscar cliente por nombre o documento...",
+    placeholder = "DNI / RUC del cliente...",
     className = "",
     showConsultarButton = true,
     tipoComprobante = null, // "1"=Boleta(DNI), "2"=Factura(RUC)
@@ -97,9 +97,7 @@ export default function ClienteAutocomplete({
 
     const handleSelectCliente = (cliente) => {
         onClienteSelect(cliente);
-        setSearchTerm(
-            cliente.datos || `${cliente.documento} - ${cliente.datos}`,
-        );
+        setSearchTerm(cliente.documento || "");
         setClientes([]);
         setShowDropdown(false);
     };
@@ -157,7 +155,7 @@ export default function ClienteAutocomplete({
                 }
 
                 onClienteSelect(clienteTemp);
-                setSearchTerm(clienteTemp.datos);
+                setSearchTerm(clienteTemp.documento);
             } else {
                 toast.error(result.message || "No se encontró el documento");
             }

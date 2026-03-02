@@ -112,7 +112,8 @@ export const getGuiaRemisionColumns = (handlers, enviandoId = null) => [
     },
     {
         id: "actions",
-        header: () => <span className="hidden md:inline">Acciones</span>,
+        header: "",
+        size: 50,
         cell: ({ row }) => {
             const guia = row.original;
             const puedeEnviar = guia.estado === "pendiente" && guia.nombre_xml;
@@ -120,183 +121,68 @@ export const getGuiaRemisionColumns = (handlers, enviandoId = null) => [
             const puedeCdr = guia.estado === "aceptado" && guia.cdr_url;
             const isEnviando = enviandoId === guia.id;
 
+            if (isEnviando) {
+                return (
+                    <div className="flex items-center justify-end gap-2 text-blue-600 px-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-xs font-medium">Procesando...</span>
+                    </div>
+                );
+            }
+
             return (
-                <div className="flex items-center gap-1 justify-end md:justify-start">
-                    {isEnviando ? (
-                        <div className="flex items-center gap-2 text-blue-600 px-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-xs font-medium hidden md:inline">
-                                Procesando...
-                            </span>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Escritorio */}
-                            <div className="hidden md:flex items-center gap-1">
-                                {handlers.handleVerPdf && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleVerPdf(guia);
-                                        }}
-                                        title="Ver PDF"
-                                        className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                                    >
-                                        <Printer className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                {handlers.handleView && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleView(guia);
-                                        }}
-                                        title="Ver detalle"
-                                    >
-                                        <Eye className="h-4 w-4 text-blue-600" />
-                                    </Button>
-                                )}
-                                {guia.nombre_xml && handlers.handleVerXml && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleVerXml(guia);
-                                        }}
-                                        title="Ver XML"
-                                        className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                                    >
-                                        <FileCode className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                {puedeCdr && handlers.handleDescargarCdr && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleDescargarCdr(guia);
-                                        }}
-                                        title="Descargar CDR"
-                                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                    >
-                                        <FileDown className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                {puedeEnviar && handlers.handleEnviar && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleEnviar(guia);
-                                        }}
-                                        title="Enviar a SUNAT"
-                                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                    >
-                                        <Send className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                {puedeConsultar && handlers.handleConsultarTicket && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlers.handleConsultarTicket(guia);
-                                        }}
-                                        title="Consultar ticket"
-                                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                    >
-                                        <Search className="h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
-                            {/* Móvil */}
-                            <div className="md:hidden">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-48">
-                                        {handlers.handleVerPdf && (
-                                            <DropdownMenuItem
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlers.handleVerPdf(guia);
-                                                }}
-                                            >
-                                                <Printer className="mr-2 h-4 w-4 text-gray-600" />
-                                                Ver PDF
-                                            </DropdownMenuItem>
-                                        )}
-                                        {handlers.handleView && (
-                                            <DropdownMenuItem
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlers.handleView(guia);
-                                                }}
-                                            >
-                                                <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                                                Ver detalle
-                                            </DropdownMenuItem>
-                                        )}
-                                        {guia.nombre_xml && handlers.handleVerXml && (
-                                            <DropdownMenuItem
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlers.handleVerXml(guia);
-                                                }}
-                                            >
-                                                <FileCode className="mr-2 h-4 w-4 text-emerald-600" />
-                                                Ver XML
-                                            </DropdownMenuItem>
-                                        )}
-                                        {puedeCdr && handlers.handleDescargarCdr && (
-                                            <DropdownMenuItem
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlers.handleDescargarCdr(guia);
-                                                }}
-                                            >
-                                                <FileDown className="mr-2 h-4 w-4 text-green-600" />
-                                                Descargar CDR
-                                            </DropdownMenuItem>
-                                        )}
-                                        {puedeEnviar && handlers.handleEnviar && (
-                                            <DropdownMenuItem
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlers.handleEnviar(guia);
-                                                }}
-                                            >
-                                                <Send className="mr-2 h-4 w-4 text-orange-600" />
-                                                Enviar a SUNAT
-                                            </DropdownMenuItem>
-                                        )}
-                                        {puedeConsultar && handlers.handleConsultarTicket && (
-                                            <DropdownMenuItem
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlers.handleConsultarTicket(guia);
-                                                }}
-                                            >
-                                                <Search className="mr-2 h-4 w-4 text-purple-600" />
-                                                Consultar ticket
-                                            </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </>
-                    )}
+                <div className="flex justify-end">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                            {handlers.handleVerPdf && (
+                                <DropdownMenuItem onClick={() => handlers.handleVerPdf(guia)}>
+                                    <Printer className="mr-2 h-4 w-4 text-gray-600" />
+                                    Ver PDF
+                                </DropdownMenuItem>
+                            )}
+                            {handlers.handleView && (
+                                <DropdownMenuItem onClick={() => handlers.handleView(guia)}>
+                                    <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                                    Ver detalle
+                                </DropdownMenuItem>
+                            )}
+                            {guia.nombre_xml && handlers.handleVerXml && (
+                                <DropdownMenuItem onClick={() => handlers.handleVerXml(guia)}>
+                                    <FileCode className="mr-2 h-4 w-4 text-emerald-600" />
+                                    Ver XML
+                                </DropdownMenuItem>
+                            )}
+                            {puedeCdr && handlers.handleDescargarCdr && (
+                                <DropdownMenuItem onClick={() => handlers.handleDescargarCdr(guia)}>
+                                    <FileDown className="mr-2 h-4 w-4 text-green-600" />
+                                    Descargar CDR
+                                </DropdownMenuItem>
+                            )}
+                            {puedeEnviar && handlers.handleEnviar && (
+                                <DropdownMenuItem
+                                    onClick={() => handlers.handleEnviar(guia)}
+                                    className="text-orange-600 focus:bg-orange-50 focus:text-orange-700"
+                                >
+                                    <Send className="mr-2 h-4 w-4" />
+                                    Enviar a SUNAT
+                                </DropdownMenuItem>
+                            )}
+                            {puedeConsultar && handlers.handleConsultarTicket && (
+                                <DropdownMenuItem
+                                    onClick={() => handlers.handleConsultarTicket(guia)}
+                                    className="text-purple-600 focus:bg-purple-50 focus:text-purple-700"
+                                >
+                                    <Search className="mr-2 h-4 w-4" />
+                                    Consultar ticket
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             );
         },

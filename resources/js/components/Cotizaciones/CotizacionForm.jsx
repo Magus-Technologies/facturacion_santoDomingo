@@ -138,6 +138,19 @@ export default function CotizacionForm({ cotizacionId = null }) {
                             monedaSimbolo={monedaSimbolo}
                             showPriceSelector={true}
                             submitButtonText="Agregar"
+                            almacen={formData.almacen}
+                            onAlmacenChange={(val) => {
+                                // Almacén Real (2) → Nota de Venta, Facturación (1) → Boleta por defecto
+                                const nuevoTipo = val === "2" ? "6" : "1";
+                                const nuevaSerie = val === "2" ? "NV01" : "B001";
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    almacen: val,
+                                    id_tido: nuevoTipo,
+                                    serie: nuevaSerie,
+                                }));
+                            }}
+                            disableAlmacenSelector={false}
                         />
 
                         {/* Campos adicionales de cotización */}
@@ -258,6 +271,7 @@ export default function CotizacionForm({ cotizacionId = null }) {
                 onClose={() => setShowMultipleSearch(false)}
                 onProductsSelect={handleMultipleProductsSelect}
                 productosExistentes={productos}
+                almacen={formData.almacen}
             />
 
             <PaymentSchedule

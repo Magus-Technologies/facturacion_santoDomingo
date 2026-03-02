@@ -80,7 +80,7 @@ export default function ProductoFormSection({
                                     : "text-gray-500 hover:text-gray-700"
                             } ${disableAlmacenSelector ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                         >
-                            Almacén 1
+                            Facturación
                         </button>
                         <button
                             type="button"
@@ -94,7 +94,7 @@ export default function ProductoFormSection({
                                     : "text-gray-500 hover:text-gray-700"
                             } ${disableAlmacenSelector ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                         >
-                            Almacén 2
+                            Almacén Real
                         </button>
                     </div>
                     {disableAlmacenSelector && (

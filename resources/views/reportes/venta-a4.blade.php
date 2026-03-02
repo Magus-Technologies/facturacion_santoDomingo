@@ -230,13 +230,13 @@
                     $precioConIgv = $item->precio_unitario;
                     $valorUnitario = $venta->igv > 0 ? ($precioConIgv / 1.18) : $precioConIgv;
                     $igvFila = $venta->igv > 0 ? ($item->total - ($item->total / 1.18)) : 0;
-                    $descripcion = $item->producto->descripcion ?? $item->producto->nombre ?? $item->descripcion ?? 'Sin descripción';
+                    $descripcion = $item->producto?->nombre ?: ($item->descripcion ?: 'Sin descripción');
                 @endphp
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-center" style="font-size: 8.5pt;">{{ number_format($item->cantidad, 3) }}</td>
                     <td class="text-center">{{ $item->unidad_medida ?? 'UNIDAD' }}</td>
-                    <td class="text-center">{{ $item->producto->codigo ?? '-' }}</td>
+                    <td class="text-center">{{ $item->producto?->codigo ?? '-' }}</td>
                     <td style="padding-left: 5px;">{{ $descripcion }}</td>
                     <td class="text-right">{{ number_format($valorUnitario, 2) }}</td>
                     <td class="text-right">{{ number_format($igvFila, 2) }}</td>

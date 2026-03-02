@@ -104,7 +104,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
         filteredModules.forEach((module) => {
             if (module.submodules) {
                 const hasActiveSubmodule = module.submodules.some(
-                    (sub) => sub.path === currentPath
+                    (sub) => isActive(sub.path)
                 );
                 if (hasActiveSubmodule && !isCollapsed) {
                     newOpenModules[module.id] = true;
@@ -133,12 +133,36 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
     };
 
     const isActive = (path) => {
-        return currentPath === path;
+        if (!path || path === '#') return false;
+        if (currentPath === path) return true;
+
+        const [menuPathname, menuSearch = ''] = path.split('?');
+        const [curPathname, curSearch = ''] = currentPath.split('?');
+
+        const isExactPath = curPathname === menuPathname;
+        const isSubRoute = curPathname.startsWith(menuPathname + '/');
+
+        if (!isExactPath && !isSubRoute) return false;
+
+        if (menuSearch) {
+            if (!curSearch) return false;
+            const menuParams = new URLSearchParams(menuSearch);
+            const curParams = new URLSearchParams(curSearch);
+            for (const [key, value] of menuParams) {
+                if (curParams.get(key) !== value) return false;
+            }
+            return true;
+        }
+
+        // Sin query params en el menú: sub-rutas solo si no hay query params en la URL actual
+        if (isSubRoute) return !curSearch;
+
+        return false;
     };
 
     const hasActiveChild = (module) => {
         if (!module.submodules) return false;
-        return module.submodules.some((sub) => sub.path === currentPath);
+        return module.submodules.some((sub) => isActive(sub.path));
     };
 
     return (

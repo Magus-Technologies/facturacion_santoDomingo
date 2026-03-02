@@ -24,7 +24,7 @@ export default function ProductMultipleSearch({
 
     // Buscar productos cuando cambia el término de búsqueda
     useEffect(() => {
-        if (searchTerm.length < 2) {
+        if (searchTerm.length < 1) {
             setProductos([]);
             return;
         }

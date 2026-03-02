@@ -130,7 +130,7 @@ export default function VentasList() {
         const { toast, confirm } = await import("@/lib/sweetalert");
         confirm({
             title: "¿Descontar stock del Almacén Real?",
-            message: "Se descontará el stock de los productos de esta venta del Almacén 2 (stock real). Esta acción no se puede deshacer.",
+            message: "Se descontará el stock de los productos de esta venta del Almacén Real. Esta acción no se puede deshacer.",
             confirmText: "Sí, descontar",
             icon: "warning",
             onConfirm: async () => {

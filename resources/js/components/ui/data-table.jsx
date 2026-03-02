@@ -110,6 +110,21 @@ export function DataTable({
         );
     }, [columnPinning, tableId]);
 
+    // Filtro global que busca en TODOS los campos del objeto original
+    const globalFilterFn = (row, _columnId, filterValue) => {
+        const search = filterValue.toLowerCase();
+        const original = row.original;
+        return Object.values(original).some((val) => {
+            if (val == null) return false;
+            if (typeof val === "object") {
+                return Object.values(val).some(
+                    (v) => v != null && String(v).toLowerCase().includes(search),
+                );
+            }
+            return String(val).toLowerCase().includes(search);
+        });
+    };
+
     const table = useReactTable({
         data,
         columns,
@@ -117,12 +132,13 @@ export function DataTable({
         getPaginationRowModel: pagination ? getPaginationRowModel() : undefined,
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        globalFilterFn,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
         onColumnPinningChange: setColumnPinning,
         onGlobalFilterChange: setGlobalFilter,
-        autoResetPageIndex: false, // No resetear la página cuando cambian los datos
+        autoResetPageIndex: false,
         state: {
             sorting,
             columnFilters,

@@ -67,7 +67,7 @@ export default function VentaForm({ ventaId = null }) {
                     ...prev,
                     id_tido: idTido,
                     serie: serie,
-                    _tipoFijo: !!tipoParam,
+                    _tipoFijo: !!tipoParam && !cotizacionIdParam,
                     cotizacion_id: cotizacionIdParam || null,
                     nota_venta_id: notaVentaIdParam || null,
                 }));

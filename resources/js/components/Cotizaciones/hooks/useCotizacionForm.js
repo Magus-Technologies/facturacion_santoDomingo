@@ -54,11 +54,27 @@ export const useCotizacionForm = (cotizacionId = null) => {
         datos: '',
         dir_cli: '',
         asunto: '',
+        almacen: '1',
         descuento_activado: false,
         descuento_general: '0',
         cuotas: [],
         empresas_ids: empresaActiva.id_empresa ? [empresaActiva.id_empresa] : [],
     });
+
+    // Sincronizar almacén con tipo de documento
+    useEffect(() => {
+        if (formData.id_tido) {
+            let nuevoAlmacen = "1";
+            if (formData.id_tido === "6") {
+                nuevoAlmacen = "2"; // Nota de Venta → Almacén Real
+            } else if (formData.id_tido === "1" || formData.id_tido === "2") {
+                nuevoAlmacen = "1"; // Factura/Boleta → Facturación
+            }
+            if (formData.almacen !== nuevoAlmacen) {
+                setFormData((prev) => ({ ...prev, almacen: nuevoAlmacen }));
+            }
+        }
+    }, [formData.id_tido]);
 
     useEffect(() => {
         if (isEditing) {

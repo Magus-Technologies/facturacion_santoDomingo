@@ -354,7 +354,7 @@ export default function ProductoModal({
                             </div>
                             <div className="pt-6 shrink-0">
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 border border-gray-300 text-gray-600 text-xs font-semibold">
-                                    Almacén {formData.almacen}
+                                    {formData.almacen === "1" ? "Facturación" : "Almacén Real"}
                                 </span>
                             </div>
                         </div>

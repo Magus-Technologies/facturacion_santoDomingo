@@ -3,6 +3,22 @@ import { Loader2, Package, ScanBarcode } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
+// Resalta las coincidencias del término de búsqueda en el texto
+function HighlightMatch({ text, query }) {
+    if (!query || !text) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    const parts = String(text).split(regex);
+    return parts.map((part, i) =>
+        regex.test(part) ? (
+            <mark key={i} className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5">
+                {part}
+            </mark>
+        ) : (
+            part
+        ),
+    );
+}
+
 /**
  * Componente de búsqueda de productos con autocomplete
  * Incluye búsqueda por nombre, código y scanner QR
@@ -26,7 +42,7 @@ export default function ProductSearchInput({
 
     // Búsqueda de productos
     useEffect(() => {
-        if (searchTerm.length < 2) {
+        if (searchTerm.length < 1) {
             setProducts([]);
             setShowDropdown(false);
             return;
@@ -41,8 +57,6 @@ export default function ProductSearchInput({
 
     const searchProducts = async (term) => {
         setLoading(true);
-        // Limpiar resultados anteriores para evitar mostrar basura mientras carga
-        setProducts([]);
         try {
             const token = localStorage.getItem("auth_token");
             const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
@@ -205,10 +219,10 @@ export default function ProductSearchInput({
                             {/* Información del producto */}
                             <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm text-gray-900 truncate">
-                                    {product.nombre}
+                                    <HighlightMatch text={product.nombre} query={searchTerm} />
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                    Código: {product.codigo}
+                                    Código: <HighlightMatch text={product.codigo} query={searchTerm} />
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span
@@ -237,7 +251,7 @@ export default function ProductSearchInput({
             {showDropdown &&
                 !loading &&
                 products.length === 0 &&
-                searchTerm.length >= 2 && (
+                searchTerm.length >= 1 && (
                     <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
                         No se encontraron productos
                     </div>

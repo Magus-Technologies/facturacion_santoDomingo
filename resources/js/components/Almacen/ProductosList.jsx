@@ -394,7 +394,7 @@ export default function ProductosList() {
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
-                            Productos - Almacén {almacenActivo}
+                            Productos - {almacenActivo === "1" ? "Facturación" : "Almacén Real"}
                         </h1>
                         <p className="text-gray-600 mt-1">
                             Gestiona tu inventario de productos
@@ -411,7 +411,7 @@ export default function ProductosList() {
                             className="gap-2"
                         >
                             <Package className="h-4 w-4" />
-                            Almacén 1
+                            Facturación
                         </Button>
                         <Button
                             variant={
@@ -421,7 +421,7 @@ export default function ProductosList() {
                             className="gap-2"
                         >
                             <Package className="h-4 w-4" />
-                            Almacén 2
+                            Almacén Real
                         </Button>
                     </div>
                 </div>

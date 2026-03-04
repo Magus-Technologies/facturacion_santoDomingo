@@ -82,6 +82,26 @@
       "path": "/productos"
     },
     {
+      "id": "finanzas",
+      "name": "Finanzas",
+      "icon": "Wallet",
+      "path": "#",
+      "submodules": [
+        {
+          "id": "cuentas-cobrar",
+          "name": "Cuentas por Cobrar",
+          "icon": "TrendingUp",
+          "path": "/cuentas-por-cobrar"
+        },
+        {
+          "id": "cuentas-pagar",
+          "name": "Cuentas por Pagar",
+          "icon": "TrendingDown",
+          "path": "/cuentas-por-pagar"
+        }
+      ]
+    },
+    {
       "id": "configuracion",
       "name": "Configuración",
       "icon": "Settings",

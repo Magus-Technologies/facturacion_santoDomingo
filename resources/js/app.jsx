@@ -22,6 +22,8 @@ import NotaCreditoForm from "./components/NotaCredito/NotaCreditoForm";
 import ConsultaComprobante from "./components/Consulta/ConsultaComprobante";
 import Inicio from "./components/Inicio/Inicio";
 import PlantillaImpresion from "./components/Configuracion/PlantillaImpresion";
+import CuentasPorCobrar from "./components/Finanzas/CuentasPorCobrar/CuentasPorCobrar";
+import CuentasPorPagar from "./components/Finanzas/CuentasPorPagar/CuentasPorPagar";
 
 import "./bootstrap";
 import "../css/app.css";
@@ -52,6 +54,8 @@ const components = {
     ConsultaComprobante,
     Inicio,
     PlantillaImpresion,
+    CuentasPorCobrar,
+    CuentasPorPagar,
 };
 
 // Monta cada elemento con atributo data-react-component

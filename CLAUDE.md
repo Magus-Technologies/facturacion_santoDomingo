@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Peruvian electronic invoicing system (facturación electrónica) built with Laravel 12 + React 19. Integrates with SUNAT (Peru's tax authority) for issuing facturas, boletas, notas de crédito/débito, and guías de remisión. Uses the Greenter PHP library for SUNAT XML generation and submission.
+Peruvian electronic invoicing system (facturación electrónica) for **Santo Domingo** — forked from `factura_ilidesava`. Built with Laravel 12 + React 19. Integrates with SUNAT (Peru's tax authority) for issuing facturas, boletas, notas de crédito/débito, and guías de remisión. Uses the Greenter PHP library for SUNAT XML generation and submission.
+
+**Key differences from the original (ilidesava):**
+- Single-company system (only `id_empresa = 1`). Company selector in header is disabled; "Nueva Empresa" button is commented out.
+- Color scheme: primary = red (`#c7161d`), accent/text = cream (`#ece6a3`) — defined in `resources/css/app.css`
+- Database: MySQL `factura_santoD` (not SQLite)
 
 ## Development Commands
 
@@ -31,7 +36,7 @@ php artisan test tests/Feature/ExampleTest.php
 This is NOT a typical SPA. Blade templates mount React components via `data-react-component` attributes. Each page is a Blade view that renders a specific React component. Navigation between pages is full page loads, not client-side routing. See `resources/js/app.jsx` for the component registry.
 
 ### Database
-Default database is SQLite (`database/database.sqlite`). Tests use SQLite in-memory (configured in `phpunit.xml`). Production typically uses MySQL — set `DB_CONNECTION` accordingly.
+Default database is MySQL (`factura_santoD`). Tests use SQLite in-memory (configured in `phpunit.xml`).
 
 ### Backend Structure
 - **Controllers** handle API endpoints. SUNAT-related controllers (VentasController, NotaCreditoController, GuiaRemisionController, etc.) delegate XML generation and submission to `SunatService`.
@@ -44,7 +49,7 @@ Default database is SQLite (`database/database.sqlite`). Tests use SQLite in-mem
   - Boletas also require Resumen Diario for SUNAT acceptance
   - Annulment uses Comunicación de Baja (async with tickets)
 - **Permission middleware** `CheckPermission` uses format `resource.action` (e.g., `ventas.create`, `productos.view`). Admin (rol_id=1) bypasses all checks.
-- **Multi-company**: Users belong to companies. `empresa_activa_id` on the User model determines the current company context. All queries scope by this company.
+- **Single-company**: This fork uses only one empresa (`id_empresa = 1`). The multi-company switching UI is disabled, but the underlying `empresa_activa_id` scoping on the User model still works. All queries scope by `id_empresa`.
 
 ### Frontend Structure
 - **Feature-based organization** under `resources/js/components/` — each module (Ventas, GuiaRemision, NotaCredito, etc.) has its own folder with page component, form, columns definition, detail modal, and hooks.

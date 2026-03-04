@@ -162,6 +162,14 @@ Route::get('/reporteCOT/a4.php', function (Request $request) {
 });
 
 
+// Cuentas por Cobrar
+Route::get('/cuentas-por-cobrar', function () { return view('finanzas.cuentas-por-cobrar'); })->name('cuentas-por-cobrar');
+Route::get('cuentas-por-cobrar/descargar-pdf', [\App\Http\Controllers\Exports\CuentasPorCobrarExportController::class, 'exportPdf']);
+
+// Cuentas por Pagar
+Route::get('/cuentas-por-pagar', function () { return view('finanzas.cuentas-por-pagar'); })->name('cuentas-por-pagar');
+Route::get('cuentas-por-pagar/descargar-pdf', [\App\Http\Controllers\Exports\CuentasPorPagarExportController::class, 'exportPdf']);
+
 // Exportaciones Excel/PDF (Requieren Auth::user() activo)
 Route::get('compras/descargar-excel', [\App\Http\Controllers\Exports\CompraExportController::class, 'exportExcel']);
 Route::get('compras/descargar-pdf', [\App\Http\Controllers\Exports\CompraExportController::class, 'exportPdf']);

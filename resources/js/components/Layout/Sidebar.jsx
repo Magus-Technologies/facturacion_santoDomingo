@@ -21,6 +21,8 @@ import {
     ChevronLeft,
     Shield,
     Printer,
+    Wallet,
+    TrendingDown,
 } from "lucide-react";
 import menuData from "@/data/menuModules.json";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -43,6 +45,8 @@ const iconMap = {
     TrendingUp,
     Shield,
     Printer,
+    Wallet,
+    TrendingDown,
     FileInvoice: FileText,
 };
 

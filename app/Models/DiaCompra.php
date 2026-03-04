@@ -46,4 +46,10 @@ class DiaCompra extends Model
         return $query->where('estado', '1')
                     ->where('fecha', '<', now()->toDateString());
     }
+
+    public function scopeProximasVencer($query, int $dias = 7)
+    {
+        return $query->where('estado', '1')
+            ->whereBetween('fecha', [now()->toDateString(), now()->addDays($dias)->toDateString()]);
+    }
 }

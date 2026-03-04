@@ -128,6 +128,16 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::delete('compras/{id}', [\App\Http\Controllers\CompraController::class, 'destroy'])->middleware('permission:compras.delete');
     Route::post('compras/{id}/anular', [\App\Http\Controllers\CompraController::class, 'anular'])->middleware('permission:compras.delete');
 
+    // Cuentas por Cobrar
+    Route::get('cuentas-por-cobrar/exportar-excel', [\App\Http\Controllers\Exports\CuentasPorCobrarExportController::class, 'exportExcel'])->middleware('permission:cuentas-cobrar.view');
+    Route::get('cuentas-por-cobrar', [\App\Http\Controllers\CuentasPorCobrarController::class, 'index'])->middleware('permission:cuentas-cobrar.view');
+    Route::post('cuentas-por-cobrar/{id}/pagar', [\App\Http\Controllers\CuentasPorCobrarController::class, 'pagar'])->middleware('permission:cuentas-cobrar.edit');
+
+    // Cuentas por Pagar
+    Route::get('cuentas-por-pagar/exportar-excel', [\App\Http\Controllers\Exports\CuentasPorPagarExportController::class, 'exportExcel'])->middleware('permission:cuentas-pagar.view');
+    Route::get('cuentas-por-pagar', [\App\Http\Controllers\CuentasPorPagarController::class, 'index'])->middleware('permission:cuentas-pagar.view');
+    Route::post('cuentas-por-pagar/{id}/pagar', [\App\Http\Controllers\CuentasPorPagarController::class, 'pagar'])->middleware('permission:cuentas-pagar.edit');
+
     // Comprobantes Electrónicos (SUNAT)
     Route::post('comprobantes/generar-xml/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'generarXml']);
     Route::post('comprobantes/enviar/{ventaId}', [\App\Http\Controllers\ComprobanteElectronicoController::class, 'enviar']);

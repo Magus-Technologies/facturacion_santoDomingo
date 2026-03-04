@@ -117,106 +117,21 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                         )}
                     </button>
 
-                    {/* Empresa activa - Selector para admin, texto para usuarios */}
-                    {isAdmin && empresas.length > 1 ? (
-                        <div className="relative">
-                            <button
-                                onClick={() =>
-                                    setShowEmpresaMenu(!showEmpresaMenu)
-                                }
-                                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors max-w-40 sm:max-w-xs"
-                            >
-                                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 shrink-0" />
-                                <div className="text-left min-w-0">
-                                    <p className="text-[11px] sm:text-xs font-bold text-gray-800 leading-tight truncate">
-                                        {getNombreCorto(
-                                            empresaActiva?.comercial,
-                                        )}
-                                    </p>
-                                    <p className="text-[9px] sm:text-[10px] text-gray-400 truncate hidden sm:block">
-                                        RUC: {empresaActiva?.ruc || "—"}
-                                    </p>
-                                </div>
-                                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 shrink-0" />
-                            </button>
-
-                            {showEmpresaMenu && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-10"
-                                        onClick={() =>
-                                            setShowEmpresaMenu(false)
-                                        }
-                                    />
-                                    <div className="fixed sm:absolute top-16 sm:top-full left-4 right-4 sm:left-0 sm:right-auto sm:mt-2 sm:w-80 bg-white rounded-xl shadow-2xl sm:shadow-lg border border-gray-200 py-2 z-50 overflow-hidden max-h-[calc(100vh-80px)] overflow-y-auto">
-                                        <div className="px-4 py-2 border-b border-gray-100">
-                                            <p className="text-xs font-semibold text-gray-500 uppercase">
-                                                Cambiar empresa
-                                            </p>
-                                        </div>
-                                        {empresas.map((empresa) => {
-                                            const isActive =
-                                                empresaActiva?.id_empresa ===
-                                                empresa.id_empresa;
-                                            return (
-                                                <button
-                                                    key={empresa.id_empresa}
-                                                    onClick={() =>
-                                                        handleCambiarEmpresa(
-                                                            empresa,
-                                                        )
-                                                    }
-                                                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
-                                                        isActive
-                                                            ? "bg-orange-50 border-l-4 border-primary-600"
-                                                            : "hover:bg-gray-50 border-l-4 border-transparent"
-                                                    }`}
-                                                >
-                                                    <Building2
-                                                        className={`h-4 w-4 shrink-0 ${
-                                                            isActive
-                                                                ? "text-primary-600"
-                                                                : "text-gray-400"
-                                                        }`}
-                                                    />
-                                                    <div className="flex-1 min-w-0">
-                                                        <p
-                                                            className={`text-xs font-semibold leading-tight line-clamp-2 ${isActive ? "text-primary-700" : "text-gray-800"}`}
-                                                        >
-                                                            {empresa.comercial}
-                                                        </p>
-                                                        <p
-                                                            className={`text-[11px] mt-0.5 ${isActive ? "text-primary-600" : "text-gray-500"}`}
-                                                        >
-                                                            RUC: {empresa.ruc}
-                                                        </p>
-                                                    </div>
-                                                    {isActive && (
-                                                        <Check className="h-4 w-4 text-primary-600 shrink-0" />
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </>
+                    {/* Empresa activa - Solo muestra info, sin selector */}
+                    <div className="flex items-center gap-2">
+                        <Building2 className="h-5 w-5 text-primary-600" />
+                        <div>
+                            <p className="text-sm font-bold text-gray-800 leading-tight">
+                                {getNombreCorto(empresaActiva?.comercial) ||
+                                    "Sistema de Facturación"}
+                            </p>
+                            {empresaActiva?.ruc && (
+                                <p className="text-[10px] text-gray-400">
+                                    RUC: {empresaActiva.ruc}
+                                </p>
                             )}
                         </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5 text-primary-600" />
-                            <div>
-                                <p className="text-sm font-bold text-gray-800 leading-tight">
-                                    {getNombreCorto(empresaActiva?.comercial) ||
-                                        "Sistema de Facturación"}
-                                </p>
-                                {empresaActiva?.ruc && (
-                                    <p className="text-[10px] text-gray-400">
-                                        RUC: {empresaActiva.ruc}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Right Side - Notifications & User */}

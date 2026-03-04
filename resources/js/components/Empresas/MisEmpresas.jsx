@@ -268,10 +268,11 @@ export default function MisEmpresas() {
                                 Gestiona la información de tus empresas
                             </p>
                         </div>
-                        <Button onClick={handleNuevaEmpresa} className="gap-2">
+                        {/* Botón de nueva empresa deshabilitado - solo se usa una empresa */}
+                        {/* <Button onClick={handleNuevaEmpresa} className="gap-2">
                             <Plus className="h-4 w-4" />
                             Nueva Empresa
-                        </Button>
+                        </Button> */}
                     </div>
 
                     <DataTable

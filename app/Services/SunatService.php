@@ -132,10 +132,13 @@ class SunatService
         $numDoc = '00000000';
 
         if (strlen($documento) === 11) {
-            $tipoDoc = '6';
+            $tipoDoc = '6'; // RUC
             $numDoc = $documento;
         } elseif (strlen($documento) === 8) {
-            $tipoDoc = '1';
+            $tipoDoc = '1'; // DNI
+            $numDoc = $documento;
+        } elseif (strlen($documento) > 0) {
+            $tipoDoc = '4'; // Carnet de Extranjería
             $numDoc = $documento;
         }
 
@@ -1039,10 +1042,13 @@ class SunatService
             $documento = $cliente->documento ?? '';
 
             if (strlen($documento) === 11) {
-                $tipoDocCliente = '6';
+                $tipoDocCliente = '6'; // RUC
                 $numDocCliente = $documento;
             } elseif (strlen($documento) === 8) {
-                $tipoDocCliente = '1';
+                $tipoDocCliente = '1'; // DNI
+                $numDocCliente = $documento;
+            } elseif (strlen($documento) > 0) {
+                $tipoDocCliente = '4'; // Carnet de Extranjería
                 $numDocCliente = $documento;
             }
 

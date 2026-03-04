@@ -229,7 +229,7 @@
                             <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $cotizacion->cliente?->datos ?? $cotizacion->cliente_nombre ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">RUC:</td>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">{{ strlen($cotizacion->cliente?->documento ?? '') === 11 ? 'RUC' : (strlen($cotizacion->cliente?->documento ?? '') === 8 ? 'DNI' : 'CE') }}:</td>
                             <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $cotizacion->cliente?->documento ?? '-' }}</td>
                         </tr>
                         <tr>

@@ -1,22 +1,39 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Loader2, User, Building2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Loader2, User, Building2, CreditCard } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { consultarDocumento } from "@/services/apisPeru";
 import { toast } from "@/lib/sweetalert";
 
+const TIPOS = [
+    { key: "DNI", label: "DNI", codigo: "1" },
+    { key: "RUC", label: "RUC", codigo: "6" },
+    { key: "CE",  label: "CE",  codigo: "4" },
+];
+
 /**
  * Componente de autocompletado de clientes
  * Incluye búsqueda por nombre, documento y consulta a API Perú
+ * Soporta DNI, RUC y Carnet de Extranjería (CE)
  */
 export default function ClienteAutocomplete({
     onClienteSelect,
     value = "",
-    placeholder = "DNI / RUC del cliente...",
+    placeholder = "Documento del cliente...",
     className = "",
     showConsultarButton = true,
-    tipoComprobante = null, // "1"=Boleta(DNI), "2"=Factura(RUC)
+    tipoComprobante = null, // "1"=Boleta(DNI/CE), "2"=Factura(RUC), "6"=Nota
 }) {
+    // Determinar tipos disponibles según el comprobante
+    const tiposDisponibles = tipoComprobante === "2" || tipoComprobante === 2
+        ? ["RUC"]
+        : tipoComprobante === "1" || tipoComprobante === 1
+            ? ["DNI", "CE"]
+            : ["DNI", "RUC", "CE"];
+
+    const defaultTipo = tipoComprobante === "2" || tipoComprobante === 2 ? "RUC" : "DNI";
+
+    const [tipoDoc, setTipoDoc] = useState(defaultTipo);
     const [searchTerm, setSearchTerm] = useState(value);
     const [clientes, setClientes] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -25,55 +42,44 @@ export default function ClienteAutocomplete({
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const inputRef = useRef(null);
     const dropdownRef = useRef(null);
-    // Flag para evitar que la actualización de value externo dispare una búsqueda nueva
     const isExternalUpdate = useRef(false);
 
-    // Actualizar searchTerm cuando cambia el value externo (sin disparar búsqueda)
+    // Sincronizar tipo con el comprobante cuando cambia
+    useEffect(() => {
+        const nuevoDefault = tipoComprobante === "2" || tipoComprobante === 2 ? "RUC" : "DNI";
+        setTipoDoc(nuevoDefault);
+    }, [tipoComprobante]);
+
+    // Actualizar searchTerm cuando cambia el value externo
     useEffect(() => {
         isExternalUpdate.current = true;
         setSearchTerm(value);
     }, [value]);
 
-    // Búsqueda de clientes (solo si el cambio vino del usuario, no de un value externo)
+    // Búsqueda de clientes
     useEffect(() => {
-        // Si el cambio fue por una actualización externa (cliente ya seleccionado), saltar
         if (isExternalUpdate.current) {
             isExternalUpdate.current = false;
             return;
         }
-
         if (searchTerm.length < 2) {
             setClientes([]);
             setShowDropdown(false);
             return;
         }
-
-        const delaySearch = setTimeout(async () => {
-            await buscarClientes(searchTerm);
-        }, 300);
-
-        return () => clearTimeout(delaySearch);
+        const delay = setTimeout(() => buscarClientes(searchTerm), 300);
+        return () => clearTimeout(delay);
     }, [searchTerm]);
 
     const buscarClientes = async (term) => {
         setLoading(true);
         try {
             const token = localStorage.getItem("auth_token");
-
-            const response = await fetch(
-                `/api/clientes?search=${encodeURIComponent(term)}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                    },
-                },
-            );
-
+            const response = await fetch(`/api/clientes?search=${encodeURIComponent(term)}`, {
+                headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+            });
             const data = await response.json();
-
             if (data.success && data.data) {
-                // Filtrar por tipo de comprobante: Boleta=DNI, Factura=RUC
                 let resultados = data.data;
                 if (tipoComprobante === "2" || tipoComprobante === 2) {
                     resultados = resultados.filter((c) => c.documento?.length === 11);
@@ -87,8 +93,7 @@ export default function ClienteAutocomplete({
                 setClientes([]);
                 setShowDropdown(false);
             }
-        } catch (error) {
-            console.error("Error buscando clientes:", error);
+        } catch {
             setClientes([]);
         } finally {
             setLoading(false);
@@ -104,28 +109,30 @@ export default function ClienteAutocomplete({
 
     const handleConsultarDocumento = async () => {
         const doc = searchTerm.trim();
-
         if (!doc) {
             toast.warning("Ingrese un número de documento");
             return;
         }
 
-        if (doc.length !== 8 && doc.length !== 11) {
-            toast.warning(
-                "El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)",
-            );
+        if (tipoDoc === "CE") {
+            toast.warning("La consulta automática no está disponible para CE. Ingrese los datos manualmente.");
+            return;
+        }
+
+        if (tipoDoc === "DNI" && doc.length !== 8) {
+            toast.warning("El DNI debe tener 8 dígitos");
+            return;
+        }
+        if (tipoDoc === "RUC" && doc.length !== 11) {
+            toast.warning("El RUC debe tener 11 dígitos");
             return;
         }
 
         setConsultando(true);
-
         try {
             const result = await consultarDocumento(doc);
-
             if (result.success) {
                 const data = result.data;
-
-                // Crear objeto de cliente temporal
                 let clienteTemp = {
                     documento: doc,
                     datos: "",
@@ -136,15 +143,12 @@ export default function ClienteAutocomplete({
                     distrito: "",
                     telefono: "",
                     email: "",
+                    tipo_doc: tipoDoc === "RUC" ? "6" : "1",
                 };
-
-                // Si es DNI (8 dígitos)
-                if (doc.length === 8) {
+                if (tipoDoc === "DNI") {
                     clienteTemp.datos = data.nombreCompleto;
                     toast.success("DNI encontrado");
-                }
-                // Si es RUC (11 dígitos)
-                else if (doc.length === 11) {
+                } else if (tipoDoc === "RUC") {
                     clienteTemp.datos = data.razonSocial;
                     clienteTemp.direccion = data.direccion || "";
                     clienteTemp.ubigeo = data.ubigeo || "";
@@ -153,41 +157,34 @@ export default function ClienteAutocomplete({
                     clienteTemp.distrito = data.distrito || "";
                     toast.success("RUC encontrado");
                 }
-
                 onClienteSelect(clienteTemp);
                 setSearchTerm(clienteTemp.documento);
             } else {
                 toast.error(result.message || "No se encontró el documento");
             }
-        } catch (error) {
-            console.error("Error consultando documento:", error);
+        } catch {
             toast.error("Error al consultar el documento");
         } finally {
             setConsultando(false);
         }
     };
 
-    // Navegación con teclado
     const handleKeyDown = (e) => {
         if (!showDropdown || clientes.length === 0) {
-            // Si presiona Enter sin dropdown, consultar API
-            if (e.key === "Enter" && showConsultarButton) {
+            if (e.key === "Enter" && showConsultarButton && tipoDoc !== "CE") {
                 e.preventDefault();
                 handleConsultarDocumento();
             }
             return;
         }
-
         switch (e.key) {
             case "ArrowDown":
                 e.preventDefault();
-                setSelectedIndex((prev) =>
-                    prev < clientes.length - 1 ? prev + 1 : prev,
-                );
+                setSelectedIndex((prev) => prev < clientes.length - 1 ? prev + 1 : prev);
                 break;
             case "ArrowUp":
                 e.preventDefault();
-                setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+                setSelectedIndex((prev) => prev > 0 ? prev - 1 : -1);
                 break;
             case "Enter":
                 e.preventDefault();
@@ -202,41 +199,76 @@ export default function ClienteAutocomplete({
         }
     };
 
-    // Cerrar dropdown al hacer click fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target)
-            ) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowDropdown(false);
             }
         };
-
         document.addEventListener("mousedown", handleClickOutside);
-        return () =>
-            document.removeEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const getTipoDocumento = (documento) => {
-        if (!documento) return "Otro";
-        const len = documento.length;
+    const getTipoDocumento = (cliente) => {
+        if (!cliente.documento) return "Otro";
+        const len = cliente.documento.length;
         if (len === 8) return "DNI";
         if (len === 11) return "RUC";
-        return "Otro";
+        return "CE";
+    };
+
+    const handleInputChange = (e) => {
+        let val = e.target.value;
+        if (tipoDoc === "DNI" || tipoDoc === "RUC") {
+            val = val.replace(/\D/g, ""); // solo dígitos
+        }
+        setSearchTerm(val);
+    };
+
+    const handleTipoChange = (tipo) => {
+        setTipoDoc(tipo);
+        setSearchTerm("");
+        setClientes([]);
+        setShowDropdown(false);
+        inputRef.current?.focus();
     };
 
     return (
         <div className={`relative ${className}`} ref={dropdownRef}>
+            {/* Selector de tipo: solo cuando hay más de un tipo disponible */}
+            {tiposDisponibles.length > 1 && (
+                <div className="flex gap-1 mb-1.5">
+                    {tiposDisponibles.map((t) => (
+                        <button
+                            key={t}
+                            type="button"
+                            onClick={() => handleTipoChange(t)}
+                            className={`px-2.5 py-0.5 text-xs font-medium rounded border transition-colors ${
+                                tipoDoc === t
+                                    ? "bg-primary-600 text-white border-primary-600"
+                                    : "bg-white text-gray-600 border-gray-300 hover:border-primary-400"
+                            }`}
+                        >
+                            {t}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             <div className="flex gap-2">
                 <div className="relative flex-1">
                     <Input
                         ref={inputRef}
                         type="text"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
-                        placeholder={placeholder}
+                        placeholder={
+                            tipoDoc === "DNI" ? "8 dígitos..." :
+                            tipoDoc === "RUC" ? "20xxxxxxxxx..." :
+                            "Nro. carnet extranjería..."
+                        }
+                        maxLength={tipoDoc === "DNI" ? 8 : tipoDoc === "RUC" ? 11 : 12}
                         autoComplete="off"
                     />
                     {loading && (
@@ -248,9 +280,10 @@ export default function ClienteAutocomplete({
                     <Button
                         type="button"
                         onClick={handleConsultarDocumento}
-                        disabled={consultando || !searchTerm.trim()}
+                        disabled={consultando || !searchTerm.trim() || tipoDoc === "CE"}
                         size="icon"
                         className="flex-shrink-0"
+                        title={tipoDoc === "CE" ? "No hay consulta automática para CE" : "Consultar"}
                     >
                         {consultando ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -265,8 +298,9 @@ export default function ClienteAutocomplete({
             {showDropdown && clientes.length > 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[400px] overflow-y-auto">
                     {clientes.map((cliente, index) => {
-                        const tipoDoc = getTipoDocumento(cliente.documento);
-                        const isDNI = tipoDoc === "DNI";
+                        const tipoDocCliente = getTipoDocumento(cliente);
+                        const isDNI = tipoDocCliente === "DNI";
+                        const isCE = tipoDocCliente === "CE";
 
                         return (
                             <div
@@ -279,37 +313,25 @@ export default function ClienteAutocomplete({
                                     ${selectedIndex === index ? "bg-orange-50 border-l-4 border-l-orange-500" : ""}
                                 `}
                             >
-                                {/* Icono según tipo */}
-                                <div
-                                    className={`
-                                    w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-                                    ${isDNI ? "bg-blue-100" : "bg-green-100"}
-                                `}
-                                >
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                    isDNI ? "bg-blue-100" : isCE ? "bg-purple-100" : "bg-green-100"
+                                }`}>
                                     {isDNI ? (
                                         <User className="h-5 w-5 text-blue-600" />
+                                    ) : isCE ? (
+                                        <CreditCard className="h-5 w-5 text-purple-600" />
                                     ) : (
                                         <Building2 className="h-5 w-5 text-green-600" />
                                     )}
                                 </div>
-
-                                {/* Información */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm text-gray-900 truncate">
-                                        {cliente.datos}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {tipoDoc}: {cliente.documento}
-                                    </p>
+                                    <p className="font-medium text-sm text-gray-900 truncate">{cliente.datos}</p>
+                                    <p className="text-xs text-gray-500">{tipoDocCliente}: {cliente.documento}</p>
                                     {cliente.direccion && (
-                                        <p className="text-xs text-gray-400 truncate mt-1">
-                                            {cliente.direccion}
-                                        </p>
+                                        <p className="text-xs text-gray-400 truncate mt-1">{cliente.direccion}</p>
                                     )}
                                     {cliente.telefono && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Tel: {cliente.telefono}
-                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">Tel: {cliente.telefono}</p>
                                     )}
                                 </div>
                             </div>
@@ -319,21 +341,16 @@ export default function ClienteAutocomplete({
             )}
 
             {/* No hay resultados */}
-            {showDropdown &&
-                !loading &&
-                clientes.length === 0 &&
-                searchTerm.length >= 2 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center">
-                        <p className="text-gray-500 text-sm">
-                            No se encontraron clientes
-                        </p>
-                        {showConsultarButton && (
-                            <p className="text-gray-400 text-xs mt-1">
-                                Intente consultar con el botón "Consultar"
-                            </p>
-                        )}
-                    </div>
-                )}
+            {showDropdown && !loading && clientes.length === 0 && searchTerm.length >= 2 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center">
+                    <p className="text-gray-500 text-sm">No se encontraron clientes</p>
+                    {tipoDoc === "CE" ? (
+                        <p className="text-gray-400 text-xs mt-1">Ingrese los datos manualmente en el campo de nombre</p>
+                    ) : showConsultarButton ? (
+                        <p className="text-gray-400 text-xs mt-1">Intente consultar con el botón "Consultar"</p>
+                    ) : null}
+                </div>
+            )}
         </div>
     );
 }

@@ -143,7 +143,7 @@
                             <td class="value" style="padding-bottom: 3px;">{{ $guia->destinatario_nombre }}</td>
                         </tr>
                         <tr>
-                            <td class="label">{{ $guia->destinatario_tipo_doc == '6' ? 'RUC' : 'DNI' }}:</td>
+                            <td class="label">{{ $guia->destinatario_tipo_doc == '6' ? 'RUC' : ($guia->destinatario_tipo_doc == '4' ? 'CE' : 'DNI') }}:</td>
                             <td class="value">{{ $guia->destinatario_documento }}</td>
                         </tr>
                     </table>

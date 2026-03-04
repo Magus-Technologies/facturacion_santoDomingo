@@ -163,7 +163,7 @@
                             <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->cliente->datos ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">DNI/RUC:</td>
+                            <td style="font-weight: bold; font-size: 8pt; padding-bottom: 4px; vertical-align: top; color: #000;">{{ strlen($venta->cliente->documento ?? '') === 11 ? 'RUC' : (strlen($venta->cliente->documento ?? '') === 8 ? 'DNI' : 'CE') }}:</td>
                             <td style="font-size: 8pt; color: #000; padding-bottom: 4px; vertical-align: top;">{{ $venta->cliente->documento ?? '-' }}</td>
                         </tr>
                         <tr>

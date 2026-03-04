@@ -149,11 +149,11 @@ export const validarCliente = (cliente, formData) => {
         }
     }
 
-    // Boleta: si hay documento no puede ser RUC
+    // Boleta: si hay documento no puede ser RUC (11 dígitos). DNI y CE están permitidos.
     if (esBoleta) {
         const documento = formData.num_doc || cliente?.documento || '';
         if (documento && documento.length === 11) {
-            return { valid: false, message: 'Para BOLETA use DNI (8 dígitos). Para RUC emita una Factura.' };
+            return { valid: false, message: 'Para BOLETA use DNI u CE. Para RUC emita una Factura.' };
         }
         // Sin cliente está OK para boleta (usará CLIENTES VARIOS)
     }

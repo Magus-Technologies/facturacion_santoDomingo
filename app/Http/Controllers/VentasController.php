@@ -84,7 +84,7 @@ class VentasController extends Controller
                 'id_tido' => 'required|integer|exists:documentos_sunat,id_tido',
                 'id_tipo_pago' => 'nullable|integer',
                 'id_cliente' => 'nullable|integer|exists:clientes,id_cliente',
-                'cliente_documento' => 'nullable|string|max:11',
+                'cliente_documento' => 'nullable|string|max:15',
                 'cliente_datos' => 'nullable|string|max:250',
                 'cliente_direccion' => 'nullable|string|max:500',
                 'fecha_emision' => 'required|date',
@@ -139,11 +139,11 @@ class VentasController extends Controller
                     'message' => 'Para FACTURA se requiere RUC (11 dígitos). No se puede emitir factura con DNI.',
                 ], 422);
             }
-            // Boleta (id_tido=1) no permite RUC
+            // Boleta (id_tido=1) no permite RUC (11 dígitos). DNI y CE están permitidos.
             if ($validated['id_tido'] == 1 && strlen($documento) === 11) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Para BOLETA use DNI (8 dígitos). Para RUC emita una Factura.',
+                    'message' => 'Para BOLETA use DNI u CE. Para RUC emita una Factura.',
                 ], 422);
             }
 

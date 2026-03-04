@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
@@ -26,15 +27,23 @@ class ClienteController extends Controller
                     'telefono2',
                     'email',
                     'id_empresa',
-                    'ultima_venta',
-                    'total_venta',
                     'ubigeo',
                     'departamento',
                     'provincia',
                     'distrito',
                     'created_at',
                     'updated_at'
-                );
+                )
+                ->addSelect([
+                    'ultima_venta' => DB::table('ventas')
+                        ->selectRaw('MAX(fecha_emision)')
+                        ->whereColumn('ventas.id_cliente', 'clientes.id_cliente')
+                        ->whereNotIn('ventas.estado', ['2', 'A']),
+                    'total_venta' => DB::table('ventas')
+                        ->selectRaw('COALESCE(SUM(total), 0)')
+                        ->whereColumn('ventas.id_cliente', 'clientes.id_cliente')
+                        ->whereNotIn('ventas.estado', ['2', 'A']),
+                ]);
 
             // Siempre filtrar por la empresa del usuario autenticado
             $user = $request->user();
@@ -212,14 +221,12 @@ class ClienteController extends Controller
         try {
             $cliente = Cliente::findOrFail($id);
 
-            // Verificar si tiene ventas asociadas
-            // TODO: Descomentar cuando exista el modelo Venta
-            // if ($cliente->ventas()->exists()) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'No se puede eliminar el cliente porque tiene ventas asociadas'
-            //     ], 409);
-            // }
+            if ($cliente->ventas()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar el cliente porque tiene ventas asociadas'
+                ], 409);
+            }
 
             $cliente->delete();
 

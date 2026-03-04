@@ -63,10 +63,11 @@ const DocumentCell = ({ compra }) => {
     };
 
     const handlePrint = (formato) => {
+        const token = localStorage.getItem("auth_token");
         const url =
             formato === "a4"
-                ? `/reporteOC/a4.php?id=${compra.id_compra}`
-                : `/reporteOC/ticket.php?id=${compra.id_compra}`;
+                ? `/reporteOC/a4.php?id=${compra.id_compra}&token=${token}`
+                : `/reporteOC/ticket.php?id=${compra.id_compra}&token=${token}`;
         window.open(url, "_blank");
         setIsOpen(false);
     };
@@ -142,18 +143,22 @@ export const getComprasColumns = (handlers) => [
     {
         accessorKey: "fecha_emision",
         header: "F. Emisión",
-        cell: ({ row }) => (
-            <span className="text-sm">{row.original.fecha_emision}</span>
-        ),
+        cell: ({ row }) => {
+            const f = row.original.fecha_emision;
+            if (!f) return "-";
+            const [y, m, d] = f.split("-");
+            return <span className="text-sm">{`${d}/${m}/${y}`}</span>;
+        },
     },
     {
         accessorKey: "fecha_vencimiento",
         header: "F. Vencimiento",
-        cell: ({ row }) => (
-            <span className="text-sm">
-                {row.original.fecha_vencimiento || "-"}
-            </span>
-        ),
+        cell: ({ row }) => {
+            const f = row.original.fecha_vencimiento;
+            if (!f) return <span className="text-sm">-</span>;
+            const [y, m, d] = f.split("-");
+            return <span className="text-sm">{`${d}/${m}/${y}`}</span>;
+        },
     },
     {
         accessorKey: "proveedor.razon_social",
@@ -236,7 +241,7 @@ export const getComprasColumns = (handlers) => [
                                 <Eye className="mr-2 h-4 w-4 text-blue-600" />
                                 Ver detalle
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => window.open(`/reporteOC/a4.php?id=${compra.id_compra}`, "_blank")}>
+                            <DropdownMenuItem onClick={() => { const token = localStorage.getItem("auth_token"); window.open(`/reporteOC/a4.php?id=${compra.id_compra}&token=${token}`, "_blank"); }}>
                                 <Printer className="mr-2 h-4 w-4 text-gray-600" />
                                 Imprimir A4
                             </DropdownMenuItem>

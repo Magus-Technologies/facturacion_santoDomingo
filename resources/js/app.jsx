@@ -10,6 +10,7 @@ import CotizacionForm from "./components/Cotizaciones/CotizacionForm";
 import ClientsList from "./components/Clientes/ClientsList";
 import MisEmpresas from "./components/Empresas/MisEmpresas";
 import ProductosList from "./components/Almacen/ProductosList";
+import MovimientosStockList from "./components/Almacen/MovimientosStock/page";
 import NotFound from "./components/NotFound";
 import Compras from "./components/Compras/Compras";
 import CompraForm from "./components/Compras/CompraForm";
@@ -40,6 +41,7 @@ const components = {
     ClientsList,
     MisEmpresas,
     ProductosList,
+    MovimientosStockList,
     Compras,
     CompraForm,
     ProveedoresList,

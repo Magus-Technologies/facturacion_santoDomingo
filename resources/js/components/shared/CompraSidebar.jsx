@@ -2,7 +2,6 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import SelectTipoPago from "../ui/SelectTipoPago";
 import SelectMoneda from "../ui/SelectMoneda";
-import SelectEmpresas from "../ui/SelectEmpresas";
 import SelectTipoDocumento from "../ui/SelectTipoDocumento";
 import ProveedorAutocomplete from "./ProveedorAutocomplete";
 
@@ -179,22 +178,6 @@ export default function CompraSidebar({
                         Número del documento del proveedor
                     </p>
                 </div>
-            </div>
-
-            {/* Empresas */}
-            <div className="pt-2">
-                <Label className="block text-sm font-medium mb-2">
-                    Empresa(s) que Factura(n)
-                </Label>
-                <SelectEmpresas
-                    value={
-                        Array.isArray(formData.empresas_ids)
-                            ? formData.empresas_ids
-                            : []
-                    }
-                    onChange={(value) => handleChange("empresas_ids", value)}
-                    multiple={true}
-                />
             </div>
 
             {/* Proveedor */}

@@ -6,6 +6,7 @@ use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ProveedorController extends Controller
 {
@@ -69,7 +70,10 @@ class ProveedorController extends Controller
             $user = $request->user();
             
             $validator = Validator::make($request->all(), [
-                'ruc' => 'required|string|max:11|unique:proveedores,ruc',
+                'ruc' => [
+                    'required', 'string', 'max:11',
+                    Rule::unique('proveedores', 'ruc')->where('id_empresa', $user->id_empresa),
+                ],
                 'razon_social' => 'required|string|max:200',
                 'direccion' => 'nullable|string|max:100',
                 'telefono' => 'nullable|string|max:100',

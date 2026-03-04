@@ -7,6 +7,7 @@ use App\Models\CotizacionDetalle;
 use App\Models\CotizacionCuota;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
@@ -41,12 +42,14 @@ class CotizacionController extends Controller
     /**
      * Mostrar una cotización específica
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
+            $user = $request->user();
             $cotizacion = Cotizacion::with(['cliente', 'usuario', 'detalles.producto', 'cuotas'])
+                ->where('id_empresa', $user->id_empresa)
                 ->findOrFail($id);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $cotizacion
@@ -234,7 +237,8 @@ class CotizacionController extends Controller
     {
         try {
             $user = $request->user();
-            $cotizacion = Cotizacion::findOrFail($id);
+            $cotizacion = Cotizacion::where('id_empresa', $user->id_empresa)
+                ->findOrFail($id);
 
             $validator = Validator::make($request->all(), [
                 'fecha' => 'required|date',
@@ -328,10 +332,6 @@ class CotizacionController extends Controller
                 'estado' => $request->estado ?? $cotizacion->estado,
             ];
 
-            if ($request->id_empresa) {
-                $datosActualizar['id_empresa'] = $request->id_empresa;
-            }
-
             $cotizacion->update($datosActualizar);
 
             // Eliminar detalles y cuotas anteriores
@@ -392,10 +392,12 @@ class CotizacionController extends Controller
     /**
      * Eliminar una cotización (soft delete)
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
-            $cotizacion = Cotizacion::findOrFail($id);
+            $user = $request->user();
+            $cotizacion = Cotizacion::where('id_empresa', $user->id_empresa)
+                ->findOrFail($id);
             $cotizacion->update(['estado' => 'rechazada']);
             
             return response()->json([
@@ -427,7 +429,9 @@ class CotizacionController extends Controller
                 ], 422);
             }
 
-            $cotizacion = Cotizacion::findOrFail($id);
+            $user = $request->user();
+            $cotizacion = Cotizacion::where('id_empresa', $user->id_empresa)
+                ->findOrFail($id);
             $cotizacion->update(['estado' => $request->estado]);
 
             return response()->json([

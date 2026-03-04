@@ -59,10 +59,11 @@ export default function CompraDetallesModal({ isOpen, onClose, compraId }) {
     };
 
     const handlePrint = (formato) => {
+        const token = localStorage.getItem("auth_token");
         const url =
             formato === "a4"
-                ? `/reporteOC/a4.php?id=${compraId}`
-                : `/reporteOC/ticket.php?id=${compraId}`;
+                ? `/reporteOC/a4.php?id=${compraId}&token=${token}`
+                : `/reporteOC/ticket.php?id=${compraId}&token=${token}`;
         window.open(url, "_blank");
     };
 

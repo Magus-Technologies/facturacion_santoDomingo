@@ -119,6 +119,7 @@ export const confirmDelete = ({
 export const loading = {
     show: (message = "Cargando...") => {
         return Swal.fire({
+            ...defaultConfig,
             title: message,
             allowOutsideClick: false,
             allowEscapeKey: false,

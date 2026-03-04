@@ -7,6 +7,7 @@ use App\Models\ProductoVenta;
 use App\Models\VentaServicio;
 use App\Models\VentaPago;
 use App\Models\Cliente;
+use App\Models\MovimientoStock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -227,8 +228,26 @@ class VentasController extends Controller
                     if ($afectaStock) {
                         $productoModel = \App\Models\Producto::find($producto['id_producto']);
                         if ($productoModel) {
+                            $stockAnterior = $productoModel->cantidad;
                             $productoModel->decrement('cantidad', $producto['cantidad']);
                             $productoModel->update(['ultima_salida' => now()]);
+                            $stockNuevo = $stockAnterior - $producto['cantidad'];
+
+                            MovimientoStock::create([
+                                'id_producto' => $productoModel->id_producto,
+                                'tipo_movimiento' => 'salida',
+                                'cantidad' => $producto['cantidad'],
+                                'stock_anterior' => $stockAnterior,
+                                'stock_nuevo' => $stockNuevo,
+                                'tipo_documento' => 'venta',
+                                'id_documento' => $venta->id_venta,
+                                'documento_referencia' => $venta->serie . '-' . str_pad($venta->numero, 6, '0', STR_PAD_LEFT),
+                                'motivo' => 'Venta realizada',
+                                'id_almacen' => $productoModel->almacen,
+                                'id_empresa' => $user->id_empresa,
+                                'id_usuario' => $user->id,
+                                'fecha_movimiento' => now(),
+                            ]);
                         }
                     }
                 }
@@ -351,20 +370,29 @@ class VentasController extends Controller
                 // Cambiar estado de la venta
                 $venta->update(['estado' => '2']);
                 
-                // NUEVO: Retornar stock al almacén correcto si afectó stock
+                // Retornar stock al almacén correcto si afectó stock
                 if ($venta->afecta_stock) {
                     foreach ($venta->productosVentas as $detalle) {
                         $producto = $detalle->producto;
                         if ($producto) {
-                            // Incrementar stock del producto
+                            $stockAnterior = $producto->cantidad;
                             $producto->increment('cantidad', $detalle->cantidad);
-                            
-                            Log::info("Stock retornado al anular venta", [
+                            $stockNuevo = $stockAnterior + $detalle->cantidad;
+
+                            MovimientoStock::create([
                                 'id_producto' => $producto->id_producto,
-                                'codigo' => $producto->codigo,
-                                'almacen' => $producto->almacen,
-                                'cantidad_retornada' => $detalle->cantidad,
-                                'stock_nuevo' => $producto->fresh()->cantidad
+                                'tipo_movimiento' => 'entrada',
+                                'cantidad' => $detalle->cantidad,
+                                'stock_anterior' => $stockAnterior,
+                                'stock_nuevo' => $stockNuevo,
+                                'tipo_documento' => 'anulacion_venta',
+                                'id_documento' => $venta->id_venta,
+                                'documento_referencia' => $venta->serie . '-' . str_pad($venta->numero, 6, '0', STR_PAD_LEFT),
+                                'motivo' => 'Anulación de venta',
+                                'id_almacen' => $producto->almacen,
+                                'id_empresa' => $user->id_empresa,
+                                'id_usuario' => $user->id,
+                                'fecha_movimiento' => now(),
                             ]);
                         }
                     }
@@ -476,14 +504,25 @@ class VentasController extends Controller
                         ->first();
 
                     if ($productoAlmacen2) {
+                        $stockAnterior = $productoAlmacen2->cantidad;
                         $productoAlmacen2->decrement('cantidad', $detalle->cantidad);
                         $productoAlmacen2->update(['ultima_salida' => now()]);
+                        $stockNuevo = $stockAnterior - $detalle->cantidad;
 
-                        Log::info("Stock descontado de almacén real", [
-                            'id_producto_almacen2' => $productoAlmacen2->id_producto,
-                            'codigo' => $productoAlmacen2->codigo,
-                            'cantidad_descontada' => $detalle->cantidad,
-                            'stock_nuevo' => $productoAlmacen2->fresh()->cantidad,
+                        MovimientoStock::create([
+                            'id_producto' => $productoAlmacen2->id_producto,
+                            'tipo_movimiento' => 'salida',
+                            'cantidad' => $detalle->cantidad,
+                            'stock_anterior' => $stockAnterior,
+                            'stock_nuevo' => $stockNuevo,
+                            'tipo_documento' => 'descuento_almacen',
+                            'id_documento' => $venta->id_venta,
+                            'documento_referencia' => $venta->serie . '-' . str_pad($venta->numero, 6, '0', STR_PAD_LEFT),
+                            'motivo' => 'Descuento de almacén real por venta',
+                            'id_almacen' => 2,
+                            'id_empresa' => $user->id_empresa,
+                            'id_usuario' => $user->id,
+                            'fecha_movimiento' => now(),
                         ]);
                     }
                 }

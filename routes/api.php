@@ -56,6 +56,9 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('empresas/{id}', [\App\Http\Controllers\EmpresaController::class, 'update']); // POST para FormData con logo
     Route::delete('empresas/{id}/logo', [\App\Http\Controllers\EmpresaController::class, 'deleteLogo']);
 
+    // Movimientos de Stock
+    Route::get('movimientos-stock', [\App\Http\Controllers\MovimientosStockController::class, 'index'])->middleware('permission:productos.view');
+
     // Productos
     Route::get('productos/plantilla-excel', [\App\Http\Controllers\Exports\ProductoExportController::class, 'descargarPlantilla']);
     Route::get('productos/descargar-excel', [\App\Http\Controllers\Exports\ProductoExportController::class, 'descargarExcel']);
@@ -95,6 +98,14 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::put('cotizaciones/{id}', [CotizacionController::class, 'update'])->middleware('permission:cotizaciones.edit');
     Route::delete('cotizaciones/{id}', [CotizacionController::class, 'destroy'])->middleware('permission:cotizaciones.delete');
     Route::post('cotizaciones/{id}/estado', [CotizacionController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.edit');
+
+    // Ventas - Exportaciones
+    Route::get('ventas/exportar-txt', [\App\Http\Controllers\Exports\VentaExportController::class, 'exportarTxt'])->middleware('permission:ventas.view');
+    Route::get('ventas/exportar-excel', [\App\Http\Controllers\Exports\VentaExportController::class, 'exportarExcel'])->middleware('permission:ventas.view');
+    Route::get('ventas/reporte-rvta', [\App\Http\Controllers\Exports\VentaExportController::class, 'reporteRVTA'])->middleware('permission:ventas.view');
+    Route::get('ventas/reporte-producto', [\App\Http\Controllers\Exports\VentaExportController::class, 'reporteVentasProducto'])->middleware('permission:ventas.view');
+    Route::get('ventas/reporte-ganancias', [\App\Http\Controllers\Exports\VentaExportController::class, 'reporteGanancias'])->middleware('permission:ventas.view');
+    Route::get('ventas/exportar-pdf', [\App\Http\Controllers\Exports\VentaExportController::class, 'exportarPdf'])->middleware('permission:ventas.view');
 
     // Ventas
     Route::get('ventas/proximo-numero', [\App\Http\Controllers\VentasController::class, 'proximoNumero']);

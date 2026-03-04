@@ -84,9 +84,13 @@ Route::get('/cotizaciones/editar/{id}', function ($id) {
 })->name('cotizaciones.editar');
 
 // Productos
-Route::get('/productos', function () { 
-    return view('almacen.productosList'); 
+Route::get('/productos', function () {
+    return view('almacen.productosList');
 })->name('productosList');
+
+Route::get('/historial-movimientos', function () {
+    return view('almacen.historialMovimientos');
+})->name('historialMovimientos');
 
 // Clientes
 Route::get('/clientes', function () { 

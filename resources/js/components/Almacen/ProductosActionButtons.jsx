@@ -107,7 +107,7 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                             <span className="hidden sm:inline">Importar Excel</span>
                         </Button>
                     </PermissionGuard>
-                    <PermissionGuard permission="productos.edit">
+                    {/* <PermissionGuard permission="productos.edit">
                         <Button
                             variant="outline"
                             size="sm"
@@ -128,8 +128,8 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                             <Minus className="h-4 w-4" />
                             <span className="hidden sm:inline">Disminuir Stock</span>
                         </Button>
-                    </PermissionGuard>
-                    <PermissionGuard permission="productos.edit">
+                    </PermissionGuard> */}
+                    {/* <PermissionGuard permission="productos.edit">
                         <Button
                             variant="outline"
                             size="sm"
@@ -139,16 +139,17 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                             <ArrowLeftRight className="h-4 w-4" />
                             <span className="hidden sm:inline">Traslado</span>
                         </Button>
-                    </PermissionGuard>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleHistorial}
-                    >
-                        <History className="h-4 w-4" />
-                        <span className="hidden sm:inline">Historial</span>
-                    </Button>
+                    </PermissionGuard> */}
+                    <a href="/historial-movimientos">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                        >
+                            <History className="h-4 w-4" />
+                            <span className="hidden sm:inline">Historial</span>
+                        </Button>
+                    </a>
                     <Button
                         variant="outline"
                         size="sm"

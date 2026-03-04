@@ -237,7 +237,9 @@ class CompraController extends Controller
     public function show($id)
     {
         try {
+            $user = Auth::user();
             $compra = Compra::with(['proveedor', 'detalles.producto', 'cuotas', 'usuario', 'empresas'])
+                ->where('id_empresa', $user->id_empresa)
                 ->findOrFail($id);
 
             return response()->json([
@@ -304,7 +306,9 @@ class CompraController extends Controller
         DB::beginTransaction();
         
         try {
-            $compra = Compra::findOrFail($id);
+            $user = Auth::user();
+            $compra = Compra::where('id_empresa', $user->id_empresa)
+                ->findOrFail($id);
 
             if ($compra->estado == '0') {
                 return response()->json([
@@ -317,35 +321,33 @@ class CompraController extends Controller
             $compra->estado = '0';
             $compra->save();
 
-            // Revertir stock (opcional - depende de tu lógica de negocio)
-            // Si decides revertir el stock, descomenta esto:
-            /*
+            // Revertir stock al anular compra
             foreach ($compra->detalles as $detalle) {
                 $producto = Producto::find($detalle->id_producto);
-                $stockAnterior = $producto->cantidad;
-                $stockNuevo = $stockAnterior - $detalle->cantidad;
-                
-                $producto->cantidad = $stockNuevo;
-                $producto->save();
+                if ($producto) {
+                    $stockAnterior = $producto->cantidad;
+                    $stockNuevo = max(0, $stockAnterior - $detalle->cantidad);
 
-                // Registrar movimiento
-                MovimientoStock::create([
-                    'id_producto' => $detalle->id_producto,
-                    'tipo_movimiento' => 'salida',
-                    'cantidad' => $detalle->cantidad,
-                    'stock_anterior' => $stockAnterior,
-                    'stock_nuevo' => $stockNuevo,
-                    'tipo_documento' => 'anulacion_compra',
-                    'id_documento' => $compra->id_compra,
-                    'documento_referencia' => $compra->serie . '-' . $compra->numero,
-                    'motivo' => 'Anulación de compra',
-                    'id_almacen' => 1,
-                    'id_empresa' => $compra->id_empresa,
-                    'id_usuario' => Auth::id(),
-                    'fecha_movimiento' => now()
-                ]);
+                    $producto->cantidad = $stockNuevo;
+                    $producto->save();
+
+                    MovimientoStock::create([
+                        'id_producto' => $detalle->id_producto,
+                        'tipo_movimiento' => 'salida',
+                        'cantidad' => $detalle->cantidad,
+                        'stock_anterior' => $stockAnterior,
+                        'stock_nuevo' => $stockNuevo,
+                        'tipo_documento' => 'anulacion_compra',
+                        'id_documento' => $compra->id_compra,
+                        'documento_referencia' => $compra->serie . '-' . $compra->numero,
+                        'motivo' => 'Anulación de compra',
+                        'id_almacen' => 1,
+                        'id_empresa' => $compra->id_empresa,
+                        'id_usuario' => $user->id,
+                        'fecha_movimiento' => now()
+                    ]);
+                }
             }
-            */
 
             DB::commit();
 

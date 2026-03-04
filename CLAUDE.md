@@ -11,22 +11,33 @@ Peruvian electronic invoicing system (facturación electrónica) built with Lara
 ```bash
 composer dev          # Start full dev stack (Laravel server + queue + logs + Vite HMR)
 composer setup        # Initial setup (install, migrate, build)
-composer test         # Run PHPUnit tests
+composer test         # Run PHPUnit tests (uses SQLite in-memory)
 npm run dev           # Vite dev server only
 npm run build         # Production build
 php artisan serve     # Laravel server only
 php artisan migrate   # Run pending migrations
 php artisan pint      # Code formatting (Laravel Pint)
+
+# Run a single test or filter by name
+php artisan test --filter TestName
+php artisan test tests/Feature/ExampleTest.php
 ```
+
+> **Note:** The queue worker (`php artisan queue:listen`) is required for async SUNAT operations (Resumen Diario, Comunicación de Baja). `composer dev` starts it automatically.
 
 ## Architecture
 
 ### Rendering Model
 This is NOT a typical SPA. Blade templates mount React components via `data-react-component` attributes. Each page is a Blade view that renders a specific React component. Navigation between pages is full page loads, not client-side routing. See `resources/js/app.jsx` for the component registry.
 
+### Database
+Default database is SQLite (`database/database.sqlite`). Tests use SQLite in-memory (configured in `phpunit.xml`). Production typically uses MySQL — set `DB_CONNECTION` accordingly.
+
 ### Backend Structure
 - **Controllers** handle API endpoints. SUNAT-related controllers (VentasController, NotaCreditoController, GuiaRemisionController, etc.) delegate XML generation and submission to `SunatService`.
 - **`app/Services/SunatService.php`** (~700+ lines) is the core service. It builds Greenter objects, generates XML, signs with certificates, sends to SUNAT, and processes CDR responses. All SUNAT document types are handled here.
+- **`app/Services/ProductoService.php`** handles stock movement logic (entries, exits, adjustments) used across ventas and compras.
+- **PDF controllers** (e.g., `VentaPdfController`, `GuiaRemisionPdfController`) serve reports via web routes using mPDF. These routes use the `TokenFromQuery` middleware to accept `?token=` in the URL for browser-based PDF downloads.
 - **SUNAT submission flows differ by document type:**
   - Facturas/Boletas/Notas: Synchronous via SOAP — `sendXml()` returns CDR immediately
   - Guías de Remisión: Async via REST (GRE API) — `enviar()` returns a ticket, then `consultarTicket()` polls for CDR
@@ -39,9 +50,10 @@ This is NOT a typical SPA. Blade templates mount React components via `data-reac
 - **Feature-based organization** under `resources/js/components/` — each module (Ventas, GuiaRemision, NotaCredito, etc.) has its own folder with page component, form, columns definition, detail modal, and hooks.
 - **Pattern for list pages**: `page.jsx` (list + DataTable + modal) → `columns/` (column definitions with action buttons) → `hooks/` (data fetching + API calls)
 - **UI primitives** in `resources/js/components/ui/` — modal, button, input, select, data-table, etc. Built on Radix UI + Tailwind CSS.
+- **API communication** in `resources/js/services/` — thin wrappers around fetch that attach the auth token. Hooks call these services; they don't call the API directly.
 - **Path alias**: `@` maps to `resources/js/` (configured in vite.config.js)
 - **State management**: Zustand stores in `resources/js/stores/`
-- **Auth tokens**: Stored in `localStorage` as `auth_token`, sent via `Authorization: Bearer` header
+- **Auth tokens**: Stored in `localStorage` as `auth_token`, sent via `Authorization: Bearer` header. PDF download links pass the token as `?token=` query param (handled server-side by `TokenFromQuery` middleware).
 
 ### File Storage
 SUNAT files stored under `storage/app/sunat/`:

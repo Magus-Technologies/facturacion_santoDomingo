@@ -45,7 +45,6 @@ export const useCompraForm = (compraId = null) => {
         direccion: '',
         observaciones: '',
         cuotas: [],
-        empresas_ids: []
     });
 
     useEffect(() => {
@@ -106,7 +105,6 @@ export const useCompraForm = (compraId = null) => {
                     tipo_pago: compra.id_tipo_pago.toString(),
                     observaciones: compra.observaciones || '',
                     cuotas: compra.cuotas || [],
-                    empresas_ids: compra.empresas ? compra.empresas.map(e => e.id_empresa) : []
                 }));
             }
         } catch (error) {

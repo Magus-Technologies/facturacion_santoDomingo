@@ -43,6 +43,14 @@ class Cliente extends Model
     }
 
     /**
+     * Relación con ventas
+     */
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'id_cliente', 'id_cliente');
+    }
+
+    /**
      * Scope para buscar clientes
      */
     public function scopeSearch($query, $search)

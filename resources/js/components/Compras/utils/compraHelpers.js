@@ -17,7 +17,7 @@ export const calcularTotalCompra = (productos) => {
  * Formatea el documento de compra (serie-número)
  */
 export const formatDocumentoCompra = (compra) => {
-    return `${compra.serie}-${String(compra.numero).padStart(6, '0')}`;
+    return `${compra.serie}-${String(compra.numero).padStart(8, '0')}`;
 };
 
 /**
@@ -116,7 +116,6 @@ export const prepararDatosCompra = (proveedor, formData, productos) => {
         numero: formData.numero,
         direccion: formData.direccion,
         observaciones: formData.observaciones,
-        empresas_ids: formData.empresas_ids || [],
         productos: productos.map(p => ({
             id_producto: p.id_producto,
             cantidad: parseFloat(p.cantidad),

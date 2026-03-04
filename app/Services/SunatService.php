@@ -585,6 +585,11 @@ class SunatService
             ->setPartida(new Direction($guia->ubigeo_partida, $guia->dir_partida))
             ->setLlegada(new Direction($guia->ubigeo_llegada, $guia->dir_llegada));
 
+        // Indicador M1/L aplica para ambas modalidades de transporte
+        if ($guia->vehiculo_m1l) {
+            $shipment->setIndicadores(['SUNAT_Envio_IndicadorTrasladoVehiculoM1L']);
+        }
+
         if ($guia->mod_transporte === '01' && $guia->transportista_documento) {
             $transportista = (new Transportist())
                 ->setTipoDoc($guia->transportista_tipo_doc)
@@ -595,16 +600,6 @@ class SunatService
         }
 
         if ($guia->mod_transporte === '02') {
-            $indicadores = [];
-
-            if ($guia->vehiculo_m1l) {
-                $indicadores[] = 'SUNAT_Envio_IndicadorTrasladoVehiculoM1L';
-            }
-
-            if (!empty($indicadores)) {
-                $shipment->setIndicadores($indicadores);
-            }
-
             if ($guia->conductor_documento) {
                 $driver = (new Driver())
                     ->setTipo('Principal')

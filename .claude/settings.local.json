@@ -3,7 +3,8 @@
     "allow": [
       "Bash(C:/laragon/bin/mysql/mysql-8.0.30-winx64/bin/mysql.exe -u root factura_sava -e \"SHOW tables;\")",
       "mcp__chrome-devtools__list_pages",
-      "mcp__chrome-devtools__take_snapshot"
+      "mcp__chrome-devtools__take_snapshot",
+      "Bash(npm run build)"
     ]
   }
 }

@@ -804,7 +804,7 @@ export default function GuiaRemisionForm() {
                         </CardHeader>
                         <CardContent>
                             {form.mod_transporte === "01" ? (
-                                <div className="grid grid-cols-3 gap-3">
+                                <><div className="grid grid-cols-3 gap-3">
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
                                             RUC Transportista <span className="text-red-500">*</span>
@@ -892,6 +892,21 @@ export default function GuiaRemisionForm() {
                                         />
                                     </div>
                                 </div>
+                                {/* Checkbox M1L también disponible en transporte público */}
+                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-amber-50 border border-amber-200 mt-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.vehiculo_m1l}
+                                        onChange={(e) =>
+                                            handleChange("vehiculo_m1l", e.target.checked)
+                                        }
+                                        className="rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+                                    />
+                                    <span className="text-xs text-amber-800 font-medium">
+                                        Traslado en vehículos de categoría M1 o L (moto, mototaxi, auto particular)
+                                    </span>
+                                </label>
+                                </>
                             ) : (
                                 <div className="space-y-3">
                                     {/* Checkbox M1L arriba de todo */}
@@ -1254,6 +1269,7 @@ export default function GuiaRemisionForm() {
                                     value={form.mod_transporte}
                                     onValueChange={(v) => {
                                         handleChange("mod_transporte", v);
+                                        handleChange("vehiculo_m1l", false);
                                         setErrors((prev) => ({
                                             ...prev,
                                             transportista_documento: undefined,

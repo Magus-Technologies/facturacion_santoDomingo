@@ -98,16 +98,20 @@ export default function MisEmpresas() {
         },
         {
             accessorKey: "razon_social",
-            header: "Empresa",
+            header: "Razón Social",
             cell: ({ row }) => (
-                <div>
-                    <p className="font-medium text-gray-900">
-                        {row.getValue("razon_social")}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                        {row.original.comercial}
-                    </p>
-                </div>
+                <span className="font-medium text-gray-900 block truncate max-w-[220px]" title={row.getValue("razon_social")}>
+                    {row.getValue("razon_social")}
+                </span>
+            ),
+        },
+        {
+            accessorKey: "comercial",
+            header: "Nombre Comercial",
+            cell: ({ row }) => (
+                <span className="text-sm text-gray-600 block truncate max-w-[160px]" title={row.original.comercial}>
+                    {row.original.comercial || <span className="text-gray-400">—</span>}
+                </span>
             ),
         },
         {

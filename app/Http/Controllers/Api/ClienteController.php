@@ -83,11 +83,12 @@ class ClienteController extends Controller
                 'documento' => [
                     'required',
                     'string',
-                    'max:11',
+                    'max:15',
                     Rule::unique('clientes')->where(function ($query) use ($request) {
                         return $query->where('id_empresa', $request->id_empresa);
                     })
                 ],
+                'tipo_doc' => 'nullable|string|max:1',
                 'datos' => 'required|string|max:245',
                 'direccion' => 'nullable|string|max:245',
                 'direccion2' => 'nullable|string|max:220',
@@ -107,6 +108,11 @@ class ClienteController extends Controller
                 'id_empresa.exists' => 'La empresa seleccionada no existe',
                 'email.email' => 'El email no es válido',
             ]);
+
+            if (empty($validated['tipo_doc']) && !empty($validated['documento'])) {
+                $doc = $validated['documento'];
+                $validated['tipo_doc'] = strlen($doc) === 11 ? '6' : (strlen($doc) === 8 ? '1' : '4');
+            }
 
             $cliente = Cliente::create($validated);
 
@@ -164,11 +170,12 @@ class ClienteController extends Controller
                     'sometimes',
                     'required',
                     'string',
-                    'max:11',
+                    'max:15',
                     Rule::unique('clientes')->where(function ($query) use ($request) {
                         return $query->where('id_empresa', $request->id_empresa ?? $cliente->id_empresa);
                     })->ignore($cliente->id_cliente, 'id_cliente')
                 ],
+                'tipo_doc' => 'nullable|string|max:1',
                 'datos' => 'sometimes|required|string|max:245',
                 'direccion' => 'nullable|string|max:245',
                 'direccion2' => 'nullable|string|max:220',

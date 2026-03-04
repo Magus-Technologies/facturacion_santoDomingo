@@ -120,8 +120,11 @@ class CotizacionController extends Controller
                     ->first();
 
                 if (!$clienteModel) {
+                    $doc = $request->cliente_documento;
+                    $tipoDoc = strlen($doc) === 11 ? '6' : (strlen($doc) === 8 ? '1' : '4');
                     $clienteModel = Cliente::create([
-                        'documento' => $request->cliente_documento,
+                        'documento' => $doc,
+                        'tipo_doc' => $tipoDoc,
                         'datos' => $request->cliente_datos,
                         'direccion' => $request->cliente_direccion ?? '',
                         'id_empresa' => $idEmpresa,
@@ -283,8 +286,11 @@ class CotizacionController extends Controller
                     ->first();
 
                 if (!$clienteModel) {
+                    $doc = $request->cliente_documento;
+                    $tipoDoc = strlen($doc) === 11 ? '6' : (strlen($doc) === 8 ? '1' : '4');
                     $clienteModel = Cliente::create([
-                        'documento' => $request->cliente_documento,
+                        'documento' => $doc,
+                        'tipo_doc' => $tipoDoc,
                         'datos' => $request->cliente_datos,
                         'direccion' => $request->cliente_direccion ?? '',
                         'id_empresa' => $idEmpresa,

@@ -24,6 +24,7 @@ export default function ClienteAutocomplete({
     className = "",
     showConsultarButton = true,
     tipoComprobante = null, // "1"=Boleta(DNI/CE), "2"=Factura(RUC), "6"=Nota
+    initialTipoDoc = null, // "1"=DNI, "6"=RUC, "4"=CE — para preseleccionar
 }) {
     // Determinar tipos disponibles según el comprobante
     const tiposDisponibles = tipoComprobante === "2" || tipoComprobante === 2
@@ -32,7 +33,9 @@ export default function ClienteAutocomplete({
             ? ["DNI", "CE"]
             : ["DNI", "RUC", "CE"];
 
-    const defaultTipo = tipoComprobante === "2" || tipoComprobante === 2 ? "RUC" : "DNI";
+    const codigoToKey = { "1": "DNI", "6": "RUC", "4": "CE" };
+    const defaultTipo = initialTipoDoc ? (codigoToKey[initialTipoDoc] || "DNI")
+        : tipoComprobante === "2" || tipoComprobante === 2 ? "RUC" : "DNI";
 
     const [tipoDoc, setTipoDoc] = useState(defaultTipo);
     const [searchTerm, setSearchTerm] = useState(value);
@@ -45,11 +48,15 @@ export default function ClienteAutocomplete({
     const dropdownRef = useRef(null);
     const isExternalUpdate = useRef(false);
 
-    // Sincronizar tipo con el comprobante cuando cambia
+    // Sincronizar tipo con el comprobante o initialTipoDoc cuando cambia
     useEffect(() => {
-        const nuevoDefault = tipoComprobante === "2" || tipoComprobante === 2 ? "RUC" : "DNI";
-        setTipoDoc(nuevoDefault);
-    }, [tipoComprobante]);
+        if (initialTipoDoc) {
+            setTipoDoc(codigoToKey[initialTipoDoc] || "DNI");
+        } else {
+            const nuevoDefault = tipoComprobante === "2" || tipoComprobante === 2 ? "RUC" : "DNI";
+            setTipoDoc(nuevoDefault);
+        }
+    }, [tipoComprobante, initialTipoDoc]);
 
     // Actualizar searchTerm cuando cambia el value externo
     useEffect(() => {

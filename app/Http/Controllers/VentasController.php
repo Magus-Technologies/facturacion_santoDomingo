@@ -166,8 +166,10 @@ class VentasController extends Controller
                         ->first();
 
                     if (!$clienteModel) {
+                        $tipoDoc = strlen($docCliente) === 11 ? '6' : (strlen($docCliente) === 8 ? '1' : '4');
                         $clienteModel = \App\Models\Cliente::create([
                             'documento' => $docCliente,
+                            'tipo_doc' => $tipoDoc,
                             'datos' => $nomCliente,
                             'direccion' => $validated['cliente_direccion'] ?? '',
                             'id_empresa' => $user->id_empresa,

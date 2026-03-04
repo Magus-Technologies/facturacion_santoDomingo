@@ -258,8 +258,9 @@ export default function GuiaRemisionForm() {
                 const cliente = v.cliente;
                 if (cliente) {
                     const doc = cliente.documento || "";
+                    const tipDoc = cliente.tipo_doc || (doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4");
                     setDestinatario({
-                        tipo_doc: doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4",
+                        tipo_doc: tipDoc,
                         documento: doc,
                         nombre: cliente.datos || "",
                         direccion: cliente.direccion || "",
@@ -308,8 +309,9 @@ export default function GuiaRemisionForm() {
                 const cliente = data.venta.cliente;
                 if (cliente) {
                     const doc = cliente.documento || "";
+                    const tipDoc = cliente.tipo_doc || (doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4");
                     setDestinatario({
-                        tipo_doc: doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4",
+                        tipo_doc: tipDoc,
                         documento: doc,
                         nombre: cliente.datos || "",
                         direccion: cliente.direccion || "",
@@ -350,8 +352,9 @@ export default function GuiaRemisionForm() {
 
     const handleClienteSelect = (cliente) => {
         const doc = cliente.documento || "";
+        const tipDoc = cliente.tipo_doc || (doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4");
         setDestinatario({
-            tipo_doc: doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4",
+            tipo_doc: tipDoc,
             documento: doc,
             nombre: cliente.datos || "",
             direccion: cliente.direccion || "",
@@ -660,6 +663,7 @@ export default function GuiaRemisionForm() {
                                 onClienteSelect={handleClienteSelect}
                                 value={clienteNombre}
                                 placeholder="Buscar por nombre, RUC o DNI..."
+                                initialTipoDoc={destinatario.tipo_doc}
                             />
                             {errors.destinatario && !destinatario.documento && (
                                 <p className="text-xs text-red-600 mt-1">{errors.destinatario}</p>
@@ -674,6 +678,8 @@ export default function GuiaRemisionForm() {
                                         <p className="text-sm font-medium text-gray-900">
                                             {destinatario.tipo_doc === "6"
                                                 ? "RUC"
+                                                : destinatario.tipo_doc === "4"
+                                                ? "CE"
                                                 : "DNI"}
                                         </p>
                                     </div>

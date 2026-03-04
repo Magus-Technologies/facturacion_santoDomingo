@@ -131,7 +131,10 @@ class SunatService
         $tipoDoc = '0';
         $numDoc = '00000000';
 
-        if (strlen($documento) === 11) {
+        if (!empty($cliente->tipo_doc) && strlen($documento) > 0) {
+            $tipoDoc = $cliente->tipo_doc;
+            $numDoc = $documento;
+        } elseif (strlen($documento) === 11) {
             $tipoDoc = '6'; // RUC
             $numDoc = $documento;
         } elseif (strlen($documento) === 8) {
@@ -1041,7 +1044,10 @@ class SunatService
             $numDocCliente = '00000000';
             $documento = $cliente->documento ?? '';
 
-            if (strlen($documento) === 11) {
+            if (!empty($cliente->tipo_doc) && strlen($documento) > 0) {
+                $tipoDocCliente = $cliente->tipo_doc;
+                $numDocCliente = $documento;
+            } elseif (strlen($documento) === 11) {
                 $tipoDocCliente = '6'; // RUC
                 $numDocCliente = $documento;
             } elseif (strlen($documento) === 8) {

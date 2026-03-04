@@ -25,6 +25,7 @@ export default function ClienteFormSection({
             <div className="space-y-3">
                 <ClienteAutocomplete
                     onClienteSelect={onClienteSelect}
+                    onDocumentoChange={(val) => handleChange('num_doc', val)}
                     value={formData.num_doc}
                     tipoComprobante={formData.id_tido}
                 />

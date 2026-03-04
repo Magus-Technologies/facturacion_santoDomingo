@@ -259,7 +259,7 @@ export default function GuiaRemisionForm() {
                 if (cliente) {
                     const doc = cliente.documento || "";
                     setDestinatario({
-                        tipo_doc: doc.length === 11 ? "6" : "1",
+                        tipo_doc: doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4",
                         documento: doc,
                         nombre: cliente.datos || "",
                         direccion: cliente.direccion || "",
@@ -309,7 +309,7 @@ export default function GuiaRemisionForm() {
                 if (cliente) {
                     const doc = cliente.documento || "";
                     setDestinatario({
-                        tipo_doc: doc.length === 11 ? "6" : "1",
+                        tipo_doc: doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4",
                         documento: doc,
                         nombre: cliente.datos || "",
                         direccion: cliente.direccion || "",
@@ -351,7 +351,7 @@ export default function GuiaRemisionForm() {
     const handleClienteSelect = (cliente) => {
         const doc = cliente.documento || "";
         setDestinatario({
-            tipo_doc: doc.length === 11 ? "6" : "1",
+            tipo_doc: doc.length === 11 ? "6" : doc.length === 8 ? "1" : "4",
             documento: doc,
             nombre: cliente.datos || "",
             direccion: cliente.direccion || "",

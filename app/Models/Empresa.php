@@ -22,6 +22,8 @@ class Empresa extends Model
         'estado',
         'user_sol',
         'clave_sol',
+        'gre_client_id',
+        'gre_client_secret',
         'logo',
         'ubigeo',
         'distrito',

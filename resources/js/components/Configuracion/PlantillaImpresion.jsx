@@ -19,6 +19,7 @@ function QuillEditor({ initialValue, onChangeHtml }) {
                 theme: "snow",
                 modules: {
                     toolbar: [
+                        [{ size: ["small", false, "large", "huge"] }],
                         ["bold", "italic", "underline"],
                         [{ align: [] }],
                         [{ color: [] }],

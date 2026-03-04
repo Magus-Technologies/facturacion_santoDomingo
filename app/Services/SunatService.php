@@ -692,8 +692,8 @@ class SunatService
         $token = $authApi->getToken(
             'password',
             'https://api-cpe.sunat.gob.pe',
-            config('sunat.endpoints.gre.client_id'),
-            config('sunat.endpoints.gre.client_secret'),
+            $empresa->gre_client_id ?: config('sunat.endpoints.gre.client_id'),
+            $empresa->gre_client_secret ?: config('sunat.endpoints.gre.client_secret'),
             $username,
             $password
         );
@@ -765,8 +765,8 @@ class SunatService
         $token = $authApi->getToken(
             'password',
             'https://api-cpe.sunat.gob.pe',
-            config('sunat.endpoints.gre.client_id'),
-            config('sunat.endpoints.gre.client_secret'),
+            $empresa->gre_client_id ?: config('sunat.endpoints.gre.client_id'),
+            $empresa->gre_client_secret ?: config('sunat.endpoints.gre.client_secret'),
             $username,
             $password
         );

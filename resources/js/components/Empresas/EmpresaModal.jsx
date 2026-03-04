@@ -31,6 +31,8 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
         distrito: "",
         user_sol: "",
         clave_sol: "",
+        gre_client_id: "",
+        gre_client_secret: "",
         igv: "0.18",
         modo: "production",
     });
@@ -39,7 +41,8 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
         ruc: "", razon_social: "", comercial: "", direccion: "",
         email: "", telefono: "", telefono2: "", telefono3: "",
         ubigeo: "", departamento: "", provincia: "", distrito: "",
-        user_sol: "", clave_sol: "", igv: "0.18", modo: "test",
+        user_sol: "", clave_sol: "", gre_client_id: "", gre_client_secret: "",
+        igv: "0.18", modo: "test",
     };
 
     // Cargar datos de la empresa - solo cuando cambia la empresa, no en cada isOpen
@@ -61,6 +64,8 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
                     distrito: empresa.distrito || "",
                     user_sol: empresa.user_sol || "",
                     clave_sol: empresa.clave_sol || "",
+                    gre_client_id: empresa.gre_client_id || "",
+                    gre_client_secret: empresa.gre_client_secret || "",
                     igv: empresa.igv || "0.18",
                     modo: empresa.modo || "production",
                 });
@@ -428,6 +433,29 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
                             value={formData.clave_sol}
                             onChange={handleChange}
                             placeholder="Clave SUNAT"
+                        />
+                    </ModalField>
+
+                    {/* GRE Client ID */}
+                    <ModalField label="GRE Client ID" error={errors.gre_client_id?.[0]}>
+                        <Input
+                            variant="outlined"
+                            name="gre_client_id"
+                            value={formData.gre_client_id}
+                            onChange={handleChange}
+                            placeholder="Client ID para Guías de Remisión"
+                        />
+                    </ModalField>
+
+                    {/* GRE Client Secret */}
+                    <ModalField label="GRE Client Secret" error={errors.gre_client_secret?.[0]}>
+                        <Input
+                            variant="outlined"
+                            type="password"
+                            name="gre_client_secret"
+                            value={formData.gre_client_secret}
+                            onChange={handleChange}
+                            placeholder="Client Secret para Guías de Remisión"
                         />
                     </ModalField>
 

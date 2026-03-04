@@ -18,6 +18,7 @@ const TIPOS = [
  */
 export default function ClienteAutocomplete({
     onClienteSelect,
+    onDocumentoChange,
     value = "",
     placeholder = "Documento del cliente...",
     className = "",
@@ -223,11 +224,13 @@ export default function ClienteAutocomplete({
             val = val.replace(/\D/g, ""); // solo dígitos
         }
         setSearchTerm(val);
+        onDocumentoChange?.(val);
     };
 
     const handleTipoChange = (tipo) => {
         setTipoDoc(tipo);
         setSearchTerm("");
+        onDocumentoChange?.("");
         setClientes([]);
         setShowDropdown(false);
         inputRef.current?.focus();

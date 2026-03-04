@@ -333,6 +333,7 @@ class GuiaRemisionController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+                'id_empresa' => $empresa->id_empresa,
                 'razon_social' => $empresa->razon_social ?? '',
                 'ruc' => $empresa->ruc ?? '',
                 'direccion' => $empresa->direccion ?? '',

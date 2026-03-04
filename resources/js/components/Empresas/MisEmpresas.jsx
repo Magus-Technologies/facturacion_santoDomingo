@@ -13,6 +13,7 @@ import {
     Loader2,
     Shield,
     Percent,
+    Plus,
 } from "lucide-react";
 import MainLayout from "../Layout/MainLayout";
 
@@ -52,6 +53,11 @@ export default function MisEmpresas() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleNuevaEmpresa = () => {
+        setSelectedEmpresa(null);
+        setIsModalOpen(true);
     };
 
     const handleEdit = (empresa) => {
@@ -258,6 +264,10 @@ export default function MisEmpresas() {
                                 Gestiona la información de tus empresas
                             </p>
                         </div>
+                        <Button onClick={handleNuevaEmpresa} className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Nueva Empresa
+                        </Button>
                     </div>
 
                     <DataTable

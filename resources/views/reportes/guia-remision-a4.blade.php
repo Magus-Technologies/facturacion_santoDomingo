@@ -274,7 +274,7 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-center">{{ number_format($item->cantidad, 3) }}</td>
-                    <td class="text-center">{{ $item->unidad ?? 'UNIDAD' }}</td>
+                    <td class="text-center">{{ $item->producto?->unidad?->nombre ?? $item->unidad ?? 'UNIDAD' }}</td>
                     <td class="text-center">{{ $item->codigo ?? $item->producto->codigo ?? '-' }}</td>
                     <td style="padding-left: 5px;">{{ $item->descripcion ?? $item->producto->nombre ?? '-' }}</td>
                 </tr>

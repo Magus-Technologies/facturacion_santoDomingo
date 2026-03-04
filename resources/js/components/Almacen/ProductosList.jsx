@@ -30,6 +30,7 @@ export default function ProductosList() {
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [almacenActivo, setAlmacenActivo] = useState("1");
     const [busqueda, setBusqueda] = useState("");
+    const [filtroStock, setFiltroStock] = useState("todos");
 
     useEffect(() => {
         fetchProductos();
@@ -387,6 +388,25 @@ export default function ProductosList() {
         );
     }
 
+    const productosFiltrados = productos.filter((p) => {
+        const cantidad = parseFloat(p.cantidad ?? 0);
+        const stockMin = parseFloat(p.stock_minimo ?? 0);
+        if (filtroStock === "con_stock") return cantidad > 0;
+        if (filtroStock === "sin_stock") return cantidad <= 0;
+        if (filtroStock === "stock_bajo") return cantidad > 0 && cantidad <= stockMin;
+        return true;
+    });
+
+    const conteos = {
+        todos: productos.length,
+        con_stock: productos.filter((p) => parseFloat(p.cantidad ?? 0) > 0).length,
+        sin_stock: productos.filter((p) => parseFloat(p.cantidad ?? 0) <= 0).length,
+        stock_bajo: productos.filter((p) => {
+            const c = parseFloat(p.cantidad ?? 0);
+            return c > 0 && c <= parseFloat(p.stock_minimo ?? 0);
+        }).length,
+    };
+
     return (
         <MainLayout>
             <div className="space-y-6">
@@ -434,9 +454,30 @@ export default function ProductosList() {
                     busqueda={busqueda}
                 />
 
+                {/* Filtros de stock */}
+                <div className="flex flex-wrap gap-2">
+                    {[
+                        { key: "todos", label: "Todos", color: "bg-gray-100 text-gray-700 hover:bg-gray-200", activeColor: "bg-gray-500 text-white" },
+                        { key: "con_stock", label: "Con stock", color: "bg-green-50 text-green-700 hover:bg-green-100", activeColor: "bg-green-600 text-white" },
+                        { key: "sin_stock", label: "Sin stock", color: "bg-red-50 text-red-700 hover:bg-red-100", activeColor: "bg-red-600 text-white" },
+                        { key: "stock_bajo", label: "Stock bajo", color: "bg-yellow-50 text-yellow-700 hover:bg-yellow-100", activeColor: "bg-yellow-500 text-white" },
+                    ].map(({ key, label, color, activeColor }) => (
+                        <button
+                            key={key}
+                            onClick={() => setFiltroStock(key)}
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filtroStock === key ? activeColor : color}`}
+                        >
+                            {label}
+                            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${filtroStock === key ? "bg-white/20" : "bg-black/10"}`}>
+                                {conteos[key]}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+
                 <DataTable
                     columns={columns}
-                    data={productos}
+                    data={productosFiltrados}
                     searchable={true}
                     searchPlaceholder="Buscar por código, nombre, código de barras..."
                     pagination={true}

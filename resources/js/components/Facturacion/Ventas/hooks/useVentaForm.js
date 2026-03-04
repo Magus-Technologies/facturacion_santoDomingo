@@ -200,6 +200,7 @@ export const useVentaForm = (ventaId = null) => {
             tipo_precio: 'PV',
             moneda: product.moneda,
             costo: product.costo,
+            unidad_medida: product.unidad?.codigo || 'NIU',
         });
     };
 
@@ -208,40 +209,52 @@ export const useVentaForm = (ventaId = null) => {
      */
     const handleAddProducto = (e) => {
         e.preventDefault();
-        
-        if (!productoActual.id_producto) {
+
+        const esLibre = productoActual.es_libre === true;
+
+        if (!esLibre && !productoActual.id_producto) {
             toast.warning('Seleccione un producto');
+            return;
+        }
+        if (esLibre && !productoActual.descripcion?.trim()) {
+            toast.warning('Ingrese una descripción para el producto');
             return;
         }
         if (!productoActual.cantidad || productoActual.cantidad <= 0) {
             toast.warning('Ingrese una cantidad válida');
             return;
         }
-        
-        const existe = productos.find((p) => p.id_producto === productoActual.id_producto);
+        if (!esLibre && !productoActual.precioVenta && !productoActual.precio) {
+            toast.warning('Ingrese un precio');
+            return;
+        }
+
+        const existe = !esLibre && productos.find((p) => p.id_producto === productoActual.id_producto);
         if (existe) {
             toast.warning('El producto ya está en la lista');
             return;
         }
 
-        // Validación de Stock
-        const stockActual = parseFloat(productoActual.stock || 0);
-        const cantidadSolicitada = parseFloat(productoActual.cantidad || 0);
-        const afectaStock = formData.afecta_stock;
+        // Validación de Stock (solo para productos del catálogo)
+        if (!esLibre) {
+            const stockActual = parseFloat(productoActual.stock || 0);
+            const cantidadSolicitada = parseFloat(productoActual.cantidad || 0);
+            const afectaStock = formData.afecta_stock;
 
-        if (stockActual <= 0) {
-            if (afectaStock) {
-                toast.error('No se puede agregar: El producto no tiene stock disponible.');
-                return;
-            } else {
-                toast.warning('Aviso: El producto no tiene stock, pero se agregará por ser comprobante que no afecta stock real.');
-            }
-        } else if (cantidadSolicitada > stockActual) {
-            if (afectaStock) {
-                toast.error(`No hay suficiente stock. Disponible: ${stockActual}`);
-                return;
-            } else {
-                toast.warning(`Aviso: La cantidad supera el stock real (${stockActual}).`);
+            if (stockActual <= 0) {
+                if (afectaStock) {
+                    toast.error('No se puede agregar: El producto no tiene stock disponible.');
+                    return;
+                } else {
+                    toast.warning('Aviso: El producto no tiene stock, pero se agregará por ser comprobante que no afecta stock real.');
+                }
+            } else if (cantidadSolicitada > stockActual) {
+                if (afectaStock) {
+                    toast.error(`No hay suficiente stock. Disponible: ${stockActual}`);
+                    return;
+                } else {
+                    toast.warning(`Aviso: La cantidad supera el stock real (${stockActual}).`);
+                }
             }
         }
         
@@ -363,7 +376,9 @@ export const useVentaForm = (ventaId = null) => {
                 if (key === 'productos') {
                     dataToSend.productos.forEach((prod, i) => {
                         Object.keys(prod).forEach(pk => {
-                            formDataObj.append(`productos[${i}][${pk}]`, prod[pk]);
+                            if (prod[pk] !== null && prod[pk] !== undefined) {
+                                formDataObj.append(`productos[${i}][${pk}]`, prod[pk]);
+                            }
                         });
                     });
                 } else if (key === 'empresas_ids') {

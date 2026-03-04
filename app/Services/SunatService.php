@@ -49,7 +49,7 @@ class SunatService
         $certificate = $this->getCertificate($empresa);
         $see->setCertificate($certificate);
 
-        if ($empresa->modo === 'beta') {
+        if ($empresa->modo !== 'production') {
             $beta = config('sunat.beta');
             $see->setClaveSOL($beta['ruc'], $beta['usuario_sol'], $beta['clave_sol']);
         } else {
@@ -61,7 +61,7 @@ class SunatService
 
     public function getEndpoint(Empresa $empresa, string $tipoDoc = 'facturacion'): string
     {
-        $modo = $empresa->modo === 'beta' ? 'beta' : 'production';
+        $modo = $empresa->modo !== 'production' ? 'beta' : 'production';
         return config("sunat.endpoints.{$tipoDoc}.{$modo}");
     }
 
@@ -110,7 +110,7 @@ class SunatService
     public function buildCompany(Empresa $empresa): Company
     {
         $company = new Company();
-        $company->setRuc($empresa->modo === 'beta' ? config('sunat.beta.ruc') : $empresa->ruc)
+        $company->setRuc($empresa->modo !== 'production' ? config('sunat.beta.ruc') : $empresa->ruc)
             ->setNombreComercial($empresa->razon_social)
             ->setRazonSocial($empresa->razon_social)
             ->setAddress((new Address())
@@ -298,7 +298,7 @@ class SunatService
             'mensaje' => $error->getMessage(),
         ]);
         $venta->update([
-            'estado_sunat' => '2',
+            'estado_sunat' => '3',
             'codigo_sunat' => $error->getCode(),
             'mensaje_sunat' => $error->getMessage(),
             'intentos' => ($venta->intentos ?? 0) + 1,
@@ -684,10 +684,10 @@ class SunatService
         $authConfig->setHost(config('sunat.endpoints.gre.auth'));
         $authApi = new AuthApi(null, $authConfig);
 
-        $username = $empresa->modo === 'beta'
+        $username = $empresa->modo !== 'production'
             ? config('sunat.beta.ruc') . config('sunat.beta.usuario_sol')
             : $empresa->ruc . $empresa->user_sol;
-        $password = $empresa->modo === 'beta'
+        $password = $empresa->modo !== 'production'
             ? config('sunat.beta.clave_sol')
             : $empresa->clave_sol;
 
@@ -757,10 +757,10 @@ class SunatService
         $authConfig->setHost(config('sunat.endpoints.gre.auth'));
         $authApi = new AuthApi(null, $authConfig);
 
-        $username = $empresa->modo === 'beta'
+        $username = $empresa->modo !== 'production'
             ? config('sunat.beta.ruc') . config('sunat.beta.usuario_sol')
             : $empresa->ruc . $empresa->user_sol;
-        $password = $empresa->modo === 'beta'
+        $password = $empresa->modo !== 'production'
             ? config('sunat.beta.clave_sol')
             : $empresa->clave_sol;
 
@@ -946,7 +946,7 @@ class SunatService
 
     private function getRuc(Empresa $empresa): string
     {
-        return $empresa->modo === 'beta' ? config('sunat.beta.ruc') : $empresa->ruc;
+        return $empresa->modo !== 'production' ? config('sunat.beta.ruc') : $empresa->ruc;
     }
 
     private function getHashFromXml(string $xml): ?string

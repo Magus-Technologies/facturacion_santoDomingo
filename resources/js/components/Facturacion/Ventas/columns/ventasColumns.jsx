@@ -292,6 +292,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                               Enviado: <CheckCircle className="h-3 w-3" />,
                               Pendiente: <Clock className="h-3 w-3" />,
                               "Anulado (NC)": <XCircle className="h-3 w-3" />,
+                              Rechazado: <XCircle className="h-3 w-3" />,
                           };
                           return (
                               <span
@@ -427,7 +428,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                         Guía de Remisión
                                     </DropdownMenuItem>
                                 )}
-                                {!estaAnulada && !estaVendida && (
+                                {!estaAnulada && !estaVendida && ocultarSunat && (
                                     <DropdownMenuItem
                                         onClick={() => handlers.handleAnular(venta)}
                                         className="text-red-600 focus:bg-red-50 focus:text-red-700"

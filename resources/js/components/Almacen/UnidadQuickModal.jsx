@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
     const [loading, setLoading] = useState(false);
     const [nombre, setNombre] = useState("");
+    const [codigo, setCodigo] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,7 +29,7 @@ export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
                     "Content-Type": "application/json",
                     Accept: "application/json",
                 },
-                body: JSON.stringify({ nombre: nombre.trim() }),
+                body: JSON.stringify({ nombre: nombre.trim(), codigo: codigo.trim().toUpperCase() || null }),
             });
 
             const data = await response.json();
@@ -36,6 +37,7 @@ export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
             if (data.success) {
                 toast.success("Unidad creada exitosamente");
                 setNombre("");
+                setCodigo("");
                 onSuccess?.(data.data);
                 onClose();
             } else if (data.errors?.nombre) {
@@ -53,6 +55,7 @@ export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
 
     const handleClose = () => {
         setNombre("");
+        setCodigo("");
         onClose();
     };
 
@@ -93,9 +96,24 @@ export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
                         variant="outlined"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
-                        placeholder="Ej: Unidad, Caja, Kg, etc."
+                        placeholder="Ej: Unidad, Caja, Kilogramo, etc."
                         required
                         autoFocus
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Código SUNAT
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                        Catálogo N°84: NIU=Unidad, KGM=Kg, LTR=Litro, ZZ=Servicio, GRM=Gramo, BX=Caja
+                    </p>
+                    <Input
+                        variant="outlined"
+                        value={codigo}
+                        onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+                        placeholder="Ej: NIU, KGM, LTR"
+                        maxLength={5}
                     />
                 </div>
             </form>

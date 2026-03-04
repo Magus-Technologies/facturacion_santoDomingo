@@ -50,6 +50,64 @@ class EmpresaController extends Controller
     }
 
     /**
+     * Crear una nueva empresa
+     */
+    public function store(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'ruc' => 'required|string|size:11|unique:empresas,ruc',
+                'razon_social' => 'required|string|max:245',
+                'comercial' => 'required|string|max:245',
+                'direccion' => 'nullable|string|max:245',
+                'email' => 'nullable|email|max:145',
+                'telefono' => 'nullable|string|max:30',
+                'telefono2' => 'nullable|string|max:30',
+                'telefono3' => 'nullable|string|max:30',
+                'ubigeo' => 'nullable|string|size:6',
+                'distrito' => 'nullable|string|max:45',
+                'provincia' => 'nullable|string|max:45',
+                'departamento' => 'nullable|string|max:45',
+                'user_sol' => 'nullable|string|max:45',
+                'clave_sol' => 'nullable|string|max:45',
+                'igv' => 'nullable|numeric|min:0|max:1',
+                'modo' => 'nullable|in:production,test',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Errores de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $data = $request->except(['logo']);
+            $data['estado'] = '1';
+
+            if ($request->hasFile('logo')) {
+                $file = $request->file('logo');
+                $filename = 'logo_' . $data['ruc'] . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $data['logo'] = $file->storeAs('empresasLogos', $filename, 'public');
+            }
+
+            $empresa = Empresa::create($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Empresa creada exitosamente',
+                'data' => $empresa
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear empresa: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Actualizar una empresa
      */
     public function update(Request $request, $id)

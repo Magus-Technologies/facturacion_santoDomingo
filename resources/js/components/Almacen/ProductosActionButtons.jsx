@@ -10,34 +10,32 @@ import {
     Ruler,
     FolderOpen,
     Loader2,
+    Copy,
 } from "lucide-react";
 import UnidadesModal from "../UnidadesModal";
 import CategoriasModal from "../CategoriasModal";
 import ImportarExcelModal from "./ImportarExcelModal";
+import ReplicarProductosModal from "./ReplicarProductosModal";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export default function ProductosActionButtons({ onNuevoProducto, onRefresh, almacenActivo, busqueda }) {
     const [isUnidadesModalOpen, setIsUnidadesModalOpen] = useState(false);
     const [isCategoriasModalOpen, setIsCategoriasModalOpen] = useState(false);
     const [isImportarExcelModalOpen, setIsImportarExcelModalOpen] = useState(false);
+    const [isReplicarModalOpen, setIsReplicarModalOpen] = useState(false);
     const [loadingExcel, setLoadingExcel] = useState(false);
 
     const handleExcelBusqueda = () => {
         setLoadingExcel(true);
-        
+
         const token = localStorage.getItem("auth_token");
         const url = `/api/productos/descargar-excel?almacen=${almacenActivo}&texto=${encodeURIComponent(busqueda || '')}`;
-        
-        // Agregar headers de autenticación
+
         fetch(url, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al descargar el archivo');
-            }
+            if (!response.ok) throw new Error('Error al descargar el archivo');
             return response.blob();
         })
         .then(blob => {
@@ -49,28 +47,10 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            
             toast.success("Excel descargado exitosamente");
         })
-        .catch(error => {
-            console.error("Error:", error);
-            toast.error("Error al descargar Excel");
-        })
-        .finally(() => {
-            setLoadingExcel(false);
-        });
-    };
-
-    const handleAumentarStock = () => {
-        toast.info("Función en desarrollo");
-    };
-
-    const handleDisminuirStock = () => {
-        toast.info("Función en desarrollo");
-    };
-
-    const handleTraslado = () => {
-        toast.info("Función en desarrollo");
+        .catch(() => toast.error("Error al descargar Excel"))
+        .finally(() => setLoadingExcel(false));
     };
 
     const handleHistorial = () => {
@@ -107,45 +87,38 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                             <span className="hidden sm:inline">Importar Excel</span>
                         </Button>
                     </PermissionGuard>
-                    {/* <PermissionGuard permission="productos.edit">
+                    <PermissionGuard permission="productos.create">
                         <Button
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={handleAumentarStock}
+                            onClick={() => setIsReplicarModalOpen(true)}
+                            title="Copiar todos los productos de esta empresa a otras empresas"
                         >
+                            <Copy className="h-4 w-4" />
+                            <span className="hidden sm:inline">Replicar a empresas</span>
+                        </Button>
+                    </PermissionGuard>
+                    {/* <PermissionGuard permission="productos.edit">
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("En desarrollo")}>
                             <Plus className="h-4 w-4" />
                             <span className="hidden sm:inline">Aumentar Stock</span>
                         </Button>
                     </PermissionGuard>
                     <PermissionGuard permission="productos.edit">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                            onClick={handleDisminuirStock}
-                        >
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("En desarrollo")}>
                             <Minus className="h-4 w-4" />
                             <span className="hidden sm:inline">Disminuir Stock</span>
                         </Button>
-                    </PermissionGuard> */}
-                    {/* <PermissionGuard permission="productos.edit">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                            onClick={handleTraslado}
-                        >
+                    </PermissionGuard>
+                    <PermissionGuard permission="productos.edit">
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("En desarrollo")}>
                             <ArrowLeftRight className="h-4 w-4" />
                             <span className="hidden sm:inline">Traslado</span>
                         </Button>
                     </PermissionGuard> */}
                     <a href="/historial-movimientos">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                        >
+                        <Button variant="outline" size="sm" className="gap-2">
                             <History className="h-4 w-4" />
                             <span className="hidden sm:inline">Historial</span>
                         </Button>
@@ -169,13 +142,10 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                         <span className="hidden sm:inline">Categorías</span>
                     </Button>
                 </div>
-                
+
                 {/* Botón Nuevo Producto */}
                 <PermissionGuard permission="productos.create">
-                    <Button
-                        onClick={onNuevoProducto}
-                        className="gap-2"
-                    >
+                    <Button onClick={onNuevoProducto} className="gap-2">
                         <Plus className="h-5 w-5" />
                         Nuevo Producto
                     </Button>
@@ -183,19 +153,19 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
             </div>
 
             {/* Modales */}
-            <UnidadesModal
-                isOpen={isUnidadesModalOpen}
-                onClose={() => setIsUnidadesModalOpen(false)}
-            />
-            <CategoriasModal
-                isOpen={isCategoriasModalOpen}
-                onClose={() => setIsCategoriasModalOpen(false)}
-            />
+            <UnidadesModal isOpen={isUnidadesModalOpen} onClose={() => setIsUnidadesModalOpen(false)} />
+            <CategoriasModal isOpen={isCategoriasModalOpen} onClose={() => setIsCategoriasModalOpen(false)} />
             <ImportarExcelModal
                 isOpen={isImportarExcelModalOpen}
                 onClose={() => setIsImportarExcelModalOpen(false)}
                 onSuccess={onRefresh}
                 almacen={almacenActivo}
+            />
+            <ReplicarProductosModal
+                isOpen={isReplicarModalOpen}
+                onClose={() => setIsReplicarModalOpen(false)}
+                onSuccess={onRefresh}
+                almacenActivo={almacenActivo}
             />
         </>
     );

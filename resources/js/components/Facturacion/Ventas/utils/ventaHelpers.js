@@ -114,6 +114,10 @@ export const getSunatBadge = (estadoSunat) => {
             color: 'bg-red-100 text-red-800',
             text: 'Anulado (NC)',
         },
+        '3': {
+            color: 'bg-orange-100 text-orange-800',
+            text: 'Rechazado',
+        },
     };
 
     return badges[estadoSunat] || badges['0'];
@@ -131,28 +135,30 @@ export const validarProductos = (productos) => {
 
 /**
  * Valida que haya cliente seleccionado
+ * Boletas y notas de venta pueden emitirse sin cliente (CLIENTES VARIOS)
  */
 export const validarCliente = (cliente, formData) => {
-    // Permitir si ya tiene ID (cliente existente) o si tiene documento y nombre (nuevo cliente)
-    if (!((cliente && cliente.id_cliente) || (formData.num_doc && formData.nom_cli))) {
-        return { valid: false, message: 'Seleccione un cliente o ingrese los datos del mismo' };
-    }
+    const esFactura = formData.id_tido === '2' || formData.id_tido === 2;
+    const esBoleta = formData.id_tido === '1' || formData.id_tido === 1;
 
-    const documento = formData.num_doc || cliente?.documento || '';
-
-    // Factura requiere RUC (11 dígitos)
-    if (formData.id_tido === '2' || formData.id_tido === 2) {
-        if (documento.length !== 11) {
-            return { valid: false, message: 'Para FACTURA se requiere RUC (11 dígitos). No se puede emitir factura con DNI.' };
+    // Factura siempre requiere cliente con RUC
+    if (esFactura) {
+        const documento = formData.num_doc || cliente?.documento || '';
+        if (!documento || documento.length !== 11) {
+            return { valid: false, message: 'Para FACTURA se requiere RUC (11 dígitos).' };
         }
     }
 
-    // Boleta requiere DNI (8 dígitos) o CE u otro doc
-    if (formData.id_tido === '1' || formData.id_tido === 1) {
-        if (documento.length === 11) {
+    // Boleta: si hay documento no puede ser RUC
+    if (esBoleta) {
+        const documento = formData.num_doc || cliente?.documento || '';
+        if (documento && documento.length === 11) {
             return { valid: false, message: 'Para BOLETA use DNI (8 dígitos). Para RUC emita una Factura.' };
         }
+        // Sin cliente está OK para boleta (usará CLIENTES VARIOS)
     }
+
+    // Nota de venta: sin cliente está OK
 
     return { valid: true };
 };
@@ -188,13 +194,16 @@ export const prepararDatosVenta = (cliente, formData, productos, totales) => {
             const lineaIgv = formData.aplicar_igv ? lineaTotal - lineaSubtotal : 0;
 
             return {
-                id_producto: p.id_producto,
+                id_producto: p.id_producto || null,
+                descripcion_libre: p.es_libre ? p.descripcion : undefined,
+                descripcion: p.descripcion || null,
+                codigo_producto: p.codigo || null,
                 cantidad,
                 precio_unitario: precioConIgv,
                 subtotal: lineaSubtotal,
                 igv: lineaIgv,
                 total: lineaTotal,
-                unidad_medida: 'NIU',
+                unidad_medida: p.unidad_medida || 'NIU',
                 tipo_afectacion_igv: formData.aplicar_igv ? '10' : '20',
             };
         }),

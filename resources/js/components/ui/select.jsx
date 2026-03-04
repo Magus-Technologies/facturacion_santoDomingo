@@ -77,7 +77,7 @@ const SelectItem = React.forwardRef(
         <SelectPrimitive.Item
             ref={ref}
             className={cn(
-                "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2 mb-1 text-sm outline-none",
+                "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2 mb-1 text-sm outline-none overflow-hidden",
                 "hover:bg-primary-600 hover:text-white",
                 "focus:bg-primary-600 focus:text-white",
                 "data-[state=checked]:bg-primary-600 data-[state=checked]:text-white",
@@ -92,7 +92,9 @@ const SelectItem = React.forwardRef(
                     <Check className="h-4 w-4 text-white" />
                 </SelectPrimitive.ItemIndicator>
             </span>
-            <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+            <SelectPrimitive.ItemText>
+                <span className="block truncate">{children}</span>
+            </SelectPrimitive.ItemText>
         </SelectPrimitive.Item>
     ),
 );

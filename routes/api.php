@@ -52,6 +52,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
 
     // Empresas
     Route::get('empresas', [\App\Http\Controllers\EmpresaController::class, 'index']);
+    Route::post('empresas', [\App\Http\Controllers\EmpresaController::class, 'store']);
     Route::get('empresas/{id}', [\App\Http\Controllers\EmpresaController::class, 'show']);
     Route::post('empresas/{id}', [\App\Http\Controllers\EmpresaController::class, 'update']); // POST para FormData con logo
     Route::delete('empresas/{id}/logo', [\App\Http\Controllers\EmpresaController::class, 'deleteLogo']);
@@ -64,6 +65,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('productos/descargar-excel', [\App\Http\Controllers\Exports\ProductoExportController::class, 'descargarExcel']);
     Route::post('productos/leer-excel', [\App\Http\Controllers\Imports\ProductoImportController::class, 'leerExcel'])->middleware('permission:productos.create');
     Route::post('productos/importar-lista', [\App\Http\Controllers\Imports\ProductoImportController::class, 'importarLista'])->middleware('permission:productos.create');
+    Route::post('productos/replicar-masivo', [\App\Http\Controllers\ProductoController::class, 'replicarMasivo'])->middleware('permission:productos.create');
     Route::get('productos', [\App\Http\Controllers\ProductoController::class, 'index'])->middleware('permission:productos.view');
     Route::post('productos', [\App\Http\Controllers\ProductoController::class, 'store'])->middleware('permission:productos.create');
     Route::get('productos/{id}', [\App\Http\Controllers\ProductoController::class, 'show'])->middleware('permission:productos.view');

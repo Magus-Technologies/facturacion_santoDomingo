@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Plus } from "lucide-react";
+import { Plus, PenLine, Search } from "lucide-react";
 import ProductSearchInput from "./ProductSearchInput";
 import ProductPriceSelector from "./ProductPriceSelector";
 
@@ -35,31 +36,82 @@ export default function ProductoFormSection({
     onAlmacenChange,
     disableAlmacenSelector = false,
     soloConStock = false,
+    showModoLibre = false,
 }) {
+    const [modoLibre, setModoLibre] = useState(false);
+
+    const handleToggleModoLibre = () => {
+        setModoLibre(!modoLibre);
+        setProductoActual({
+            id_producto: null,
+            codigo: "",
+            descripcion: "",
+            cantidad: "1",
+            stock: "-",
+            precio: "",
+            precioVenta: "",
+            es_libre: !modoLibre,
+        });
+    };
+
     return (
         <form onSubmit={onAddProducto} className="space-y-4 mb-8">
             {/* Cabecera de búsqueda y Almacén */}
             <div className="flex flex-col md:flex-row md:items-start gap-4">
-                {/* Búsqueda de Producto */}
+                {/* Búsqueda de Producto / Modo Libre */}
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                         <Label className="text-sm font-medium text-gray-700">
-                            Buscar Producto
+                            {modoLibre ? "Descripción libre" : "Buscar Producto"}
                         </Label>
-                        <button
-                            type="button"
-                            onClick={onOpenMultipleSearch}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-all"
-                        >
-                            Búsqueda Múltiple
-                        </button>
+                        <div className="flex items-center gap-3">
+                            {!modoLibre && (
+                                <button
+                                    type="button"
+                                    onClick={onOpenMultipleSearch}
+                                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-all"
+                                >
+                                    Búsqueda Múltiple
+                                </button>
+                            )}
+                            {showModoLibre && (
+                                <button
+                                    type="button"
+                                    onClick={handleToggleModoLibre}
+                                    className={`flex items-center gap-1 text-xs font-semibold transition-all px-2 py-1 rounded-md border ${
+                                        modoLibre
+                                            ? "bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
+                                            : "text-gray-500 border-gray-300 hover:bg-gray-100"
+                                    }`}
+                                >
+                                    {modoLibre ? <Search className="h-3 w-3" /> : <PenLine className="h-3 w-3" />}
+                                    {modoLibre ? "Buscar catálogo" : "Libre"}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                    <ProductSearchInput
-                        onProductSelect={onProductSelect}
-                        almacen={almacen}
-                        showCosto={showCosto}
-                        soloConStock={soloConStock}
-                    />
+                    {modoLibre ? (
+                        <Input
+                            type="text"
+                            value={productoActual.descripcion}
+                            onChange={(e) =>
+                                setProductoActual({
+                                    ...productoActual,
+                                    descripcion: e.target.value,
+                                    es_libre: true,
+                                })
+                            }
+                            placeholder="Escriba la descripción del producto o servicio"
+                            autoFocus
+                        />
+                    ) : (
+                        <ProductSearchInput
+                            onProductSelect={onProductSelect}
+                            almacen={almacen}
+                            showCosto={showCosto}
+                            soloConStock={soloConStock}
+                        />
+                    )}
                 </div>
 
                 {/* Selección de Almacén */}
@@ -105,16 +157,25 @@ export default function ProductoFormSection({
                 </div>
             </div>
 
-            {/* Descripción */}
-            <div>
-                <Label className="block mb-2">Descripción</Label>
-                <Input
-                    type="text"
-                    value={productoActual.descripcion}
-                    readOnly
-                    className="bg-gray-50"
-                />
-            </div>
+            {/* Descripción (editable, solo cuando no es modo libre) */}
+            {!modoLibre && (
+                <div>
+                    <Label className="block mb-2">Descripción</Label>
+                    <Input
+                        type="text"
+                        value={productoActual.descripcion}
+                        onChange={(e) =>
+                            setProductoActual({
+                                ...productoActual,
+                                descripcion: e.target.value,
+                            })
+                        }
+                        placeholder="Descripción del producto"
+                        className={!productoActual.id_producto ? "bg-gray-50" : ""}
+                        readOnly={!productoActual.id_producto}
+                    />
+                </div>
+            )}
 
             {/* Stock, Cantidad y Precio/Costo */}
             <div
@@ -165,7 +226,7 @@ export default function ProductoFormSection({
                             className="text-center"
                         />
                     </div>
-                ) : showPriceSelector ? (
+                ) : showPriceSelector && !modoLibre ? (
                     <div>
                         <Label className="block mb-2">Precio</Label>
                         <ProductPriceSelector

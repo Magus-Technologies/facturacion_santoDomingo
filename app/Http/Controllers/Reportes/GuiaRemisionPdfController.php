@@ -16,7 +16,7 @@ class GuiaRemisionPdfController extends Controller
             $guia = GuiaRemision::with([
                 'empresa',
                 'venta.tipoDocumento',
-                'detalles.producto',
+                'detalles.producto.unidad',
             ])->findOrFail($id);
 
             // Generar QR

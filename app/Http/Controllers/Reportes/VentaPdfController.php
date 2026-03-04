@@ -21,7 +21,7 @@ class VentaPdfController extends Controller
                 "tipoDocumento",
                 "empresa",
                 "empresas",
-                "productosVentas.producto",
+                "productosVentas.producto.unidad",
                 "pagos",
             ])->findOrFail($id);
 
@@ -96,7 +96,7 @@ class VentaPdfController extends Controller
                 "tipoDocumento",
                 "empresa",
                 "empresas",
-                "productosVentas.producto",
+                "productosVentas.producto.unidad",
                 "pagos",
             ])->findOrFail($id);
 

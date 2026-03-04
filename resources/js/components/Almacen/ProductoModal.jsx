@@ -28,6 +28,7 @@ export default function ProductoModal({
     const [unidades, setUnidades] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
     const [isAutoCode, setIsAutoCode] = useState(true);
+    const [replicarEmpresas, setReplicarEmpresas] = useState(false);
     const [showCategoriaModal, setShowCategoriaModal] = useState(false);
     const [showUnidadModal, setShowUnidadModal] = useState(false);
 
@@ -221,6 +222,11 @@ export default function ProductoModal({
             // Agregar imagen si existe
             if (formData.imagen) {
                 formDataToSend.append("imagen", formData.imagen);
+            }
+
+            // Replicar a empresas (solo en creación)
+            if (!isEditing && replicarEmpresas) {
+                formDataToSend.append("replicar_empresas", "true");
             }
 
             // Para PUT, Laravel necesita _method
@@ -508,6 +514,22 @@ export default function ProductoModal({
                                 )}
                             </div>
                         </ModalField>
+
+                        {/* Replicar a todas las empresas (solo en creación) */}
+                        {!isEditing && (
+                            <label className="flex items-start gap-2.5 cursor-pointer p-3 rounded-lg border border-blue-100 bg-blue-50/50 hover:bg-blue-50 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={replicarEmpresas}
+                                    onChange={(e) => setReplicarEmpresas(e.target.checked)}
+                                    className="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 h-4 w-4"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-gray-700 block">Replicar a todas las empresas</span>
+                                    <span className="text-xs text-gray-500">Crea este producto en todas las empresas activas (si no existe)</span>
+                                </div>
+                            </label>
+                        )}
                     </div>
 
                     {/* COLUMNA 2 - DERECHA */}

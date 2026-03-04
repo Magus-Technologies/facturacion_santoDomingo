@@ -342,6 +342,7 @@ export default function VentaForm({ ventaId = null }) {
                             }}
                             disableAlmacenSelector={!!formData.id_tido}
                             soloConStock={formData.id_tido !== "6"}
+                            showModoLibre={true}
                         />
 
                         <div>

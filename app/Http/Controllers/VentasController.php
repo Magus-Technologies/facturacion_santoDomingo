@@ -84,8 +84,8 @@ class VentasController extends Controller
                 'id_tido' => 'required|integer|exists:documentos_sunat,id_tido',
                 'id_tipo_pago' => 'nullable|integer',
                 'id_cliente' => 'nullable|integer|exists:clientes,id_cliente',
-                'cliente_documento' => 'required_without:id_cliente|string|max:11',
-                'cliente_datos' => 'required_without:id_cliente|string|max:250',
+                'cliente_documento' => 'nullable|string|max:11',
+                'cliente_datos' => 'nullable|string|max:250',
                 'cliente_direccion' => 'nullable|string|max:500',
                 'fecha_emision' => 'required|date',
                 'serie' => 'required|string|max:4',
@@ -100,20 +100,21 @@ class VentasController extends Controller
                 'empresas_ids' => 'nullable|array',
                 'empresas_ids.*' => 'integer|exists:empresas,id_empresa',
                 'productos' => 'required|array|min:1',
-                'productos.*.id_producto' => 'required|integer|exists:productos,id_producto',
+                'productos.*.id_producto' => 'nullable|integer|exists:productos,id_producto',
+                'productos.*.descripcion_libre' => 'nullable|string|max:500',
                 'productos.*.cantidad' => 'required|integer|min:1',
                 'productos.*.precio_unitario' => 'required|numeric|min:0',
                 'productos.*.subtotal' => 'required|numeric|min:0',
                 'productos.*.igv' => 'required|numeric|min:0',
                 'productos.*.total' => 'required|numeric|min:0',
+                'productos.*.descripcion' => 'nullable|string|max:500',
+                'productos.*.codigo_producto' => 'nullable|string|max:50',
                 'pago_id_tipo_pago' => 'nullable|integer',
                 'pago_numero_operacion' => 'nullable|string|max:50',
                 'pago_banco' => 'nullable|string|max:100',
                 'pago_voucher' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             ], [
                 'id_tido.required' => 'El tipo de documento es obligatorio.',
-                'cliente_documento.required_without' => 'El documento del cliente es obligatorio.',
-                'cliente_datos.required_without' => 'El nombre del cliente es obligatorio.',
                 'productos.required' => 'Debe agregar al menos un producto a la venta.',
                 'productos.min' => 'Debe agregar al menos un producto a la venta.',
                 'productos.*.id_producto.required' => 'El producto seleccionado no es válido.',
@@ -149,16 +150,25 @@ class VentasController extends Controller
             return DB::transaction(function () use ($validated, $user, $request) {
                 $idCliente = $validated['id_cliente'] ?? null;
 
-                // Si no hay id_cliente, buscar por documento o crear
+                // Si no hay id_cliente, usar CLIENTES VARIOS para boleta/nota o crear cliente
                 if (!$idCliente) {
-                    $clienteModel = \App\Models\Cliente::where('documento', $validated['cliente_documento'])
+                    $docCliente = $validated['cliente_documento'] ?? '';
+                    $nomCliente = $validated['cliente_datos'] ?? '';
+
+                    // Para boleta/nota sin datos: usar CLIENTES VARIOS
+                    if (empty($docCliente) && empty($nomCliente)) {
+                        $docCliente = '00000000';
+                        $nomCliente = 'CLIENTES VARIOS';
+                    }
+
+                    $clienteModel = \App\Models\Cliente::where('documento', $docCliente)
                         ->where('id_empresa', $user->id_empresa)
                         ->first();
-                    
+
                     if (!$clienteModel) {
                         $clienteModel = \App\Models\Cliente::create([
-                            'documento' => $validated['cliente_documento'],
-                            'datos' => $validated['cliente_datos'],
+                            'documento' => $docCliente,
+                            'datos' => $nomCliente,
                             'direccion' => $validated['cliente_direccion'] ?? '',
                             'id_empresa' => $user->id_empresa,
                         ]);
@@ -212,9 +222,50 @@ class VentasController extends Controller
 
                 // Crear productos de la venta y descontar stock
                 foreach ($validated['productos'] as $producto) {
+                    $idProducto = $producto['id_producto'] ?? null;
+                    $descripcionFinal = $producto['descripcion'] ?? null;
+                    $codigoFinal = $producto['codigo_producto'] ?? null;
+
+                    // Flag para saber si es producto libre (no desconta stock)
+                    $esProductoLibre = !empty($producto['descripcion_libre']);
+
+                    // Producto libre (sin id_producto): buscar o crear en catálogo
+                    if (!$idProducto && $esProductoLibre) {
+                        $nombreLibre = trim($producto['descripcion_libre']);
+                        $productoLibre = \App\Models\Producto::where('nombre', $nombreLibre)
+                            ->where('id_empresa', $user->id_empresa)
+                            ->first();
+
+                        if (!$productoLibre) {
+                            // Generar código automático
+                            $ultimoCodigo = \App\Models\Producto::where('id_empresa', $user->id_empresa)
+                                ->where('codigo', 'LIKE', 'LIB-%')
+                                ->count();
+                            $codigoAuto = 'LIB-' . str_pad($ultimoCodigo + 1, 4, '0', STR_PAD_LEFT);
+
+                            $productoLibre = \App\Models\Producto::create([
+                                'codigo' => $codigoAuto,
+                                'nombre' => $nombreLibre,
+                                'precio' => $producto['precio_unitario'],
+                                'costo' => 0,
+                                'cantidad' => 0,
+                                'id_empresa' => $user->id_empresa,
+                                'almacen' => '1',
+                            ]);
+                        }
+                        $idProducto = $productoLibre->id_producto;
+                        $descripcionFinal = $productoLibre->nombre;
+                        $codigoFinal = $productoLibre->codigo;
+                    } elseif ($idProducto && !$descripcionFinal) {
+                        // Producto del catálogo: guardar nombre actual como snapshot
+                        $productoModel = \App\Models\Producto::find($idProducto);
+                        $descripcionFinal = $productoModel?->nombre ?? 'Producto';
+                        $codigoFinal = $productoModel?->codigo ?? 'P001';
+                    }
+
                     ProductoVenta::create([
                         'id_venta' => $venta->id_venta,
-                        'id_producto' => $producto['id_producto'],
+                        'id_producto' => $idProducto,
                         'cantidad' => $producto['cantidad'],
                         'precio_unitario' => $producto['precio_unitario'],
                         'subtotal' => $producto['subtotal'],
@@ -222,11 +273,13 @@ class VentasController extends Controller
                         'total' => $producto['total'],
                         'unidad_medida' => $producto['unidad_medida'] ?? 'NIU',
                         'tipo_afectacion_igv' => $producto['tipo_afectacion_igv'] ?? '10',
+                        'descripcion' => $descripcionFinal,
+                        'codigo_producto' => $codigoFinal,
                     ]);
 
-                    // Descontar stock del producto si aplica
-                    if ($afectaStock) {
-                        $productoModel = \App\Models\Producto::find($producto['id_producto']);
+                    // Descontar stock del producto si aplica (nunca para productos libres)
+                    if ($afectaStock && !$esProductoLibre) {
+                        $productoModel = \App\Models\Producto::find($idProducto);
                         if ($productoModel) {
                             $stockAnterior = $productoModel->cantidad;
                             $productoModel->decrement('cantidad', $producto['cantidad']);

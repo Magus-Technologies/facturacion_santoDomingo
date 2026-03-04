@@ -7,7 +7,8 @@ import { toast } from "@/lib/sweetalert";
 import { consultarDocumento } from "@/services/apisPeru";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 
-export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
+export default function EmpresaModal({ isOpen, onClose, empresa = null, onSuccess }) {
+    const isEditing = !!empresa;
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [consultando, setConsultando] = useState(false);
@@ -34,31 +35,38 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
         modo: "production",
     });
 
+    const emptyForm = {
+        ruc: "", razon_social: "", comercial: "", direccion: "",
+        email: "", telefono: "", telefono2: "", telefono3: "",
+        ubigeo: "", departamento: "", provincia: "", distrito: "",
+        user_sol: "", clave_sol: "", igv: "0.18", modo: "test",
+    };
+
     // Cargar datos de la empresa - solo cuando cambia la empresa, no en cada isOpen
     useEffect(() => {
-        if (isOpen && empresa) {
-            setFormData({
-                ruc: empresa.ruc || "",
-                razon_social: empresa.razon_social || "",
-                comercial: empresa.comercial || "",
-                direccion: empresa.direccion || "",
-                email: empresa.email || "",
-                telefono: empresa.telefono || "",
-                telefono2: empresa.telefono2 || "",
-                telefono3: empresa.telefono3 || "",
-                ubigeo: empresa.ubigeo || "",
-                departamento: empresa.departamento || "",
-                provincia: empresa.provincia || "",
-                distrito: empresa.distrito || "",
-                user_sol: empresa.user_sol || "",
-                clave_sol: empresa.clave_sol || "",
-                igv: empresa.igv || "0.18",
-                modo: empresa.modo || "production",
-            });
-            // Cargar logo actual si existe
-            if (empresa.logo) {
-                setLogoPreview(`/storage/${empresa.logo}`);
+        if (isOpen) {
+            if (empresa) {
+                setFormData({
+                    ruc: empresa.ruc || "",
+                    razon_social: empresa.razon_social || "",
+                    comercial: empresa.comercial || "",
+                    direccion: empresa.direccion || "",
+                    email: empresa.email || "",
+                    telefono: empresa.telefono || "",
+                    telefono2: empresa.telefono2 || "",
+                    telefono3: empresa.telefono3 || "",
+                    ubigeo: empresa.ubigeo || "",
+                    departamento: empresa.departamento || "",
+                    provincia: empresa.provincia || "",
+                    distrito: empresa.distrito || "",
+                    user_sol: empresa.user_sol || "",
+                    clave_sol: empresa.clave_sol || "",
+                    igv: empresa.igv || "0.18",
+                    modo: empresa.modo || "production",
+                });
+                setLogoPreview(empresa.logo ? `/storage/${empresa.logo}` : null);
             } else {
+                setFormData(emptyForm);
                 setLogoPreview(null);
             }
             setLogoFile(null);
@@ -210,7 +218,7 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
 
         try {
             const token = localStorage.getItem("auth_token");
-            const url = `/api/empresas/${empresa.id_empresa}`;
+            const url = isEditing ? `/api/empresas/${empresa.id_empresa}` : `/api/empresas`;
 
             // Usar FormData para enviar archivos
             const formDataToSend = new FormData();
@@ -241,14 +249,14 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
                 onSuccess?.();
 
                 setTimeout(() => {
-                    toast.success("Empresa actualizada exitosamente");
+                    toast.success(isEditing ? "Empresa actualizada exitosamente" : "Empresa creada exitosamente");
                 }, 300);
             } else {
                 if (data.errors) {
                     setErrors(data.errors);
                     toast.error("Por favor corrige los errores en el formulario");
                 } else {
-                    toast.error(data.message || "Error al actualizar empresa");
+                    toast.error(data.message || (isEditing ? "Error al actualizar empresa" : "Error al crear empresa"));
                 }
             }
         } catch (err) {
@@ -263,7 +271,7 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Editar Empresa"
+            title={isEditing ? "Editar Empresa" : "Nueva Empresa"}
             size="xl"
             footer={
                 <>
@@ -276,7 +284,7 @@ export default function EmpresaModal({ isOpen, onClose, empresa, onSuccess }) {
                         className="gap-2"
                     >
                         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                        Actualizar
+                        {isEditing ? "Actualizar" : "Guardar"}
                     </Button>
                 </>
             }

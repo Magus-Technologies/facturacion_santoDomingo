@@ -665,7 +665,7 @@ class SunatService
             'hash' => $hash,
         ];
     }
-
+   ///actualizar
     public function generarGuiaRemisionTransportistaXml(GuiaRemision $guia): array
     {
         $guia->load(['empresa', 'detalles']);

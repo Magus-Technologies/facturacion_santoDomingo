@@ -173,14 +173,15 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
         {
             accessorKey: "cliente",
             header: "Cliente",
+            size: 200,
             cell: ({ row }) => {
                 const cliente = row.getValue("cliente");
                 return (
-                    <div>
-                        <p className="text-xs text-gray-500">
+                    <div className="max-w-[200px]">
+                        <p className="text-xs text-gray-400">
                             {cliente?.documento || "N/A"}
                         </p>
-                        <p className="font-medium text-gray-900 text-sm">
+                        <p className="font-medium text-gray-900 text-sm truncate" title={cliente?.datos || "Sin datos"}>
                             {cliente?.datos || "Sin datos"}
                         </p>
                     </div>

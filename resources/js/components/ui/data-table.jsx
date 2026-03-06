@@ -293,7 +293,7 @@ export function DataTable({
 
             {/* Table View */}
             {viewMode === "table" && (
-                <div className="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
+                <div className="rounded-xl border border-gray-200/80 overflow-hidden bg-white shadow-sm">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
@@ -342,7 +342,7 @@ export function DataTable({
                                                 }}
                                                 className={
                                                     isPinned
-                                                        ? "bg-primary-600 shadow-sm"
+                                                        ? "bg-gray-50 shadow-sm"
                                                         : ""
                                                 }
                                             >
@@ -350,7 +350,7 @@ export function DataTable({
                                                   header.column.getCanHide() ? (
                                                     <div className="flex items-center justify-between gap-1 w-full group">
                                                         <div
-                                                            className={`flex-1 flex items-center gap-1 select-none ${header.column.getCanSort() ? "cursor-pointer hover:text-accent-300 transition-colors" : ""}`}
+                                                            className={`flex-1 flex items-center gap-1 select-none ${header.column.getCanSort() ? "cursor-pointer hover:text-gray-900 transition-colors" : ""}`}
                                                             onClick={header.column.getToggleSortingHandler()}
                                                         >
                                                             {flexRender(
@@ -361,7 +361,7 @@ export function DataTable({
                                                             )}
                                                             {header.column.getCanSort() &&
                                                                 header.column.getIsSorted() && (
-                                                                    <span className="text-white/90 shrink-0">
+                                                                    <span className="text-primary-600 shrink-0">
                                                                         {
                                                                             {
                                                                                 asc: (
@@ -378,7 +378,7 @@ export function DataTable({
                                                                 )}
                                                             {header.column.getCanSort() &&
                                                                 !header.column.getIsSorted() && (
-                                                                    <span className="text-white/40 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <span className="text-gray-500 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                         <ArrowUpDown className="h-4 w-4" />
                                                                     </span>
                                                                 )}
@@ -388,7 +388,7 @@ export function DataTable({
                                                             <DropdownMenuTrigger
                                                                 asChild
                                                             >
-                                                                <button className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-white/20 transition-colors opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 focus:opacity-100 ml-1 shrink-0 text-white">
+                                                                <button className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 focus:opacity-100 ml-1 shrink-0 text-gray-400">
                                                                     <MoreHorizontal className="h-4 w-4" />
                                                                 </button>
                                                             </DropdownMenuTrigger>
@@ -618,6 +618,77 @@ export function DataTable({
                             )}
                         </TableBody>
                     </Table>
+
+                    {/* Pagination - inside table container */}
+                    {pagination && (
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+                            <p className="text-sm text-gray-500">
+                                Mostrando{" "}
+                                <span className="font-semibold text-gray-700">
+                                    {table.getState().pagination.pageIndex *
+                                        table.getState().pagination.pageSize +
+                                        1}
+                                </span>
+                                {" a "}
+                                <span className="font-semibold text-gray-700">
+                                    {Math.min(
+                                        (table.getState().pagination.pageIndex + 1) *
+                                            table.getState().pagination.pageSize,
+                                        table.getFilteredRowModel().rows.length,
+                                    )}
+                                </span>
+                                {" de "}
+                                <span className="font-semibold text-gray-700">
+                                    {table.getFilteredRowModel().rows.length}
+                                </span>
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => table.setPageIndex(0)}
+                                    disabled={!table.getCanPreviousPage()}
+                                    className="h-8 w-8 p-0 rounded-lg"
+                                >
+                                    <ChevronsLeft className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => table.previousPage()}
+                                    disabled={!table.getCanPreviousPage()}
+                                    className="h-8 w-8 p-0 rounded-lg"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <span className="text-sm text-gray-600 px-3 font-medium">
+                                    {table.getState().pagination.pageIndex + 1}
+                                    {" / "}
+                                    {table.getPageCount()}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => table.nextPage()}
+                                    disabled={!table.getCanNextPage()}
+                                    className="h-8 w-8 p-0 rounded-lg"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                        table.setPageIndex(table.getPageCount() - 1)
+                                    }
+                                    disabled={!table.getCanNextPage()}
+                                    className="h-8 w-8 p-0 rounded-lg"
+                                >
+                                    <ChevronsRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -642,78 +713,6 @@ export function DataTable({
                 </div>
             )}
 
-            {/* Pagination */}
-            {pagination && viewMode === "table" && (
-                <div className="flex items-center justify-between px-2">
-                    <div className="text-sm text-gray-600">
-                        Mostrando{" "}
-                        <span className="font-medium">
-                            {table.getState().pagination.pageIndex *
-                                table.getState().pagination.pageSize +
-                                1}
-                        </span>{" "}
-                        a{" "}
-                        <span className="font-medium">
-                            {Math.min(
-                                (table.getState().pagination.pageIndex + 1) *
-                                    table.getState().pagination.pageSize,
-                                table.getFilteredRowModel().rows.length,
-                            )}
-                        </span>{" "}
-                        de{" "}
-                        <span className="font-medium">
-                            {table.getFilteredRowModel().rows.length}
-                        </span>{" "}
-                        resultados
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.setPageIndex(0)}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-sm text-gray-600">
-                            Página{" "}
-                            <span className="font-medium">
-                                {table.getState().pagination.pageIndex + 1}
-                            </span>{" "}
-                            de{" "}
-                            <span className="font-medium">
-                                {table.getPageCount()}
-                            </span>
-                        </span>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                                table.setPageIndex(table.getPageCount() - 1)
-                            }
-                            disabled={!table.getCanNextPage()}
-                        >
-                            <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

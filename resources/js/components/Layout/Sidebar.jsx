@@ -201,7 +201,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                     </div>
 
                     {/* Menu Navigation */}
-                    <nav className="flex-1 overflow-y-auto px-3 py-4">
+                    <nav className="flex-1 overflow-y-auto scrollbar-hide px-3 py-4">
                         <ul className="space-y-1">
                             {filteredModules.map((module) => {
                                 const Icon = iconMap[module.icon] || Circle;

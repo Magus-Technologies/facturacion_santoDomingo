@@ -64,12 +64,12 @@ export const getClientesColumns = (handlers) => [
         accessorKey: "datos",
         header: "Cliente",
         cell: ({ row }) => (
-            <div>
-                <p className="font-medium text-gray-900">
+            <div className="max-w-[220px]">
+                <p className="font-medium text-gray-900 text-sm truncate" title={row.getValue("datos")}>
                     {row.getValue("datos")}
                 </p>
                 {row.original.email && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-500 truncate">
                         {row.original.email}
                     </p>
                 )}

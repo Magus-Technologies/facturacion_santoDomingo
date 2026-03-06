@@ -1,23 +1,49 @@
 import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import Loader from "../Loader";
 import { useLoadPermissions } from "@/hooks/usePermissions";
 
 export default function MainLayout({
     children,
     currentPath = window.location.pathname + window.location.search,
 }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile toggle
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(() => {
-        // Leer el estado guardado en localStorage
         const saved = localStorage.getItem('sidebar-collapsed');
         return saved === 'true';
-    }); // Desktop collapse
+    });
+    const [authChecked, setAuthChecked] = useState(false);
     const { loadPermissions } = useLoadPermissions();
 
-    // Recargar permisos al montar el componente
     useEffect(() => {
-        loadPermissions();
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+            window.location.replace("/login");
+            return;
+        }
+
+        fetch("/api/verify", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        })
+            .then((res) => {
+                if (res.ok) {
+                    setAuthChecked(true);
+                    loadPermissions();
+                } else {
+                    localStorage.removeItem("auth_token");
+                    localStorage.removeItem("user");
+                    window.location.replace("/login");
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("user");
+                window.location.replace("/login");
+            });
     }, []);
 
     const toggleSidebar = () => {
@@ -30,6 +56,10 @@ export default function MainLayout({
         // Guardar el estado en localStorage
         localStorage.setItem('sidebar-collapsed', newState.toString());
     };
+
+    if (!authChecked) {
+        return <Loader text="Verificando sesión..." variant="dual" />;
+    }
 
     return (
         <div className="min-h-screen bg-white">

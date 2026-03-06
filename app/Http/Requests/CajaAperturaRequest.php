@@ -17,8 +17,9 @@ class CajaAperturaRequest extends FormRequest
     {
         return [
             'saldo_inicial'  => 'required|numeric|min:0',
+            'tipo_apertura'  => 'nullable|string|in:monto_fijo,billetes',
             'observaciones'  => 'nullable|string|max:1000',
-            // Billetes de apertura (opcional - si se proporciona, debe ser array válido)
+            // Billetes de apertura (opcional - si tipo_apertura = billetes)
             'billetes'                    => 'nullable|array',
             'billetes.*.id_denominacion'  => 'required_with:billetes|exists:denominaciones_billetes,id_denominacion',
             'billetes.*.cantidad'         => 'required_with:billetes|integer|min:0',

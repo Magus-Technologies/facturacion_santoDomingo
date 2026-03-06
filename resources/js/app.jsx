@@ -31,7 +31,10 @@ import MetodosPagoList from "./components/Finanzas/MetodosPago/MetodosPagoList";
 import CajasList from "./components/Finanzas/Caja/CajasList";
 import CuentasBancariasList from "./components/Finanzas/CuentasBancarias/CuentasBancariasList";
 import UtilidadesPage from "./components/Finanzas/Utilidades/UtilidadesPage";
-import { TransportistasPage } from "./components/Finanzas/Transportistas/TransportistasPage";
+import { TransportistasPage } from "./components/GuiaRemisionTransportista/Transportistas/TransportistasPage";
+import { TransportistaAddPage } from "./components/GuiaRemisionTransportista/Transportistas/TransportistaAddPage";
+import GuiaRemisionTransportista from "./components/GuiaRemisionTransportista/GuiaRemisionTransportistaPage";
+import GuiaRemisionTransportistaForm from "./components/GuiaRemisionTransportista/GuiaRemisionTransportistaForm";
 
 import "./bootstrap";
 import "../css/app.css";
@@ -81,6 +84,9 @@ const components = {
     CuentasBancariasList,
     UtilidadesPage,
     TransportistasPage,
+    TransportistaAddPage,
+    GuiaRemisionTransportista,
+    GuiaRemisionTransportistaForm,
 };
 
 // Monta cada elemento con atributo data-react-component

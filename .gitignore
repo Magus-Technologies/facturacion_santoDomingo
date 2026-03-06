@@ -18,6 +18,9 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/sunat/certificados
+/storage/app/sunat/xml
+/storage/app/sunat/cdr
 /vendor
 Homestead.json
 Homestead.yaml

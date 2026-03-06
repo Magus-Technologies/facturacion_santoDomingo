@@ -3,12 +3,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X } from 'lucide-react';
+import { X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import DenominacionesTable from '../components/DenominacionesTable';
 import { toast } from '@/lib/sweetalert';
 
-export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) {
+/**
+ * Modal de Apertura de Caja.
+ *
+ * Lógica:
+ *  - Si cajaActiva (prop) está presente → ya hay una caja abierta → bloquear y mostrar aviso.
+ *  - Si no hay cajaActiva → permitir apertura:
+ *      · Si se pasa la prop `caja` (fila de la tabla), está pre-seleccionada.
+ *      · Si no, muestra dropdown con las cajas en estado "Cerrada".
+ *  - Tipos de apertura: monto_fijo (ingreso directo) ó billetes (conteo denominaciones).
+ *  - El saldo inicial es el FONDO DE EFECTIVO para dar vuelto durante la jornada.
+ */
+export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja, cajaActiva }) {
     const [cajaSeleccionada, setCajaSeleccionada] = useState(null);
+    const [cajasCerradas, setCajasCerradas]   = useState([]);
     const [cajasInactivas, setCajasInactivas] = useState([]);
     const [tipoApertura, setTipoApertura] = useState('monto_fijo');
     const [montoFijo, setMontoFijo] = useState('');
@@ -22,28 +34,31 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) 
 
     useEffect(() => {
         if (isOpen) {
-            fetchDenominaciones();
-            if (!caja) fetchCajasInactivas();
+            // Solo cargar recursos si no hay caja ya abierta
+            if (!cajaActiva) {
+                fetchDenominaciones();
+                if (!caja) fetchCajasCerradas();
+            }
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
             setCajaSeleccionada(null);
         }
         return () => { document.body.style.overflow = 'unset'; };
-    }, [isOpen, caja]);
+    }, [isOpen, caja, cajaActiva]);
 
-    const fetchCajasInactivas = async () => {
+    const fetchCajasCerradas = async () => {
         try {
             setLoadingCajas(true);
             const token = localStorage.getItem('auth_token');
             const res = await fetch('/api/cajas', {
-                headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+                headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
             if (data.success) {
                 const lista = data.data?.data ?? data.data ?? [];
-                // Mostrar todas las cajas (sin filtrar por estado)
-                setCajasInactivas(lista);
+                setCajasCerradas(lista.filter(c => c.estado === 'Activa'));
+                setCajasInactivas(lista.filter(c => c.estado === 'Inactiva'));
             }
         } catch {
             toast.error('Error al cargar cajas disponibles');
@@ -57,7 +72,7 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) 
             setLoadingDenom(true);
             const token = localStorage.getItem('auth_token');
             const res = await fetch('/api/cajas/denominaciones', {
-                headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+                headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
             if (data.success) {
@@ -72,6 +87,8 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (cajaActiva) return; // bloqueado
 
         if (!cajaActual?.id_caja) {
             toast.error('Selecciona una caja para aperturar');
@@ -102,8 +119,9 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) 
                 observaciones,
             };
 
+            // Clave correcta que espera el backend: "billetes"
             if (tipoApertura === 'billetes') {
-                payload.denominaciones = denominaciones
+                payload.billetes = denominaciones
                     .filter(d => d.cantidad > 0)
                     .map(d => ({ id_denominacion: d.id_denominacion, cantidad: d.cantidad }));
             }
@@ -152,137 +170,206 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) 
                     <h2 className="text-xl font-semibold text-gray-900">
                         Apertura de Caja{cajaActual?.nombre ? ` — ${cajaActual.nombre}` : ''}
                     </h2>
-                    <button onClick={handleReset} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button
+                        onClick={handleReset}
+                        className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Selector de caja (solo si no viene preseleccionada) */}
-                    {!caja && (
-                        <div className="space-y-2">
-                            <Label htmlFor="caja_select">Caja a aperturar <span className="text-red-500">*</span></Label>
-                            {loadingCajas ? (
-                                <p className="text-sm text-gray-500">Cargando cajas...</p>
-                            ) : cajasInactivas.length === 0 ? (
-                                <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                                    No hay cajas disponibles.
+                <div className="p-6 space-y-6">
+                    {/* ── Bloqueo: ya hay una caja abierta ──────────────────── */}
+                    {cajaActiva ? (
+                        <div className="space-y-4">
+                            <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 flex items-start gap-3">
+                                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-amber-800">Ya hay una caja abierta</p>
+                                    <p className="text-sm text-amber-700 mt-1">
+                                        No puedes aperturar otra caja mientras{' '}
+                                        <strong>{cajaActiva.nombre || `Caja #${cajaActiva.id_caja}`}</strong>{' '}
+                                        esté abierta. Ciérrala primero.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+                                <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-semibold text-green-800">
+                                        {cajaActiva.nombre || `Caja #${cajaActiva.id_caja}`}
+                                    </p>
+                                    <p className="text-xs text-green-700 mt-0.5">
+                                        Abierta desde{' '}
+                                        {new Date(cajaActiva.fecha_apertura).toLocaleString('es-PE', {
+                                            dateStyle: 'short',
+                                            timeStyle: 'short',
+                                        })}
+                                        {cajaActiva.saldo_inicial != null &&
+                                            ` · Fondo inicial: S/ ${parseFloat(cajaActiva.saldo_inicial).toFixed(2)}`}
+                                        {cajaActiva.responsable &&
+                                            ` · Responsable: ${cajaActiva.responsable.name}`}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <Button variant="outline" onClick={handleReset}>Cerrar</Button>
+                            </div>
+                        </div>
+                    ) : (
+                        /* ── Formulario de apertura ─────────────────────────── */
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Selector de caja (solo si no viene preseleccionada) */}
+                            {!caja && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="caja_select">
+                                        Caja a aperturar <span className="text-red-500">*</span>
+                                    </Label>
+                                    {loadingCajas ? (
+                                        <p className="text-sm text-gray-500">Cargando cajas...</p>
+                                    ) : cajasCerradas.length === 0 ? (
+                                        <div className="space-y-2">
+                                            <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2 flex items-start gap-2">
+                                                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                                                <div className="text-sm text-amber-700">
+                                                    {cajasInactivas.length > 0 ? (
+                                                        <>
+                                                            <p className="font-medium">Ninguna caja está habilitada aún.</p>
+                                                            <p className="mt-0.5">
+                                                                Tienes {cajasInactivas.length} caja(s) inactiva(s). Ve a la tabla, haz clic en el botón{' '}
+                                                                <strong>Habilitar</strong> (▶) de la caja que quieres usar y luego vuelve a aperturarla.
+                                                            </p>
+                                                        </>
+                                                    ) : (
+                                                        <p>No hay cajas registradas. Crea una caja primero con el botón <strong>Nueva Caja</strong>.</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            id="caja_select"
+                                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                            value={cajaSeleccionada?.id_caja ?? ''}
+                                            onChange={(e) => {
+                                                const id = parseInt(e.target.value);
+                                                setCajaSeleccionada(cajasCerradas.find(c => c.id_caja === id) ?? null);
+                                            }}
+                                        >
+                                            <option value="">— Selecciona una caja —</option>
+                                            {cajasCerradas.map(c => (
+                                                <option key={c.id_caja} value={c.id_caja}>
+                                                    {c.nombre}{c.responsable ? ` (${c.responsable.name})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Info responsable */}
+                            {cajaActual?.responsable && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-sm text-blue-800">
+                                    <span className="font-medium">Responsable:</span> {cajaActual.responsable.name}
+                                </div>
+                            )}
+
+                            {/* Tipo de Apertura */}
+                            <div className="space-y-3">
+                                <Label className="text-base font-semibold">
+                                    Fondo de Efectivo Inicial
+                                </Label>
+                                <p className="text-xs text-gray-500">
+                                    Este es el dinero en efectivo disponible en la caja para dar vuelto durante la jornada.
                                 </p>
-                            ) : (
-                                <select
-                                    id="caja_select"
-                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                    value={cajaSeleccionada?.id_caja ?? ''}
-                                    onChange={(e) => {
-                                        const id = parseInt(e.target.value);
-                                        setCajaSeleccionada(cajasInactivas.find(c => c.id_caja === id) ?? null);
-                                    }}
+                                <div className="flex gap-6">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="tipoApertura"
+                                            value="monto_fijo"
+                                            checked={tipoApertura === 'monto_fijo'}
+                                            onChange={(e) => setTipoApertura(e.target.value)}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-sm">Monto Total</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="tipoApertura"
+                                            value="billetes"
+                                            checked={tipoApertura === 'billetes'}
+                                            onChange={(e) => setTipoApertura(e.target.value)}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-sm">Contar Billetes y Monedas</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Monto Fijo */}
+                            {tipoApertura === 'monto_fijo' && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="monto">Fondo inicial (S/)</Label>
+                                    <Input
+                                        id="monto"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="0.00"
+                                        value={montoFijo}
+                                        onChange={(e) => setMontoFijo(e.target.value)}
+                                        className="font-mono"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Por Billetes */}
+                            {tipoApertura === 'billetes' && (
+                                <div className="space-y-2">
+                                    <Label>Denominaciones</Label>
+                                    {loadingDenom ? (
+                                        <div className="text-center py-4 text-gray-500">Cargando denominaciones...</div>
+                                    ) : (
+                                        <DenominacionesTable
+                                            denominaciones={denominaciones}
+                                            onChange={setDenominaciones}
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Observaciones */}
+                            <div className="space-y-2">
+                                <Label htmlFor="obs">Observaciones (opcional)</Label>
+                                <Textarea
+                                    id="obs"
+                                    placeholder="Ej: Fondo asignado por tesorería..."
+                                    value={observaciones}
+                                    onChange={(e) => setObservaciones(e.target.value)}
+                                    rows={3}
+                                />
+                            </div>
+
+                            {/* Botones */}
+                            <div className="flex justify-end gap-2 pt-4 border-t">
+                                <Button type="button" variant="outline" onClick={handleReset} disabled={loading}>
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={loading || (!caja && !cajaSeleccionada)}
+                                    className="bg-primary-600 hover:bg-primary-700 text-white"
                                 >
-                                    <option value="">— Selecciona una caja —</option>
-                                    {cajasInactivas.map(c => (
-                                        <option key={c.id_caja} value={c.id_caja}>
-                                            {c.nombre}{c.responsable ? ` (${c.responsable.name})` : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
+                                    {loading ? 'Aperturando...' : 'Aperturar Caja'}
+                                </Button>
+                            </div>
+                        </form>
                     )}
-
-                    {/* Info responsable */}
-                    {cajaActual?.responsable && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-sm text-blue-800">
-                            <span className="font-medium">Responsable:</span> {cajaActual.responsable.name}
-                        </div>
-                    )}
-
-                    {/* Tipo de Apertura */}
-                    <div className="space-y-3">
-                        <Label className="text-base font-semibold">Saldo Inicial</Label>
-                        <div className="flex gap-6">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="tipoApertura"
-                                    value="monto_fijo"
-                                    checked={tipoApertura === 'monto_fijo'}
-                                    onChange={(e) => setTipoApertura(e.target.value)}
-                                    className="w-4 h-4"
-                                />
-                                <span className="text-sm">Monto Fijo</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="tipoApertura"
-                                    value="billetes"
-                                    checked={tipoApertura === 'billetes'}
-                                    onChange={(e) => setTipoApertura(e.target.value)}
-                                    className="w-4 h-4"
-                                />
-                                <span className="text-sm">Por Billetes</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Monto Fijo */}
-                    {tipoApertura === 'monto_fijo' && (
-                        <div className="space-y-2">
-                            <Label htmlFor="monto">Ingrese el saldo inicial</Label>
-                            <Input
-                                id="monto"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                placeholder="0.00"
-                                value={montoFijo}
-                                onChange={(e) => setMontoFijo(e.target.value)}
-                                className="font-mono"
-                            />
-                        </div>
-                    )}
-
-                    {/* Por Billetes */}
-                    {tipoApertura === 'billetes' && (
-                        <div className="space-y-2">
-                            <Label>Denominaciones</Label>
-                            {loadingDenom ? (
-                                <div className="text-center py-4 text-gray-500">Cargando denominaciones...</div>
-                            ) : (
-                                <DenominacionesTable
-                                    denominaciones={denominaciones}
-                                    onChange={setDenominaciones}
-                                />
-                            )}
-                        </div>
-                    )}
-
-                    {/* Observaciones */}
-                    <div className="space-y-2">
-                        <Label htmlFor="obs">Observaciones (opcional)</Label>
-                        <Textarea
-                            id="obs"
-                            placeholder="Ingrese observaciones..."
-                            value={observaciones}
-                            onChange={(e) => setObservaciones(e.target.value)}
-                            rows={3}
-                        />
-                    </div>
-
-                    {/* Botones */}
-                    <div className="flex justify-end gap-2 pt-4 border-t">
-                        <Button type="button" variant="outline" onClick={handleReset} disabled={loading}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={loading || (!caja && !cajaSeleccionada)}
-                            className="bg-primary-600 hover:bg-primary-700 text-white"
-                        >
-                            {loading ? 'Aperturando...' : 'Aperturar Caja'}
-                        </Button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     );

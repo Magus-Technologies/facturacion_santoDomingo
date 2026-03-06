@@ -14,13 +14,17 @@ class GuiaRemision extends Model
         'id_empresa',
         'id_usuario',
         'id_venta',
-        'id_transportista',
         'serie',
         'numero',
         'fecha_emision',
         'destinatario_tipo_doc',
         'destinatario_documento',
         'destinatario_nombre',
+        'remitente_tipo_doc',
+        'remitente_documento',
+        'remitente_nombre',
+        'remitente_direccion',
+        'remitente_ubigeo',
         'motivo_traslado',
         'descripcion_motivo',
         'mod_transporte',
@@ -31,6 +35,7 @@ class GuiaRemision extends Model
         'dir_partida',
         'ubigeo_llegada',
         'dir_llegada',
+        'establecimiento_codigo',
         'transportista_tipo_doc',
         'transportista_documento',
         'transportista_nombre',
@@ -41,6 +46,7 @@ class GuiaRemision extends Model
         'conductor_apellidos',
         'conductor_licencia',
         'vehiculo_placa',
+        'vehiculo_placa_secundaria',
         'vehiculo_m1l',
         'observaciones',
         'estado',
@@ -78,11 +84,6 @@ class GuiaRemision extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(GuiaRemisionDetalle::class, 'id_guia', 'id');
-    }
-
-    public function transportista(): BelongsTo
-    {
-        return $this->belongsTo(Transportista::class, 'id_transportista', 'id');
     }
 
     public function getNumeroCompletoAttribute(): string

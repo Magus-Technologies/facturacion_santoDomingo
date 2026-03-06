@@ -2,7 +2,6 @@
 name: nuevo-controller
 description: Crea un controller Laravel REST + modelo + rutas + Form Request siguiendo exactamente los patrones del sistema Santo Domingo. Usar cuando el usuario pida crear un endpoint, recurso API, controller o modelo.
 argument-hint: <NombreRecurso> [descripción opcional]
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ---
 
 # Skill: Crear Nuevo Controller Laravel
@@ -11,53 +10,66 @@ Crea el backend completo para **$ARGUMENTS** siguiendo los patrones del sistema.
 
 ## ARCHIVOS A GENERAR
 
-1. `app/Http/Controllers/$NombreController.php` — Controller REST
-2. `app/Models/$Nombre.php` — Modelo Eloquent
+1. `app/Http/Controllers/Api/$NombreController.php` — Controller REST
+2. `app/Models/$Nombre.php` — Modelo Eloquent con scopes
 3. `app/Http/Requests/$NombreRequest.php` — Form Request con validación
-4. Rutas en `routes/api.php` (agregar al grupo existente)
+4. Rutas en `routes/api.php` (dentro del middleware group existente)
 5. Migración si es necesaria (usar skill `/nueva-migracion`)
 
 ## PASOS A SEGUIR
 
 ### 1. LEER EL CONTEXTO
 Antes de generar código, leer:
-- `routes/api.php` — Ver estructura de rutas existentes y middleware
-- Un controller existente similar para referencia (ej. `app/Http/Controllers/ClientesController.php`)
-- El modelo principal del sistema para ver el scope de empresa
+- `routes/api.php` — Ver estructura de rutas y middleware group
+- `app/Http/Controllers/Api/TransportistaController.php` — Referencia más reciente
+- `app/Http/Controllers/BaseApiController.php` — Clase base
+- `app/Traits/ApiResponseTrait.php` — Helpers de respuesta disponibles
 
 ### 2. MODELO (`app/Models/$Nombre.php`)
+
 ```php
 <?php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class $Nombre extends Model
 {
     protected $table = '$nombre_tabla';
-    protected $primaryKey = 'id_$nombre';
 
     protected $fillable = [
         'id_empresa',
         // ... campos del modelo
+        'estado',
     ];
 
     protected $casts = [
-        'activo' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'estado' => 'boolean',
     ];
 
     // Relaciones
-    public function empresa()
+    public function empresa(): BelongsTo
     {
         return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');
+    }
+
+    // Scopes obligatorios
+    public function scopeByEmpresa($query, $empresaId)
+    {
+        return $query->where('id_empresa', $empresaId);
+    }
+
+    public function scopeActivo($query)
+    {
+        return $query->where('estado', true);
     }
 }
 ```
 
 ### 3. FORM REQUEST (`app/Http/Requests/$NombreRequest.php`)
+
 ```php
 <?php
 
@@ -77,8 +89,12 @@ class $NombreRequest extends FormRequest
         $id = $this->route('id');
 
         return [
-            'nombre' => 'required|string|max:255|unique:$nombre_tabla,nombre' . ($id ? ",{$id},id_$nombre" : ''),
-            // ... reglas de validación
+            'nombre' => [
+                'required', 'string', 'max:255',
+                'unique:$nombre_tabla,nombre' . ($id ? ",{$id},id_$nombre" : ''),
+            ],
+            // ... otras reglas
+            'estado' => 'sometimes|boolean',
         ];
     }
 
@@ -87,52 +103,46 @@ class $NombreRequest extends FormRequest
         return [
             'nombre.required' => 'El nombre es obligatorio.',
             'nombre.unique' => 'Ya existe un registro con este nombre.',
-            // ...
         ];
     }
 }
 ```
 
-### 4. CONTROLLER (`app/Http/Controllers/$NombreController.php`)
+### 4. CONTROLLER (`app/Http/Controllers/Api/$NombreController.php`)
+
+**CRÍTICO**: Extender `BaseApiController`, ubicar en namespace `Api`, usar helpers `$this->success()` / `$this->error()`.
+
 ```php
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\$Nombre;
 use App\Http\Requests\$NombreRequest;
-use Illuminate\Http\Request;
+use App\Http\Controllers\BaseApiController;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
-class $NombreController extends Controller
+class $NombreController extends BaseApiController
 {
     /**
      * GET /api/$nombre-ruta
-     * Lista todos los registros de la empresa activa
      */
     public function index(Request $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $idEmpresa = $user->id_empresa;
+        $empresaId = $request->user()->id_empresa;
 
-            $items = $Nombre::where('id_empresa', $idEmpresa)
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $items = $Nombre::byEmpresa($empresaId)
+            ->when($request->input('search'), function ($query, $search) {
+                return $query->where('nombre', 'like', "%{$search}%");
+            })
+            ->when($request->input('estado') !== null, function ($query) use ($request) {
+                return $query->where('estado', $request->boolean('estado'));
+            })
+            ->orderBy('nombre')
+            ->paginate($request->input('per_page', 15));
 
-            return response()->json([
-                'success' => true,
-                'data' => $items,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error listando $nombre: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener los datos.',
-            ], 500);
-        }
+        return $this->success($items);
     }
 
     /**
@@ -140,131 +150,110 @@ class $NombreController extends Controller
      */
     public function store($NombreRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $data = $request->validated();
-            $data['id_empresa'] = $user->id_empresa;
+        $item = $Nombre::create([
+            ...$request->validated(),
+            'id_empresa' => $request->user()->id_empresa,
+        ]);
 
-            $item = DB::transaction(function () use ($data) {
-                return $Nombre::create($data);
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => '$Nombre creado correctamente.',
-                'data' => $item,
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Error creando $nombre: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el registro.',
-            ], 500);
-        }
+        return $this->success($item, '$Nombre creado exitosamente', 201);
     }
 
     /**
      * GET /api/$nombre-ruta/{id}
      */
-    public function show(Request $request, $id): JsonResponse
+    public function show(int $id, Request $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $item = $Nombre::where('id_$nombre', $id)
-                ->where('id_empresa', $user->id_empresa)
-                ->firstOrFail();
+        $item = $Nombre::findOrFail($id);
 
-            return response()->json([
-                'success' => true,
-                'data' => $item,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Registro no encontrado.',
-            ], 404);
-        }
+        return $this->success($item);
     }
 
     /**
      * PUT /api/$nombre-ruta/{id}
      */
-    public function update($NombreRequest $request, $id): JsonResponse
+    public function update(int $id, $NombreRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $item = $Nombre::where('id_$nombre', $id)
-                ->where('id_empresa', $user->id_empresa)
-                ->firstOrFail();
+        $item = $Nombre::findOrFail($id);
+        $item->update($request->validated());
 
-            $item->update($request->validated());
-
-            return response()->json([
-                'success' => true,
-                'message' => '$Nombre actualizado correctamente.',
-                'data' => $item->fresh(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error actualizando $nombre: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar el registro.',
-            ], 500);
-        }
+        return $this->success($item, '$Nombre actualizado exitosamente');
     }
 
     /**
      * DELETE /api/$nombre-ruta/{id}
      */
-    public function destroy(Request $request, $id): JsonResponse
+    public function destroy(int $id, Request $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $item = $Nombre::where('id_$nombre', $id)
-                ->where('id_empresa', $user->id_empresa)
-                ->firstOrFail();
+        $item = $Nombre::findOrFail($id);
+        $item->delete();
 
-            $item->delete();
+        return $this->success(null, '$Nombre eliminado exitosamente');
+    }
 
-            return response()->json([
-                'success' => true,
-                'message' => '$Nombre eliminado correctamente.',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error eliminando $nombre: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al eliminar el registro.',
-            ], 500);
-        }
+    /**
+     * GET /api/$nombre-ruta/activos  — listado simple sin paginar
+     */
+    public function activos(Request $request): JsonResponse
+    {
+        $items = $Nombre::byEmpresa($request->user()->id_empresa)
+            ->activo()
+            ->orderBy('nombre')
+            ->get();
+
+        return $this->success($items);
     }
 }
 ```
 
 ### 5. RUTAS (`routes/api.php`)
-Agregar dentro del grupo `middleware(['auth:sanctum'])` existente:
+
+Agregar dentro del grupo `middleware(['token.query', 'auth:sanctum'])` existente.
+
+**Opción A — apiResource** (para CRUD estándar):
 ```php
 // $NombreModulo
-Route::prefix('$nombre-ruta')->group(function () {
-    Route::get('/', [$NombreController::class, 'index']);
-    Route::post('/', [$NombreController::class, 'store']);
-    Route::get('/{id}', [$NombreController::class, 'show']);
-    Route::put('/{id}', [$NombreController::class, 'update']);
-    Route::delete('/{id}', [$NombreController::class, 'destroy']);
-});
+Route::get('$nombre-ruta/activos', [\App\Http\Controllers\Api\$NombreController::class, 'activos']);
+Route::apiResource('$nombre-ruta', \App\Http\Controllers\Api\$NombreController::class)
+    ->parameters(['$nombre-ruta' => 'id']);
 ```
+
+**Opción B — rutas individuales con permisos** (cuando hay middleware por acción):
+```php
+// $NombreModulo
+Route::get('$nombre-ruta/activos', [\App\Http\Controllers\Api\$NombreController::class, 'activos']);
+Route::get('$nombre-ruta', [\App\Http\Controllers\Api\$NombreController::class, 'index'])->middleware('permission:$nombre.view');
+Route::post('$nombre-ruta', [\App\Http\Controllers\Api\$NombreController::class, 'store'])->middleware('permission:$nombre.create');
+Route::get('$nombre-ruta/{id}', [\App\Http\Controllers\Api\$NombreController::class, 'show'])->middleware('permission:$nombre.view');
+Route::put('$nombre-ruta/{id}', [\App\Http\Controllers\Api\$NombreController::class, 'update'])->middleware('permission:$nombre.edit');
+Route::delete('$nombre-ruta/{id}', [\App\Http\Controllers\Api\$NombreController::class, 'destroy'])->middleware('permission:$nombre.delete');
+```
+
+## HELPERS DE RESPUESTA DISPONIBLES (ApiResponseTrait)
+
+| Método | Uso |
+|--------|-----|
+| `$this->success($data, $message, $status)` | Respuesta exitosa (default 200) |
+| `$this->created($data, $message)` | Respuesta 201 |
+| `$this->error($message, $status, $errors)` | Respuesta de error |
+| `$this->notFound($message)` | 404 |
+| `$this->unprocessable($message, $errors)` | 422 |
+
+## FORMATO DE RESPUESTA API
+
+El frontend espera `response.data.data` (axios), que corresponde a:
+```json
+{ "success": true, "message": "OK", "data": { ... } }
+```
+
+Para paginación Laravel, `response.data.data` es el objeto paginado completo (con `data`, `current_page`, `last_page`, etc.).
 
 ## REGLAS OBLIGATORIAS
 
-1. **Scoping por empresa**: SIEMPRE filtrar `->where('id_empresa', $user->id_empresa)` en todas las queries
-2. **Formato respuesta**:
-   - Éxito lista: `{ success: true, data: [...] }`
-   - Éxito crear/actualizar: `{ success: true, message: '...', data: {...} }`
-   - Éxito eliminar: `{ success: true, message: '...' }`
-   - Error: `{ success: false, message: '...' }` con código HTTP apropiado
-3. **Transacciones DB**: Usar `DB::transaction()` en store/update con múltiples operaciones
-4. **Logging**: Usar `Log::error()` en todos los catch
-5. **Primary key**: Siempre `id_$nombre` (no `id` genérico)
-6. **Auth middleware**: Todos los endpoints van bajo `auth:sanctum`
-7. **Permiso middleware**: Si el módulo tiene permisos, agregar `->middleware('permission:$nombre.action')`
-8. **Nunca** devolver el stack trace al frontend en producción
+1. **Namespace**: Siempre `App\Http\Controllers\Api\` (no `App\Http\Controllers\`)
+2. **Clase base**: Extender `BaseApiController` (no `Controller`)
+3. **Scopes en modelos**: `scopeByEmpresa()` y `scopeActivo()` son obligatorios en todo modelo con `id_empresa`
+4. **Scoping empresa**: SIEMPRE filtrar por `id_empresa` en queries de index/store
+5. **Sin try-catch genérico**: No envolver todo en try-catch. Laravel maneja excepciones en `bootstrap/app.php`. Solo capturar cuando haya lógica específica de recuperación
+6. **Primary key**: Usar `id_$nombre` (no `id` genérico) a menos que sea una tabla pivot
+7. **Ruta `/activos`**: Registrar ANTES del apiResource para evitar conflicto con `/{id}`
+8. **Validación única**: Considerar `unique` en Form Request con exclusión del ID actual en updates

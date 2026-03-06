@@ -18,6 +18,7 @@ export default function CajaPage() {
         isCrearOpen, isAperturaOpen, isCierreOpen, isDetalleOpen, selectedCaja,
         fetchData,
         handleNuevaCaja, handleCrearClose, handleCrearSuccess,
+        handleActivarCaja,
         handleAbrirCaja, handleAperturaClose, handleAperturaSuccess,
         handleCerrar, handleCierreClose, handleCierreSuccess,
         handleVerDetalle, handleDetalleClose,
@@ -32,6 +33,7 @@ export default function CajaPage() {
         handleAutorizar,
         handleRechazar,
         handleAbrirCaja,
+        handleActivarCaja,
     });
 
     if (loading) return (
@@ -117,6 +119,7 @@ export default function CajaPage() {
                     onClose={handleAperturaClose}
                     onSuccess={handleAperturaSuccess}
                     caja={selectedCaja}
+                    cajaActiva={cajaActiva}
                 />
 
                 <CajaCierreModal

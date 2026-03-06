@@ -13,10 +13,10 @@ return [
             'production' => 'https://e-guiaremision.sunat.gob.pe/ol-ti-itemision-guia-gem/billService',
         ],
         'gre' => [
-            'auth' => 'https://api-seguridad.sunat.gob.pe/v1',
-            'cpe' => 'https://api-cpe.sunat.gob.pe/v1',
-            'client_id' => env('SUNAT_GRE_CLIENT_ID', ''),
-            'client_secret' => env('SUNAT_GRE_CLIENT_SECRET', ''),
+            'auth' => 'https://api-seguridad-test.sunat.gob.pe/v1',
+            'cpe' => 'https://api-cpe-test.sunat.gob.pe/v1',
+            'client_id' => env('SUNAT_GRE_CLIENT_ID', 'TU_ID_DE_PRUEBA'),
+            'client_secret' => env('SUNAT_GRE_CLIENT_SECRET', 'TU_SECRET_DE_PRUEBA'),
         ],
     ],
 

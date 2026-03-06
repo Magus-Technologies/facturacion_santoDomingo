@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/hooks/usePermissions';
 import CajaEstadoBadge from '../components/CajaEstadoBadge';
 
-export const getCajasColumns = ({ handleVerDetalle, handleCerrar, handleAutorizar, handleRechazar, handleActivarCaja }) => {
+export const getCajasColumns = ({ handleVerDetalle, handleCerrar, handleAutorizar, handleRechazar, handleAbrirCaja, handleActivarCaja }) => {
     const { hasPermission } = usePermissions();
 
     return [
@@ -90,7 +90,19 @@ export const getCajasColumns = ({ handleVerDetalle, handleCerrar, handleAutoriza
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleActivarCaja(caja)}
-                                title="Activar caja"
+                                title="Habilitar caja"
+                                className="hover:bg-green-50"
+                            >
+                                <PlayCircle className="h-4 w-4 text-green-600 opacity-50" />
+                            </Button>
+                        )}
+
+                        {caja.estado === 'Cerrada' && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAbrirCaja(caja)}
+                                title="Aperturar caja"
                                 className="hover:bg-green-50"
                             >
                                 <PlayCircle className="h-4 w-4 text-green-600" />

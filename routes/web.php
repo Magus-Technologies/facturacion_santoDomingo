@@ -124,6 +124,15 @@ Route::get('/guia-remision/add', function () {
     return view('guiaRemision.guia-remision-add');
 })->name('guia-remision.add');
 
+// Guía de Remisión Transportista
+Route::get('/guia-remision-transportista', function () {
+    return view('guiaRemision.guia-remision-transportista');
+})->name('guia-remision-transportista');
+
+Route::get('/guia-remision-transportista/add', function () {
+    return view('guiaRemision.guia-remision-transportista-add');
+})->name('guia-remision-transportista.add');
+
 // Nota de Crédito
 Route::get('/nota-credito', function () {
     return view('notaCredito.nota-credito');
@@ -164,6 +173,7 @@ Route::get('/reporteCOT/a4.php', function (Request $request) {
 
 // Facturación - Catálogos auxiliares
 Route::get('/facturacion/transportistas', function () { return view('facturacion.transportistas'); })->name('facturacion.transportistas');
+Route::get('/facturacion/transportistas/add', function () { return view('facturacion.transportistas-add'); })->name('facturacion.transportistas.add');
 
 // Finanzas - Catálogos
 Route::get('/finanzas/utilidades', function () { return view('finanzas.utilidades'); })->name('finanzas.utilidades');

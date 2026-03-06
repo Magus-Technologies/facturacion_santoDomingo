@@ -104,7 +104,7 @@ class Caja extends Model
 
     public function scopeAbierta($query)
     {
-        return $query->where('estado', 'Abierta');
+        return $query->where('estado', CajaEstadoEnum::Activa->value);
     }
 
     public function scopeByEmpresa($query, $empresaId)

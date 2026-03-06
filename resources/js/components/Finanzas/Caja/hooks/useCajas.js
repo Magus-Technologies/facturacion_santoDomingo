@@ -61,9 +61,9 @@ export const useCajas = () => {
     // --- Activar caja (sin formulario, saldo 0) ---
     const handleActivarCaja = (caja) => {
         confirmDelete({
-            title: 'Activar Caja',
-            message: `¿Activar la caja <strong>${caja.nombre || '#' + caja.id_caja}</strong>? Se abrirá con saldo S/. 0.00.`,
-            confirmButtonText: 'Activar',
+            title: 'Habilitar Caja',
+            message: `¿Deseas habilitar la caja <strong>${caja.nombre || '#' + caja.id_caja}</strong> para que pueda ser aperturada?`,
+            confirmButtonText: 'Habilitar',
             confirmButtonColor: '#16a34a',
             onConfirm: async () => {
                 try {

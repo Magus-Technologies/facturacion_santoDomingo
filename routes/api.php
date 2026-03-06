@@ -16,6 +16,10 @@ use App\Http\Controllers\CotizacionController;
 // Rutas públicas (sin autenticación)
 Route::post('/login', [AuthController::class, 'login']);
 
+// API Pública de Productos
+Route::get('/public/productos', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'index']);
+Route::get('/public/productos/{id}', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'show']);
+
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     // Autenticación
@@ -191,6 +195,18 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('guias-remision/{id}/enviar', [\App\Http\Controllers\GuiaRemisionController::class, 'enviar']);
     Route::get('guias-remision/{id}/ticket', [\App\Http\Controllers\GuiaRemisionController::class, 'consultarTicket']);
     Route::get('guias-remision/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionController::class, 'xml'])->where('nombre', '.*');
+
+    // Guías de Remisión Transportista (tipoDoc 31, serie V001)
+    Route::get('guias-remision-transportista/proximo-numero', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'proximoNumero']);
+    Route::get('guias-remision-transportista/motivos', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'motivos']);
+    Route::get('guias-remision-transportista/exportar-excel', [\App\Http\Controllers\Exports\GuiaRemisionExportController::class, 'descargarExcel']);
+    Route::get('guias-remision-transportista', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'index']);
+    Route::post('guias-remision-transportista', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'store']);
+    Route::get('guias-remision-transportista/{id}/cdr', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'cdr']);
+    Route::get('guias-remision-transportista/{id}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'show']);
+    Route::post('guias-remision-transportista/{id}/enviar', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'enviar']);
+    Route::get('guias-remision-transportista/{id}/ticket', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'consultarTicket']);
+    Route::get('guias-remision-transportista/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'xml'])->where('nombre', '.*');
 
     // -----------------------------------------------------------------------
     // MÓDULO FINANZAS

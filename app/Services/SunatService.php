@@ -666,6 +666,104 @@ class SunatService
         ];
     }
 
+    public function generarGuiaRemisionTransportistaXml(GuiaRemision $guia): array
+    {
+        $guia->load(['empresa', 'detalles']);
+        $empresa = $guia->empresa;
+
+        $company = $this->buildCompany($empresa);
+
+        $fechaEmision = $this->fechaParaGreenter($guia->getRawOriginal('fecha_emision'), $guia->created_at);
+        $fechaTraslado = $this->fechaParaGreenter($guia->getRawOriginal('fecha_traslado'));
+
+        // En GR Transportista el "tercero" es el remitente (quien envía la mercadería)
+        $remitente = null;
+        if ($guia->remitente_documento) {
+            $remitente = (new Client())
+                ->setTipoDoc($guia->remitente_tipo_doc)
+                ->setNumDoc($guia->remitente_documento)
+                ->setRznSocial($guia->remitente_nombre);
+        }
+
+        $destinatario = (new Client())
+            ->setTipoDoc($guia->destinatario_tipo_doc)
+            ->setNumDoc($guia->destinatario_documento)
+            ->setRznSocial($guia->destinatario_nombre);
+
+        $shipment = (new Shipment())
+            ->setCodTraslado($guia->motivo_traslado)
+            ->setDesTraslado($guia->descripcion_motivo)
+            ->setModTraslado('02') // GR Transportista siempre usa transporte privado
+            ->setFecTraslado($fechaTraslado)
+            ->setPesoTotal((float) $guia->peso_total)
+            ->setUndPesoTotal($guia->und_peso_total ?? 'KGM')
+            ->setPartida(new Direction($guia->ubigeo_partida, $guia->dir_partida))
+            ->setLlegada(new Direction($guia->ubigeo_llegada, $guia->dir_llegada));
+
+        if ($guia->conductor_documento) {
+            $driver = (new Driver())
+                ->setTipo('Principal')
+                ->setTipoDoc($guia->conductor_tipo_doc)
+                ->setNroDoc($guia->conductor_documento)
+                ->setNombres($guia->conductor_nombres)
+                ->setApellidos($guia->conductor_apellidos)
+                ->setLicencia($guia->conductor_licencia);
+            $shipment->setChoferes([$driver]);
+        }
+
+        if ($guia->vehiculo_placa) {
+            $shipment->setVehiculo((new Vehicle())->setPlaca($guia->vehiculo_placa));
+        }
+
+        $details = [];
+        foreach ($guia->detalles as $item) {
+            $details[] = (new DespatchDetail())
+                ->setCodigo($item->codigo ?? 'P001')
+                ->setDescripcion($item->descripcion)
+                ->setUnidad($item->unidad ?? 'NIU')
+                ->setCantidad((float) $item->cantidad);
+        }
+
+        $despatch = (new Despatch())
+            ->setVersion('2022')
+            ->setTipoDoc('31') // GR Transportista
+            ->setSerie($guia->serie)
+            ->setCorrelativo((string) $guia->numero)
+            ->setFechaEmision($fechaEmision)
+            ->setCompany($company)
+            ->setDestinatario($destinatario)
+            ->setEnvio($shipment)
+            ->setDetails($details);
+
+        if ($remitente) {
+            $despatch->setTercero($remitente);
+        }
+
+        if ($guia->observaciones) {
+            $despatch->setObservacion($guia->observaciones);
+        }
+
+        $see = $this->getSee($empresa, 'guia');
+        $xmlContent = $see->getXmlSigned($despatch);
+        $nombreArchivo = $despatch->getName();
+
+        $this->guardarXml($empresa, $nombreArchivo, $xmlContent);
+
+        $hash = $this->getHashFromXml($xmlContent);
+
+        $guia->update([
+            'hash_cpe'   => $hash,
+            'xml_url'    => "sunat/xml/{$this->getRuc($empresa)}/{$nombreArchivo}.xml",
+            'nombre_xml' => $nombreArchivo,
+        ]);
+
+        return [
+            'success'        => true,
+            'nombre_archivo' => $nombreArchivo,
+            'hash'           => $hash,
+        ];
+    }
+
     public function enviarGuiaRemision(GuiaRemision $guia): array
     {
         $guia->load(['empresa']);

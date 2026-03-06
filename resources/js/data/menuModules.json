@@ -50,10 +50,10 @@
           "path": "/guia-remision"
         },
         {
-          "id": "transportistas",
-          "name": "Transportistas",
+          "id": "guias-remision-transportista",
+          "name": "GR Transportista",
           "icon": "Truck",
-          "path": "/facturacion/transportistas"
+          "path": "/guia-remision-transportista"
         }
       ]
     },

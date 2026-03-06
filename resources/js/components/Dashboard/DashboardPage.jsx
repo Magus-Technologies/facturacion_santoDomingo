@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DollarSign, ShoppingCart, TrendingUp, Users, AlertCircle, Wallet, Package, Tag, Layers, CalendarDays, BarChart2, UserCheck, Clock, AlertTriangle } from 'lucide-react';
+import { DollarSign, ShoppingCart, TrendingUp, Users, Package, Tag, Layers, CalendarDays, BarChart2, UserCheck, AlertTriangle } from 'lucide-react';
 import { useDashboardFilters } from './hooks/useDashboardFilters';
 import DashboardFilters from './components/DashboardFilters';
 import KPICard from './components/KPICard';
@@ -22,12 +22,9 @@ import {
 const TABS = [
     { id: 'resumen', label: 'Resumen', icon: TrendingUp },
     { id: 'rentabilidad', label: 'Rentabilidad', icon: BarChart2 },
-    { id: 'clientes', label: 'Clientes', icon: UserCheck },
-    { id: 'vendedores', label: 'Vendedores', icon: Users },
+    { id: 'clientes', label: 'Clientes & Equipo', icon: UserCheck },
     { id: 'productos', label: 'Productos', icon: Package },
-    { id: 'marcas', label: 'Marcas', icon: Tag },
-    { id: 'categorias', label: 'Categorías', icon: Layers },
-    { id: 'fechas', label: 'Top Fechas', icon: CalendarDays },
+    { id: 'inventario', label: 'Inventario', icon: AlertTriangle },
 ];
 
 export default function DashboardPage() {
@@ -378,62 +375,6 @@ export default function DashboardPage() {
                                     change={stats.transacciones_cambio || 0}
                                     icon={Users}
                                 />
-                                <KPICard
-                                    title="Cajas Abiertas"
-                                    value={parseInt(stats.cajas_abiertas) || 0}
-                                    icon={Wallet}
-                                />
-                                <KPICard
-                                    title="Diferencias Pendientes"
-                                    value={parseInt(stats.diferencias_pendientes) || 0}
-                                    icon={AlertCircle}
-                                />
-                                <KPICard
-                                    title="Cuentas por Cobrar"
-                                    value={`S/. ${(parseFloat(stats.cuentas_cobrar) || 0).toFixed(2)}`}
-                                    icon={DollarSign}
-                                />
-                                <KPICard
-                                    title="Métodos de Pago"
-                                    value={parseInt(stats.total_metodos) || 0}
-                                    icon={ShoppingCart}
-                                />
-                            </div>
-                        )}
-
-                        {/* Alerta de Stock Bajo */}
-                        {stockBajoTotal > 0 && (
-                            <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-5">
-                                <div className="flex items-start gap-4">
-                                    <div className="p-2.5 rounded-xl bg-red-100">
-                                        <AlertTriangle className="h-5 w-5 text-red-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <h3 className="font-bold text-red-800">⚠️ Alerta de Stock Bajo</h3>
-                                            <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white text-xs font-bold">{stockBajoTotal} productos</span>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                            {stockBajo.slice(0, 6).map((prod, i) => (
-                                                <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${prod.urgente ? 'bg-red-100 border border-red-300' : 'bg-yellow-50 border border-yellow-200'}`}>
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                        {prod.urgente
-                                                            ? <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-                                                            : <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
-                                                        }
-                                                        <span className="text-sm font-medium text-gray-800 truncate">{prod.nombre}</span>
-                                                    </div>
-                                                    <span className={`text-sm font-bold ml-2 flex-shrink-0 ${prod.urgente ? 'text-red-700' : 'text-yellow-700'}`}>
-                                                        {prod.cantidad} uds
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {stockBajoTotal > 6 && (
-                                            <p className="mt-2 text-xs text-red-600 font-medium">+{stockBajoTotal - 6} productos más con stock bajo. Ve al tab <strong>Vendedores</strong> para el detalle completo.</p>
-                                        )}
-                                    </div>
-                                </div>
                             </div>
                         )}
 
@@ -606,54 +547,29 @@ export default function DashboardPage() {
                                 </div>
                             </>
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                                <UserCheck className="h-12 w-12 mb-3 opacity-30" />
-                                <p className="font-medium">No hay datos de clientes para este período</p>
+                            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                                <UserCheck className="h-10 w-10 mb-2 opacity-30" />
+                                <p className="text-sm font-medium">No hay datos de clientes para este período</p>
                             </div>
                         )}
-                    </div>
-                );
 
-            case 'vendedores':
-                return (
-                    <div className="space-y-6">
-                        {/* Charts lado a lado */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {vendedores.length > 0 && <VendedoresChart data={vendedores} />}
-                            {ventasPorHora.length > 0 && <VentasPorHoraChart data={ventasPorHora} />}
-                        </div>
-
-                        {/* Tabla Vendedores */}
+                        {/* Equipo de Vendedores */}
                         {vendedores.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h3 className="text-lg font-bold text-gray-900">Rendimiento por Vendedor</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">Métricas de ventas individuales en el período</p>
+                            <div className="pt-6 border-t border-gray-100 space-y-4">
+                                <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-red-600" /> Rendimiento del Equipo
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <VendedoresChart data={vendedores} />
+                                    {ventasPorHora.length > 0 && <VentasPorHoraChart data={ventasPorHora} />}
                                 </div>
-                                <DataTable columns={vendedoresColumns} data={vendedores} pageSize={10} />
-                            </div>
-                        )}
-
-                        {/* Tabla Stock Bajo completa */}
-                        {stockBajo.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-red-100 bg-red-50/40">
-                                    <div className="flex items-center gap-3">
-                                        <AlertTriangle className="h-5 w-5 text-red-600" />
-                                        <div>
-                                            <h3 className="text-lg font-bold text-gray-900">Productos con Stock Bajo</h3>
-                                            <p className="text-sm text-red-500 mt-0.5">{stockBajo.filter(p => p.urgente).length} urgentes · {stockBajo.length} total con stock bajo</p>
-                                        </div>
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                    <div className="p-4 border-b border-gray-100">
+                                        <h3 className="text-sm font-bold text-gray-900">Rendimiento por Vendedor</h3>
+                                        <p className="text-xs text-gray-400 mt-0.5">Métricas individuales en el período</p>
                                     </div>
+                                    <DataTable columns={vendedoresColumns} data={vendedores} pageSize={10} />
                                 </div>
-                                <DataTable columns={stockBajoColumns} data={stockBajo} pageSize={10} />
-                            </div>
-                        )}
-
-                        {vendedores.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                                <Users className="h-12 w-12 mb-3 opacity-30" />
-                                <p className="font-medium">No hay datos de vendedores para este período</p>
                             </div>
                         )}
                     </div>
@@ -661,136 +577,114 @@ export default function DashboardPage() {
 
             case 'productos':
                 return (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {topProductos.length > 0 && <TopProductosChart data={topProductos} />}
-                            {topCategorias.length > 0 && <TopCategoriasChart data={topCategorias} />}
-                        </div>
+                    <div className="space-y-8">
+                        {/* Top Productos */}
                         {topProductos.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h3 className="text-lg font-bold text-gray-900">Ranking de Productos</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">Productos con mayor cantidad de ventas en el período</p>
-                                </div>
-                                <DataTable
-                                    columns={productosTableColumns}
-                                    data={topProductos}
-                                    pageSize={10}
-                                />
-                            </div>
-                        )}
-                    </div>
-                );
-
-            case 'marcas':
-                return (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {topMarcas.length > 0 && <TopMarcasChart data={topMarcas} />}
-                            {topMarcas.length > 0 && (
-                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">Detalle por Marca</h3>
-                                    <p className="text-sm text-gray-400 mb-4">Métricas clave por marca/categoría</p>
-                                    <div className="space-y-3">
-                                        {topMarcas.map((marca, index) => (
-                                            <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/50 hover:bg-red-50/50 transition-colors">
-                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0">
-                                                    {index + 1}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-gray-900 truncate">{marca.categoria}</p>
-                                                    <p className="text-xs text-gray-400">{marca.cantidad_total} uds · {marca.total_ventas} ventas</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="font-bold text-red-700">S/. {parseFloat(marca.monto_total).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                            <div className="space-y-4">
+                                <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                    <Package className="h-4 w-4 text-red-600" /> Top Productos
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <TopProductosChart data={topProductos} />
+                                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                        <div className="p-4 border-b border-gray-100">
+                                            <h3 className="text-sm font-bold text-gray-900">Ranking de Productos</h3>
+                                        </div>
+                                        <DataTable columns={productosTableColumns} data={topProductos} pageSize={8} />
                                     </div>
                                 </div>
-                            )}
-                        </div>
-                        {topMarcas.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h3 className="text-lg font-bold text-gray-900">Tabla de Marcas</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">Desempeño completo por marca</p>
-                                </div>
-                                <DataTable
-                                    columns={categoriasTableColumns}
-                                    data={topMarcas}
-                                    pageSize={10}
-                                />
                             </div>
                         )}
-                    </div>
-                );
 
-            case 'categorias':
-                return (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {topCategorias.length > 0 && <TopCategoriasChart data={topCategorias} />}
-                            {topCategorias.length > 0 && (
-                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">Resumen de Categorías</h3>
-                                    <p className="text-sm text-gray-400 mb-4">Distribución de ventas por categoría</p>
-                                    <div className="space-y-3">
-                                        {topCategorias.map((cat, index) => {
-                                            const maxMonto = topCategorias[0]?.monto_total || 1;
-                                            const pct = (cat.monto_total / maxMonto * 100).toFixed(0);
-                                            return (
-                                                <div key={index} className="space-y-1.5">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium text-gray-700">{cat.categoria}</span>
-                                                        <span className="text-sm font-bold text-red-700">S/. {parseFloat(cat.monto_total).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                                    </div>
-                                                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full rounded-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-500"
-                                                            style={{ width: `${pct}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Categorías */}
                         {topCategorias.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h3 className="text-lg font-bold text-gray-900">Tabla de Categorías</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">Detalle completo por categoría</p>
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                    <Layers className="h-4 w-4 text-red-600" /> Categorías
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <TopCategoriasChart data={topCategorias} />
+                                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                        <div className="p-4 border-b border-gray-100">
+                                            <h3 className="text-sm font-bold text-gray-900">Detalle por Categoría</h3>
+                                        </div>
+                                        <DataTable columns={categoriasTableColumns} data={topCategorias} pageSize={8} />
+                                    </div>
                                 </div>
-                                <DataTable
-                                    columns={categoriasTableColumns}
-                                    data={topCategorias}
-                                    pageSize={10}
-                                />
+                            </div>
+                        )}
+
+                        {/* Marcas */}
+                        {topMarcas.length > 0 && (
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                    <Tag className="h-4 w-4 text-red-600" /> Marcas
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <TopMarcasChart data={topMarcas} />
+                                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                        <div className="p-4 border-b border-gray-100">
+                                            <h3 className="text-sm font-bold text-gray-900">Detalle por Marca</h3>
+                                        </div>
+                                        <DataTable columns={categoriasTableColumns} data={topMarcas} pageSize={8} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Mejores Días */}
+                        {topFechas.length > 0 && (
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                    <CalendarDays className="h-4 w-4 text-red-600" /> Mejores Días
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <TopFechasChart data={topFechas} />
+                                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                        <div className="p-4 border-b border-gray-100">
+                                            <h3 className="text-sm font-bold text-gray-900">Días con Mayor Facturación</h3>
+                                        </div>
+                                        <DataTable columns={fechasTableColumns} data={topFechas} pageSize={8} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {topProductos.length === 0 && topCategorias.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                                <Package className="h-10 w-10 mb-2 opacity-30" />
+                                <p className="text-sm font-medium">No hay datos de productos para este período</p>
                             </div>
                         )}
                     </div>
                 );
 
-            case 'fechas':
+            case 'inventario':
                 return (
                     <div className="space-y-6">
-                        <div className="grid grid-cols-1 gap-6">
-                            {topFechas.length > 0 && <TopFechasChart data={topFechas} />}
-                        </div>
-                        {topFechas.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h3 className="text-lg font-bold text-gray-900">Días con Mayor Facturación</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">Ranking de fechas por monto total vendido</p>
+                        {stockBajo.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <KPICard title="Total con Stock Bajo" value={stockBajoTotal} icon={AlertTriangle} />
+                                    <KPICard title="Urgentes (Stock = 0)" value={stockBajo.filter(p => p.urgente).length} icon={AlertTriangle} />
+                                    <KPICard title="Advertencia" value={stockBajo.filter(p => !p.urgente).length} icon={Package} />
                                 </div>
-                                <DataTable
-                                    columns={fechasTableColumns}
-                                    data={topFechas}
-                                    pageSize={10}
-                                />
+                                <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+                                    <div className="p-4 border-b border-red-100 bg-red-50/40 flex items-center gap-3">
+                                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                                        <div>
+                                            <h3 className="text-sm font-bold text-gray-900">Productos con Stock Bajo</h3>
+                                            <p className="text-xs text-red-500">{stockBajo.filter(p => p.urgente).length} urgentes · {stockBajo.length} total</p>
+                                        </div>
+                                    </div>
+                                    <DataTable columns={stockBajoColumns} data={stockBajo} pageSize={15} />
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                                <Package className="h-12 w-12 mb-3 opacity-30" />
+                                <p className="font-medium">Todos los productos tienen stock suficiente</p>
+                                <p className="text-sm mt-1">No hay alertas de inventario pendientes</p>
                             </div>
                         )}
                     </div>
@@ -839,7 +733,7 @@ export default function DashboardPage() {
                                 <TabIcon className="h-4 w-4" />
                                 {tab.label}
                                 {/* Badge para stock bajo en tab Vendedores */}
-                                {tab.id === 'vendedores' && stockBajoTotal > 0 && (
+                                {tab.id === 'inventario' && stockBajoTotal > 0 && (
                                     <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/30 text-white' : 'bg-red-500 text-white'}`}>
                                         {stockBajoTotal}
                                     </span>

@@ -16,7 +16,7 @@ export default function DataTable({ columns, data, pageSize = 10 }) {
                         {columns.map((column) => (
                             <th
                                 key={column.accessorKey}
-                                className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                                className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
                                 {column.header}
                             </th>
@@ -27,7 +27,7 @@ export default function DataTable({ columns, data, pageSize = 10 }) {
                     {paginatedData.map((row, rowIndex) => (
                         <tr key={rowIndex} className="hover:bg-gray-50 transition-colors">
                             {columns.map((column) => (
-                                <td key={column.accessorKey} className="px-6 py-4 text-sm text-gray-900">
+                                <td key={column.accessorKey} className="px-4 py-2 text-xs text-gray-900">
                                     {column.cell
                                         ? column.cell({ row: { original: row, index: startIndex + rowIndex } })
                                         : row[column.accessorKey]}

@@ -1,4 +1,4 @@
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Monochromatic red palette from Santo Domingo brand
 const RED_PALETTE = ['#c7161d', '#e63946', '#f07167', '#f4845f', '#f8961e', '#f9c74f'];
@@ -32,21 +32,27 @@ export function VentasPorDiaChart({ data }) {
     return (
         <div className={chartCardStyle}>
             <h3 className={chartTitleStyle}>Ventas por Día</h3>
-            <p className={chartSubtitleStyle}>Evolución de ventas diarias</p>
+            <p className={chartSubtitleStyle}>Período actual vs período anterior</p>
             <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data}>
+                <AreaChart data={data}>
                     <defs>
-                        <linearGradient id="ventasGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#c7161d" stopOpacity={0.15} />
-                            <stop offset="100%" stopColor="#c7161d" stopOpacity={0} />
+                        <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#c7161d" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="#c7161d" stopOpacity={0.02} />
+                        </linearGradient>
+                        <linearGradient id="gradAnterior" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#9ca3af" stopOpacity={0.2} />
+                            <stop offset="100%" stopColor="#9ca3af" stopOpacity={0.02} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-                    <XAxis dataKey="fecha" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="fecha" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="total" stroke="#c7161d" strokeWidth={3} dot={{ fill: '#c7161d', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#c7161d', stroke: '#fff', strokeWidth: 3 }} name="Ventas" />
-                </LineChart>
+                    <Legend iconType="circle" />
+                    <Area type="monotone" dataKey="total_anterior" name="Período anterior" stroke="#9ca3af" strokeWidth={1.5} strokeDasharray="5 3" fill="url(#gradAnterior)" dot={false} activeDot={{ r: 4, fill: '#9ca3af', stroke: '#fff', strokeWidth: 2 }} />
+                    <Area type="monotone" dataKey="total" name="Período actual" stroke="#c7161d" strokeWidth={2.5} fill="url(#gradActual)" dot={false} activeDot={{ r: 6, fill: '#c7161d', stroke: '#fff', strokeWidth: 3 }} />
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
@@ -85,17 +91,27 @@ export function IngresosEgresosChart({ data }) {
     return (
         <div className={chartCardStyle}>
             <h3 className={chartTitleStyle}>Ingresos vs Egresos</h3>
-            <p className={chartSubtitleStyle}>Comparativa de flujo de caja</p>
+            <p className={chartSubtitleStyle}>Flujo de caja acumulado por período</p>
             <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data} barGap={4}>
+                <AreaChart data={data}>
+                    <defs>
+                        <linearGradient id="gradIngresos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#c7161d" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="#c7161d" stopOpacity={0.02} />
+                        </linearGradient>
+                        <linearGradient id="gradEgresos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#fca5a5" stopOpacity={0.35} />
+                            <stop offset="100%" stopColor="#fca5a5" stopOpacity={0.02} />
+                        </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
                     <XAxis dataKey="fecha" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" />
-                    <Bar dataKey="ingresos" fill="#c7161d" name="Ingresos" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="egresos" fill="#fca5a5" name="Egresos" radius={[6, 6, 0, 0]} />
-                </BarChart>
+                    <Area type="monotone" dataKey="ingresos" name="Ingresos" stroke="#c7161d" strokeWidth={2.5} fill="url(#gradIngresos)" dot={false} activeDot={{ r: 5, fill: '#c7161d', stroke: '#fff', strokeWidth: 2 }} />
+                    <Area type="monotone" dataKey="egresos" name="Egresos" stroke="#f07167" strokeWidth={2} fill="url(#gradEgresos)" dot={false} activeDot={{ r: 5, fill: '#f07167', stroke: '#fff', strokeWidth: 2 }} />
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
@@ -246,68 +262,100 @@ export function GananciaVsIngresoChart({ data }) {
 }
 
 export function TopClientesChart({ data }) {
+    const top5 = data.slice(0, 5);
     return (
         <div className={chartCardStyle}>
-            <h3 className={chartTitleStyle}>Top Clientes</h3>
-            <p className={chartSubtitleStyle}>Clientes con mayor monto de compras</p>
-            <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data} layout="vertical" barSize={20}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-                    <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis dataKey="nombre" type="category" width={140} tick={{ fill: '#4b5563', fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="monto_total" name="Monto Total" radius={[0, 6, 6, 0]}>
-                        {data.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={RED_GRADIENT[index % RED_GRADIENT.length]} />
-                        ))}
-                    </Bar>
-                </BarChart>
-            </ResponsiveContainer>
+            <h3 className={chartTitleStyle}>Concentración de Clientes</h3>
+            <p className={chartSubtitleStyle}>Share de ventas por cliente (top 5)</p>
+            {top5.length === 0 ? (
+                <div className="flex items-center justify-center h-[450px] text-gray-400">
+                    <p>No hay datos de clientes para este período</p>
+                </div>
+            ) : (
+                <ResponsiveContainer width="100%" height={450}>
+                    <PieChart>
+                        <Pie
+                            data={top5}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={55}
+                            outerRadius={95}
+                            fill="#c7161d"
+                            dataKey="monto_total"
+                            nameKey="nombre"
+                            paddingAngle={3}
+                            label={({ nombre, percent }) => `${nombre} ${(percent * 100).toFixed(0)}%`}
+                        >
+                            {top5.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={RED_PALETTE[index % RED_PALETTE.length]} stroke="none" />
+                            ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                </ResponsiveContainer>
+            )}
         </div>
     );
 }
 
 export function VentasPorHoraChart({ data }) {
-    // Solo mostrar horas con actividad o rango laboral (6–22)
     const dataFiltrada = data.filter(d => d.hora >= 6 && d.hora <= 22);
     return (
         <div className={chartCardStyle}>
             <h3 className={chartTitleStyle}>Ventas por Hora del Día</h3>
-            <p className={chartSubtitleStyle}>Distribución de transacciones por franja horaria</p>
+            <p className={chartSubtitleStyle}>Curva de actividad comercial por franja horaria</p>
             <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={dataFiltrada} barSize={24}>
+                <AreaChart data={dataFiltrada}>
+                    <defs>
+                        <linearGradient id="gradHora" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#c7161d" stopOpacity={0.3} />
+                            <stop offset="100%" stopColor="#c7161d" stopOpacity={0.02} />
+                        </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
                     <XAxis dataKey="hora_label" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip prefix="" />} />
-                    <Bar dataKey="total_ventas" name="Transacciones" radius={[6, 6, 0, 0]}>
-                        {dataFiltrada.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.total_ventas === Math.max(...dataFiltrada.map(d => d.total_ventas)) ? '#c7161d' : '#fca5a5'} />
-                        ))}
-                    </Bar>
-                </BarChart>
+                    <Area type="monotone" dataKey="total_ventas" name="Transacciones" stroke="#c7161d" strokeWidth={2.5} fill="url(#gradHora)" dot={{ fill: '#c7161d', r: 3, stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#c7161d', stroke: '#fff', strokeWidth: 2 }} />
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
 }
 
 export function VendedoresChart({ data }) {
+    // Normalizar valores para radar (0–100 relativo al máximo)
+    const maxMonto = Math.max(...data.map(d => d.monto_total || 0), 1);
+    const maxTickets = Math.max(...data.map(d => d.total_ventas || 0), 1);
+    const maxPromedio = Math.max(...data.map(d => d.ticket_promedio || 0), 1);
+    const radarData = [
+        { metric: 'Monto', ...Object.fromEntries(data.map(d => [d.vendedor, Math.round((d.monto_total / maxMonto) * 100)])) },
+        { metric: 'Tickets', ...Object.fromEntries(data.map(d => [d.vendedor, Math.round(((d.total_ventas || 0) / maxTickets) * 100)])) },
+        { metric: 'Promedio', ...Object.fromEntries(data.map(d => [d.vendedor, Math.round(((d.ticket_promedio || 0) / maxPromedio) * 100)])) },
+    ];
     return (
         <div className={chartCardStyle}>
             <h3 className={chartTitleStyle}>Rendimiento por Vendedor</h3>
-            <p className={chartSubtitleStyle}>Monto total vendido por cada vendedor</p>
-            <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data} layout="vertical" barSize={22}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-                    <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis dataKey="vendedor" type="category" width={130} tick={{ fill: '#4b5563', fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="monto_total" name="Monto Total" radius={[0, 6, 6, 0]}>
-                        {data.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={RED_GRADIENT[index % RED_GRADIENT.length]} />
-                        ))}
-                    </Bar>
-                </BarChart>
+            <p className={chartSubtitleStyle}>Comparativa multidimensional (monto, tickets, ticket promedio)</p>
+            <ResponsiveContainer width="100%" height={320}>
+                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius={100}>
+                    <PolarGrid stroke="#f3f4f6" />
+                    <PolarAngleAxis dataKey="metric" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                    {data.slice(0, 4).map((vendedor, index) => (
+                        <Radar
+                            key={vendedor.vendedor}
+                            name={vendedor.vendedor}
+                            dataKey={vendedor.vendedor}
+                            stroke={RED_PALETTE[index % RED_PALETTE.length]}
+                            fill={RED_PALETTE[index % RED_PALETTE.length]}
+                            fillOpacity={0.15}
+                            strokeWidth={2}
+                        />
+                    ))}
+                    <Legend iconType="circle" iconSize={8} />
+                    <Tooltip formatter={(v, name) => [`${v}`, name]} />
+                </RadarChart>
             </ResponsiveContainer>
         </div>
     );

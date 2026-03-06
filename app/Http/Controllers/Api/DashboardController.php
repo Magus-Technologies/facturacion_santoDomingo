@@ -19,34 +19,51 @@ class DashboardController extends Controller
     public function stats(Request $request)
     {
         $fechaInicio = $request->query('fecha_inicio', now()->subDays(7)->format('Y-m-d'));
-        $fechaFin = $request->query('fecha_fin', now()->format('Y-m-d'));
-        $empresaId = $request->query('empresa_id');
+        $fechaFin    = $request->query('fecha_fin', now()->format('Y-m-d'));
+        $empresaId   = $request->query('empresa_id');
 
+        // Período actual
         $query = Venta::whereBetween('fecha_emision', [$fechaInicio, $fechaFin])->activas();
         if ($empresaId) $query->where('id_empresa', $empresaId);
+        $ventasTotales      = (float) ($query->sum('total') ?? 0);
+        $totalTransacciones = (int)   $query->count();
+        $ticketPromedio     = $totalTransacciones > 0 ? $ventasTotales / $totalTransacciones : 0;
 
-        $ventasTotales = (float) ($query->sum('total') ?? 0);
-        $totalTransacciones = (int) $query->count();
-        $ticketPromedio = $totalTransacciones > 0 ? $ventasTotales / $totalTransacciones : 0;
+        // Período anterior (misma duración)
+        $inicio        = Carbon::parse($fechaInicio);
+        $fin           = Carbon::parse($fechaFin);
+        $dias          = $inicio->diffInDays($fin) + 1;
+        $antInicio     = $inicio->copy()->subDays($dias)->format('Y-m-d');
+        $antFin        = $inicio->copy()->subDays(1)->format('Y-m-d');
+
+        $queryAnt = Venta::whereBetween('fecha_emision', [$antInicio, $antFin])->activas();
+        if ($empresaId) $queryAnt->where('id_empresa', $empresaId);
+        $antVentas      = (float) ($queryAnt->sum('total') ?? 0);
+        $antTrans       = (int)   $queryAnt->count();
+        $antTicket      = $antTrans > 0 ? $antVentas / $antTrans : 0;
+
+        $pct = fn($actual, $anterior) => $anterior > 0
+            ? round((($actual - $anterior) / $anterior) * 100, 1)
+            : ($actual > 0 ? 100 : 0);
 
         $cajasAbiertas = (int) Caja::where('estado', 'abierta')->count();
-        $diferenciasP = (int) Caja::where('estado', 'pendiente_validacion')->count();
+        $diferenciasP  = (int) Caja::where('estado', 'pendiente_validacion')->count();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'ventas_totales' => round($ventasTotales, 2),
-                'ingresos_netos' => round($ventasTotales * 0.95, 2),
-                'ticket_promedio' => round($ticketPromedio, 2),
-                'total_transacciones' => $totalTransacciones,
-                'cajas_abiertas' => $cajasAbiertas,
+                'ventas_totales'         => round($ventasTotales, 2),
+                'ingresos_netos'         => round($ventasTotales * 0.95, 2),
+                'ticket_promedio'        => round($ticketPromedio, 2),
+                'total_transacciones'    => $totalTransacciones,
+                'cajas_abiertas'         => $cajasAbiertas,
                 'diferencias_pendientes' => $diferenciasP,
-                'cuentas_cobrar' => 0,
-                'total_metodos' => (int) MetodoPago::count(),
-                'ventas_cambio' => 12,
-                'ingresos_cambio' => 8,
-                'ticket_cambio' => 5,
-                'transacciones_cambio' => 15
+                'cuentas_cobrar'         => 0,
+                'total_metodos'          => (int) MetodoPago::count(),
+                'ventas_cambio'          => $pct($ventasTotales, $antVentas),
+                'ingresos_cambio'        => $pct($ventasTotales * 0.95, $antVentas * 0.95),
+                'ticket_cambio'          => $pct($ticketPromedio, $antTicket),
+                'transacciones_cambio'   => $pct($totalTransacciones, $antTrans),
             ]
         ]);
     }
@@ -57,23 +74,46 @@ class DashboardController extends Controller
         $fechaFin = $request->query('fecha_fin', now()->format('Y-m-d'));
         $empresaId = $request->query('empresa_id');
 
+        // Período actual
         $query = Venta::selectRaw('DATE(fecha_emision) as fecha, SUM(total) as total')
             ->whereBetween('fecha_emision', [$fechaInicio, $fechaFin])
             ->activas();
-        
         if ($empresaId) $query->where('id_empresa', $empresaId);
+        $ventas = $query->groupBy('fecha')->orderBy('fecha')->get()
+            ->keyBy('fecha');
 
-        $ventas = $query->groupBy('fecha')
-            ->orderBy('fecha')
-            ->get()
-            ->map(function ($item) {
-                $item->total = (float) ($item->total ?? 0);
-                return $item;
-            });
+        // Período anterior (misma duración, desplazado hacia atrás)
+        $inicio = \Carbon\Carbon::parse($fechaInicio);
+        $fin = \Carbon\Carbon::parse($fechaFin);
+        $dias = $inicio->diffInDays($fin) + 1;
+        $anteriorInicio = $inicio->copy()->subDays($dias)->format('Y-m-d');
+        $anteriorFin = $inicio->copy()->subDays(1)->format('Y-m-d');
+
+        $queryAnt = Venta::selectRaw('DATE(fecha_emision) as fecha, SUM(total) as total')
+            ->whereBetween('fecha_emision', [$anteriorInicio, $anteriorFin])
+            ->activas();
+        if ($empresaId) $queryAnt->where('id_empresa', $empresaId);
+        $ventasAnt = $queryAnt->groupBy('fecha')->orderBy('fecha')->get()
+            ->values();
+
+        // Generar serie de días del período actual con total_anterior alineado por offset
+        $resultado = [];
+        $diasActuales = collect();
+        for ($i = 0; $i < $dias; $i++) {
+            $diasActuales->push($inicio->copy()->addDays($i)->format('Y-m-d'));
+        }
+
+        foreach ($diasActuales as $i => $fecha) {
+            $resultado[] = [
+                'fecha' => $fecha,
+                'total' => (float) ($ventas[$fecha]->total ?? 0),
+                'total_anterior' => (float) ($ventasAnt[$i]->total ?? 0),
+            ];
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $ventas
+            'data' => $resultado
         ]);
     }
 

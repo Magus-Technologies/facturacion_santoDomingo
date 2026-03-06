@@ -63,12 +63,29 @@ class CajaController extends BaseApiController
             return $this->notFound('Caja no encontrada.');
         }
 
-        $caja = $this->sesionService->abrir($caja, [
-            'saldo_inicial' => 0,
-            'tipo_apertura' => 'monto_fijo',
-        ], $request->user());
+        if ($caja->estado === CajaEstadoEnum::Activa->value) {
+            return $this->unprocessable('La caja ya está activa.');
+        }
 
-        return $this->success(new CajaResource($caja), 'Caja activada exitosamente.');
+        $caja->update(['estado' => CajaEstadoEnum::Activa->value]);
+
+        return $this->success(new CajaResource($caja), 'Caja activada.');
+    }
+
+    public function desactivar(Request $request, int $id): JsonResponse
+    {
+        $caja = $this->cajaService->obtener($id, $request->user()->id_empresa);
+        if (!$caja) {
+            return $this->notFound('Caja no encontrada.');
+        }
+
+        if ($caja->estado === CajaEstadoEnum::Inactiva->value) {
+            return $this->unprocessable('La caja ya está inactiva.');
+        }
+
+        $caja->update(['estado' => CajaEstadoEnum::Inactiva->value]);
+
+        return $this->success(new CajaResource($caja), 'Caja desactivada.');
     }
 
     public function abrir(CajaAperturaRequest $request, int $id): JsonResponse
@@ -79,41 +96,22 @@ class CajaController extends BaseApiController
         }
 
         $caja = $this->sesionService->abrir($caja, $request->validated(), $request->user());
-        return $this->success(new CajaResource($caja), 'Caja abierta exitosamente.');
+        return $this->success(new CajaResource($caja), 'Depósito registrado exitosamente.');
     }
 
     public function cierre(CajaCierreRequest $request, int $id): JsonResponse
     {
-        $caja = Caja::where('id_empresa', $request->user()->id_empresa)->find($id);
-        if (!$caja) {
-            return $this->notFound('Caja no encontrada.');
-        }
-
-        $caja = $this->sesionService->cerrar($caja, $request->validated(), $request->user());
-        return $this->success(new CajaResource($caja), 'Caja cerrada exitosamente.');
+        return $this->unprocessable('Operación no disponible.');
     }
 
     public function autorizarCierre(Request $request, int $id): JsonResponse
     {
-        $caja = Caja::where('id_empresa', $request->user()->id_empresa)->find($id);
-        if (!$caja) {
-            return $this->notFound('Caja no encontrada.');
-        }
-
-        $arqueo = $this->arqueoService->crearArqueo($caja, $request->user());
-        $caja   = $this->sesionService->autorizarCierre($caja, $request->user());
-        return $this->success(['caja' => new CajaResource($caja), 'arqueo_id' => $arqueo->id_arqueo], 'Cierre autorizado.');
+        return $this->unprocessable('Operación no disponible.');
     }
 
     public function rechazarCierre(Request $request, int $id): JsonResponse
     {
-        $caja = Caja::where('id_empresa', $request->user()->id_empresa)->find($id);
-        if (!$caja) {
-            return $this->notFound('Caja no encontrada.');
-        }
-
-        $caja = $this->sesionService->rechazarCierre($caja, $request->user());
-        return $this->success(new CajaResource($caja), 'Cierre rechazado. Caja reabierta.');
+        return $this->unprocessable('Operación no disponible.');
     }
 
     // ─── Movimientos ──────────────────────────────────────────────────────────
@@ -134,8 +132,8 @@ class CajaController extends BaseApiController
             return $this->notFound('Caja no encontrada.');
         }
 
-        if ($caja->estado !== CajaEstadoEnum::Abierta->value) {
-            return $this->unprocessable('La caja no está abierta.');
+        if ($caja->estado !== CajaEstadoEnum::Activa->value) {
+            return $this->unprocessable('La caja no está activa.');
         }
 
         $movimiento = $caja->movimientos()->create([
@@ -152,7 +150,7 @@ class CajaController extends BaseApiController
     public function cajaActiva(Request $request): JsonResponse
     {
         $caja = Caja::where('id_empresa', $request->user()->id_empresa)
-            ->where('estado', CajaEstadoEnum::Abierta->value)
+            ->where('estado', CajaEstadoEnum::Activa->value)
             ->with('metodosPago')
             ->first();
 

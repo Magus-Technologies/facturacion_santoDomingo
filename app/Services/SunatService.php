@@ -29,7 +29,6 @@ use Greenter\Model\Summary\SummaryDetail;
 use Greenter\Model\Voided\Voided;
 use Greenter\Model\Voided\VoidedDetail;
 use Greenter\See;
-use Greenter\Ws\Services\SunatEndpoints;
 use Greenter\Sunat\GRE\Api\AuthApi;
 use Greenter\Sunat\GRE\Api\CpeApi;
 use Greenter\Sunat\GRE\Configuration;

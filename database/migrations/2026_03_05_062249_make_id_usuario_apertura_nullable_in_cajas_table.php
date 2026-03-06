@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('cajas', function (Blueprint $table) {
             // id_usuario (quien abre la caja) y fecha_apertura son null
             // hasta que la caja sea abierta por primera vez
-            $table->unsignedBigInteger('id_usuario')->nullable()->change();
+            $table->unsignedBigInteger('id_usuario_apertura')->nullable()->change();
             $table->dateTime('fecha_apertura')->nullable()->change();
         });
     }
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('cajas', function (Blueprint $table) {
-            $table->unsignedBigInteger('id_usuario')->nullable(false)->change();
+            $table->unsignedBigInteger('id_usuario_apertura')->nullable(false)->change();
             $table->dateTime('fecha_apertura')->nullable(false)->change();
         });
     }

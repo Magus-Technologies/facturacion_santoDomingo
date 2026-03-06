@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const TIPOS = ['Deposito', 'Retiro', 'Transferencia Entrada', 'Transferencia Salida', 'Pago', 'Interes', 'Comision', 'Otro'];
 
@@ -28,7 +29,7 @@ export default function MovimientoBancarioModal({ isOpen, onClose, cuentaId, mon
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cuentas-bancarias/${cuentaId}/movimientos`, {
+            const res = await fetch(baseUrl(`/api/cuentas-bancarias/${cuentaId}/movimientos`), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,

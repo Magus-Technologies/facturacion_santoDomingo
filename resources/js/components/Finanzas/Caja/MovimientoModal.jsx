@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const TIPOS = ['Ingreso', 'Egreso'];
 const CONCEPTOS = {
@@ -34,7 +35,7 @@ export default function MovimientoModal({ isOpen, onClose, cajaId, onSuccess }) 
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${cajaId}/movimientos`, {
+            const res = await fetch(baseUrl(`/api/cajas/${cajaId}/movimientos`), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,

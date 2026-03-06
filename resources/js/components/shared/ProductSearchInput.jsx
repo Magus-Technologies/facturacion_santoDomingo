@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Loader2, Package, ScanBarcode } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { baseUrl } from "@/lib/baseUrl";
 
 // Resalta las coincidencias del término de búsqueda en el texto
 function HighlightMatch({ text, query }) {
@@ -70,7 +71,7 @@ export default function ProductSearchInput({
 
             // Buscar en productos
             const response = await fetch(
-                `/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}${soloConStock ? '&solo_con_stock=1' : ''}`,
+                baseUrl(`/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}${soloConStock ? '&solo_con_stock=1' : ''}`),
                 { headers },
             );
 
@@ -203,7 +204,7 @@ export default function ProductSearchInput({
                             {/* Imagen del producto */}
                             {product.imagen ? (
                                 <img
-                                    src={`/storage/productos/${product.imagen}`}
+                                    src={baseUrl(`/storage/productos/${product.imagen}`)}
                                     alt={product.nombre}
                                     className="w-12 h-12 object-cover rounded-md flex-shrink-0"
                                     onError={(e) => {

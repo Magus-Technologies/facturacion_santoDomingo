@@ -21,6 +21,7 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select";
+import { baseUrl } from "@/lib/baseUrl";
 
 const MESES = [
     { value: "1", label: "Enero" },
@@ -112,7 +113,7 @@ export default function VentasActionButtons({ onNuevaVenta }) {
     const getUrlNueva = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const tipoParam = urlParams.get('tipo');
-        return tipoParam ? `/ventas/productos?tipo=${tipoParam}` : '/ventas/productos';
+        return tipoParam ? baseUrl(`/ventas/productos?tipo=${tipoParam}`) : baseUrl('/ventas/productos');
     };
 
     const descargarArchivo = async (url, nombreFallback) => {

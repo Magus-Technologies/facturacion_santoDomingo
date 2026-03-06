@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { toast } from "@/lib/sweetalert";
 import { Loader2 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
     const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export default function UnidadQuickModal({ isOpen, onClose, onSuccess }) {
 
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/unidades", {
+            const response = await fetch(baseUrl("/api/unidades"), {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

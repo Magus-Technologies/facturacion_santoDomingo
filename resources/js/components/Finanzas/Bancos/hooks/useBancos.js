@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
 import { confirmDelete } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useBancos = () => {
     const [bancos, setBancos] = useState([]);
@@ -15,7 +16,7 @@ export const useBancos = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const response = await fetch('/api/bancos', {
+            const response = await fetch(baseUrl('/api/bancos'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await response.json();
@@ -35,7 +36,7 @@ export const useBancos = () => {
             onConfirm: async () => {
                 try {
                     const token = localStorage.getItem('auth_token');
-                    const response = await fetch(`/api/bancos/${banco.id_banco}`, {
+                    const response = await fetch(baseUrl(`/api/bancos/${banco.id_banco}`), {
                         method: 'DELETE',
                         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
                     });

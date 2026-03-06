@@ -15,6 +15,7 @@ import PrintOptionsModal from "../shared/PrintOptionsModal";
 // Hook personalizado
 import { useCotizacionForm } from "./hooks/useCotizacionForm";
 import { getSimboloMoneda } from "./utils/cotizacionHelpers";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function CotizacionForm({ cotizacionId = null }) {
     const {
@@ -78,7 +79,7 @@ export default function CotizacionForm({ cotizacionId = null }) {
                     <div>
                         <nav className="text-sm text-gray-500 mb-2">
                             <a
-                                href="/cotizaciones"
+                                href={baseUrl("/cotizaciones")}
                                 className="hover:text-primary-600"
                             >
                                 Cotización
@@ -112,7 +113,7 @@ export default function CotizacionForm({ cotizacionId = null }) {
                         <Button
                             variant="outline"
                             onClick={() =>
-                                (window.location.href = "/cotizaciones")
+                                (window.location.href = baseUrl("/cotizaciones"))
                             }
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />

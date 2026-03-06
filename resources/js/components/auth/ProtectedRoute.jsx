@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Componente para proteger rutas completas
  * Redirige al dashboard si el usuario no tiene el permiso requerido
  */
-export default function ProtectedRoute({ children, permission, redirectTo = '/dashboard' }) {
+export default function ProtectedRoute({ children, permission, redirectTo = baseUrl('/dashboard') }) {
     const { hasPermission } = usePermissions();
 
     useEffect(() => {

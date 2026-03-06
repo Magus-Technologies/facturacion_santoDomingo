@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { baseUrl } from "@/lib/baseUrl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,7 +40,7 @@ export default function ConsultaComprobante() {
         setBuscado(false);
 
         try {
-            const res = await fetch("/consulta/buscar", {
+            const res = await fetch(baseUrl("/consulta/buscar"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -78,7 +79,7 @@ export default function ConsultaComprobante() {
                     <div className="text-center">
                         <div className="flex justify-center mb-4">
                             <img
-                                src="/images/logos/logo.svg"
+                                src={baseUrl("/images/logos/logo.svg")}
                                 alt="Logo"
                                 className="h-24 w-auto object-contain"
                             />

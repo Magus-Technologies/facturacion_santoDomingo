@@ -1,6 +1,7 @@
 import React from "react";
 import { Home, ArrowLeft, Search, FileQuestion } from "lucide-react";
 import { Button } from "./ui/button";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function NotFound() {
     return (
@@ -29,7 +30,7 @@ export default function NotFound() {
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Button
-                        onClick={() => (window.location.href = "/dashboard")}
+                        onClick={() => (window.location.href = baseUrl("/dashboard"))}
                         className="gap-2"
                         size="lg"
                     >

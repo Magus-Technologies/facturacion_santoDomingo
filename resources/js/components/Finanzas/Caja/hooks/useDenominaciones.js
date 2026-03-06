@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useDenominaciones = () => {
     const [denominaciones, setDenominaciones] = useState([]);
@@ -14,7 +15,7 @@ export const useDenominaciones = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/cajas/denominaciones', {
+            const res = await fetch(baseUrl('/api/cajas/denominaciones'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();

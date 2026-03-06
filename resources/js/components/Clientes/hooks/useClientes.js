@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast, confirmDelete } from '@/lib/sweetalert';
 import { getClienteInfoMessage } from '../utils/clienteHelpers';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Custom hook para manejar la lógica de la lista de clientes
@@ -24,7 +25,7 @@ export const useClientes = () => {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
 
-            const response = await fetch('/api/clientes', {
+            const response = await fetch(baseUrl('/api/clientes'), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',
@@ -61,7 +62,7 @@ export const useClientes = () => {
                     const token = localStorage.getItem('auth_token');
 
                     const response = await fetch(
-                        `/api/clientes/${cliente.id_cliente}`,
+                        baseUrl(`/api/clientes/${cliente.id_cliente}`),
                         {
                             method: 'DELETE',
                             headers: {

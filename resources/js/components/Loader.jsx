@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Loader Component - Pantalla de carga animada
@@ -21,7 +22,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
                 <div className="flex items-center justify-center gap-8">
                     {/* Logo 1 */}
                     <img
-                        src="/images/logos/Logo.svg"
+                        src={baseUrl("/images/logos/Logo.svg")}
                         alt="elidesava"
                         className="h-28 w-auto animate-pulse"
                     />
@@ -40,7 +41,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
             <div className="flex flex-col items-center justify-center gap-6">
                 <div className="relative">
                     <img
-                        src="/images/logos/Logofondo1.png"
+                        src={baseUrl("/images/logos/Logofondo1.png")}
                         alt="Loading"
                         className="h-32 w-auto animate-pulse"
                     />
@@ -58,12 +59,12 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
             <div className="flex flex-col items-center justify-center gap-6">
                 <div className="relative h-32 w-32">
                     <img
-                        src="/images/logos/Logofondo1.png"
+                        src={baseUrl("/images/logos/Logofondo1.png")}
                         alt="Loading"
                         className="absolute inset-0 h-full w-auto mx-auto animate-[fade_2s_ease-in-out_infinite]"
                     />
                     <img
-                        src="/images/logos/Logofondo2.png"
+                        src={baseUrl("/images/logos/Logofondo2.png")}
                         alt="Loading"
                         className="absolute inset-0 h-full w-auto mx-auto animate-[fade_2s_ease-in-out_infinite_1s]"
                     />
@@ -82,7 +83,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
                     </div>
                     {/* Logo */}
                     <img
-                        src="/images/logos/Logofondo1.png"
+                        src={baseUrl("/images/logos/Logofondo1.png")}
                         alt="Loading"
                         className="h-32 w-auto relative z-10"
                     />
@@ -95,7 +96,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
         bounce: (
             <div className="flex flex-col items-center justify-center gap-6">
                 <img
-                    src="/images/logos/Logofondo1.png"
+                    src={baseUrl("/images/logos/Logofondo1.png")}
                     alt="Loading"
                     className="h-32 w-auto animate-bounce"
                 />
@@ -113,7 +114,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
                 <div className="relative">
                     <div className="absolute inset-0 bg-primary-600/20 blur-3xl animate-pulse rounded-full"></div>
                     <img
-                        src="/images/logos/Logofondo1.png"
+                        src={baseUrl("/images/logos/Logofondo1.png")}
                         alt="Loading"
                         className="h-32 w-auto relative z-10 drop-shadow-[0_0_25px_rgba(46,33,122,0.5)] animate-pulse"
                     />
@@ -126,7 +127,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
         dots: (
             <div className="flex flex-col items-center justify-center gap-6">
                 <img
-                    src="/images/logos/Logofondo1.png"
+                    src={baseUrl("/images/logos/Logofondo1.png")}
                     alt="Loading"
                     className="h-32 w-auto"
                 />
@@ -143,7 +144,7 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
         progress: (
             <div className="flex flex-col items-center justify-center gap-6 w-full max-w-md px-8">
                 <img
-                    src="/images/logos/Logofondo1.png"
+                    src={baseUrl("/images/logos/Logofondo1.png")}
                     alt="Loading"
                     className="h-32 w-auto animate-pulse"
                 />

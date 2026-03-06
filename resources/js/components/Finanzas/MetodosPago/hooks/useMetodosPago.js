@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast, confirmDelete } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useMetodosPago = () => {
     const [metodos, setMetodos] = useState([]);
@@ -14,7 +15,7 @@ export const useMetodosPago = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const response = await fetch('/api/metodos-pago', {
+            const response = await fetch(baseUrl('/api/metodos-pago'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await response.json();
@@ -31,7 +32,7 @@ export const useMetodosPago = () => {
             onConfirm: async () => {
                 try {
                     const token = localStorage.getItem('auth_token');
-                    const response = await fetch(`/api/metodos-pago/${metodo.id_metodo_pago}`, {
+                    const response = await fetch(baseUrl(`/api/metodos-pago/${metodo.id_metodo_pago}`), {
                         method: 'DELETE',
                         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
                     });

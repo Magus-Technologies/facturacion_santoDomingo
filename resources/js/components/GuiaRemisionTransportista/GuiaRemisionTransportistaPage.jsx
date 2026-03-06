@@ -8,6 +8,7 @@ import { getGuiaRemisionTransportistaColumns } from './columns/guiaRemisionTrans
 import DetallesGuiaTransportistaModal from './DetallesGuiaTransportistaModal';
 import api from '@/services/api';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function GuiaRemisionTransportista() {
     const { guias, isLoading, error, refetch, enviandoId, enviarGuia, consultarTicket } =
@@ -27,13 +28,13 @@ export default function GuiaRemisionTransportista() {
     };
 
     const handleVerPdf = (guia) => {
-        window.open(`/reporteGR/a4.php?id=${guia.id}`, '_blank');
+        window.open(baseUrl(`/reporteGR/a4.php?id=${guia.id}`), '_blank');
     };
 
     const handleVerXml = (guia) => {
         if (!guia.nombre_xml) return;
         const token = localStorage.getItem('auth_token');
-        window.open(`/api/guias-remision-transportista/xml/${guia.nombre_xml}.xml?token=${token}`, '_blank');
+        window.open(baseUrl(`/api/guias-remision-transportista/xml/${guia.nombre_xml}.xml?token=${token}`), '_blank');
     };
 
     const handleDescargarCdr = async (guia) => {
@@ -108,7 +109,7 @@ export default function GuiaRemisionTransportista() {
                         </Button>
                     </div>
                     <Button
-                        onClick={() => (window.location.href = '/guia-remision-transportista/add')}
+                        onClick={() => (window.location.href = baseUrl('/guia-remision-transportista/add'))}
                         className="gap-2 ml-auto"
                     >
                         <Plus className="h-5 w-5" />

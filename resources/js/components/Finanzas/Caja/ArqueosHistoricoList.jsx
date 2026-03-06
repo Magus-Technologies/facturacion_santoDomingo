@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { DataTable } from '@/components/ui/data-table';
 import MainLayout from '@/components/Layout/MainLayout';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function ArqueosHistoricoList() {
     const [arqueos, setArqueos] = useState([]);
@@ -16,7 +17,7 @@ export default function ArqueosHistoricoList() {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/arqueos-diarios', {
+            const res = await fetch(baseUrl('/api/arqueos-diarios'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();

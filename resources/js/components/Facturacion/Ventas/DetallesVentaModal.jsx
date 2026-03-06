@@ -22,6 +22,7 @@ import {
     Image,
 } from "lucide-react";
 import { Button } from "../../ui/button";
+import { baseUrl } from "@/lib/baseUrl";
 
 const StatusBadge = ({ status }) => {
     const config = {
@@ -144,8 +145,8 @@ export default function DetallesVentaModal({ venta, isOpen, onClose }) {
     const handlePrint = (formato) => {
         const url =
             formato === "a4"
-                ? `/reporteNV/a4.php?id=${venta.id_venta}`
-                : `/reporteNV/ticket.php?id=${venta.id_venta}`;
+                ? baseUrl(`/reporteNV/a4.php?id=${venta.id_venta}`)
+                : baseUrl(`/reporteNV/ticket.php?id=${venta.id_venta}`);
         window.open(url, "_blank");
     };
 
@@ -331,7 +332,7 @@ export default function DetallesVentaModal({ venta, isOpen, onClose }) {
                                             {pago.voucher && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => window.open(`/storage/${pago.voucher}`, '_blank')}
+                                                    onClick={() => window.open(baseUrl(`/storage/${pago.voucher}`), '_blank')}
                                                     className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 font-medium mt-1"
                                                 >
                                                     <Image className="h-4 w-4" />

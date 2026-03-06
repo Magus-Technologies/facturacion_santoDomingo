@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function TransportistaAutocomplete({ 
   value, 
@@ -40,7 +41,7 @@ export default function TransportistaAutocomplete({
     setLoading(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`/api/transportistas?search=${encodeURIComponent(searchTerm)}`, {
+      const res = await fetch(baseUrl(`/api/transportistas?search=${encodeURIComponent(searchTerm)}`), {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',

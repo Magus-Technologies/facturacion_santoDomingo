@@ -8,6 +8,7 @@ import {
     Clock, Send, Shield, UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { baseUrl } from '@/lib/baseUrl';
 
 const estadoConfig = {
     pendiente: { text: 'Pendiente', variant: 'secondary',    icon: <Clock className="h-3 w-3" /> },
@@ -79,7 +80,7 @@ export default function DetallesGuiaTransportistaModal({ guia, isOpen, onClose, 
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.open(`/reporteGR/a4.php?id=${guia.id}`, '_blank')}
+                            onClick={() => window.open(baseUrl(`/reporteGR/a4.php?id=${guia.id}`), '_blank')}
                         >
                             <Printer className="h-4 w-4" />
                             Ver PDF

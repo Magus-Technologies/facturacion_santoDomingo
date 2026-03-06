@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { baseUrl } from '@/lib/baseUrl';
 window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -10,7 +11,7 @@ window.axios.interceptors.response.use(
         // Solo redirigir si NO estamos en la página de login
         if (error.response && error.response.status === 401 && !window.location.pathname.includes('/login')) {
             localStorage.removeItem('auth_token');
-            window.location.href = '/login';
+            window.location.href = baseUrl('/login');
         }
         return Promise.reject(error);
     }
@@ -24,7 +25,7 @@ window.fetch = async function () {
     // Solo redirigir si recibimos 401 Y NO estamos en la página de login
     if (response.status === 401 && !window.location.pathname.includes('/login')) {
         localStorage.removeItem('auth_token');
-        window.location.href = '/login';
+        window.location.href = baseUrl('/login');
         return new Promise(() => {}); // Detenemos la ejecución de este request para que no choque con la UI al redirigirse
     }
 

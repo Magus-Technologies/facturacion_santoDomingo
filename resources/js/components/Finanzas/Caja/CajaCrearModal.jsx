@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function CajaCrearModal({ isOpen, onClose, onSuccess }) {
     const [form, setForm] = useState({ nombre: '', descripcion: '', id_responsable: '' });
@@ -25,7 +26,7 @@ export default function CajaCrearModal({ isOpen, onClose, onSuccess }) {
     const fetchUsuarios = async () => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/users', {
+            const res = await fetch(baseUrl('/api/users'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -37,7 +38,7 @@ export default function CajaCrearModal({ isOpen, onClose, onSuccess }) {
         setLoadingMetodos(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/metodos-pago', {
+            const res = await fetch(baseUrl('/api/metodos-pago'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -71,7 +72,7 @@ export default function CajaCrearModal({ isOpen, onClose, onSuccess }) {
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/cajas', {
+            const res = await fetch(baseUrl('/api/cajas'), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,

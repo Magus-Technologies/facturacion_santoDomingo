@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import ResumenVentasPorMetodo from '../components/ResumenVentasPorMetodo';
 import ModalDetalleVentas from '../components/ModalDetalleVentas';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function CajaResumenCierreModal({ isOpen, caja, onClose, onProceedCierre }) {
     const [resumen, setResumen] = useState(null);
@@ -21,7 +22,7 @@ export default function CajaResumenCierreModal({ isOpen, caja, onClose, onProcee
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${caja.id_caja}/resumen`, {
+            const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/resumen`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();

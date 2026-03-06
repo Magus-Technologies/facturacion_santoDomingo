@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { consultarDocumento } from "@/services/apisPeru";
 import { toast } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 
 const TIPOS = [
     { key: "DNI", label: "DNI", codigo: "1" },
@@ -83,7 +84,7 @@ export default function ClienteAutocomplete({
         setLoading(true);
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/clientes?search=${encodeURIComponent(term)}`, {
+            const response = await fetch(baseUrl(`/api/clientes?search=${encodeURIComponent(term)}`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
             });
             const data = await response.json();

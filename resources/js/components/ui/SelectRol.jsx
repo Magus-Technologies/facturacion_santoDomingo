@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 import {
     Select,
     SelectContent,
@@ -28,7 +29,7 @@ export default function SelectRol({
         setLoading(true);
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/users/roles", {
+            const response = await fetch(baseUrl("/api/users/roles"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",

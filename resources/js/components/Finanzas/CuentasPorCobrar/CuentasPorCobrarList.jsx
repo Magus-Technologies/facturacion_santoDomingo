@@ -14,6 +14,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { useCuentasPorCobrar } from "./hooks/useCuentasPorCobrar";
 import { getCuentasCobrarColumns } from "./columns/cuentasCobrarColumns";
 import PagarCuotaModal from "./PagarCuotaModal";
+import { baseUrl } from "@/lib/baseUrl";
 
 const estadoFilters = [
     { key: "todos", label: "Todos", color: "bg-gray-100 text-gray-700", activeColor: "bg-gray-600 text-white" },
@@ -40,9 +41,9 @@ export default function CuentasPorCobrarList() {
 
         if (tipo === 'excel') {
             const token = localStorage.getItem('auth_token');
-            window.open(`/api/cuentas-por-cobrar/exportar-excel${queryStr}&token=${token}`, '_blank');
+            window.open(baseUrl(`/api/cuentas-por-cobrar/exportar-excel${queryStr}&token=${token}`), '_blank');
         } else {
-            window.open(`/cuentas-por-cobrar/descargar-pdf${queryStr}`, '_blank');
+            window.open(baseUrl(`/cuentas-por-cobrar/descargar-pdf${queryStr}`), '_blank');
         }
     };
 

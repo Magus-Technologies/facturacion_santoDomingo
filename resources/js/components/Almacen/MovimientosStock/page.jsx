@@ -3,6 +3,7 @@ import MainLayout from "../../Layout/MainLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Loader2, Filter, X, ArrowLeft } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 import { useMovimientosStock } from "./hooks/useMovimientosStock";
 import { getMovimientosColumns } from "./columns/movimientosColumns";
 
@@ -21,7 +22,7 @@ export default function MovimientosStockList() {
                 <div className="flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-3">
-                            <a href="/productos" className="text-gray-500 hover:text-gray-700">
+                            <a href={baseUrl("/productos")} className="text-gray-500 hover:text-gray-700">
                                 <ArrowLeft className="h-5 w-5" />
                             </a>
                             <div>

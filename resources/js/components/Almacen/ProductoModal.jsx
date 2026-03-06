@@ -13,6 +13,7 @@ import { toast } from "@/lib/sweetalert";
 import { Loader2, Image as ImageIcon, Plus } from "lucide-react";
 import CategoriaQuickModal from "./CategoriaQuickModal";
 import UnidadQuickModal from "./UnidadQuickModal";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ProductoModal({
     isOpen,
@@ -120,7 +121,7 @@ export default function ProductoModal({
     const fetchCategorias = async () => {
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/categorias", {
+            const response = await fetch(baseUrl("/api/categorias"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -138,7 +139,7 @@ export default function ProductoModal({
     const fetchUnidades = async () => {
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/unidades", {
+            const response = await fetch(baseUrl("/api/unidades"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -188,8 +189,8 @@ export default function ProductoModal({
             const token = localStorage.getItem("auth_token");
             const empresaActiva = JSON.parse(localStorage.getItem("empresa_activa") || "{}");
             const url = isEditing
-                ? `/api/productos/${producto.id_producto}`
-                : "/api/productos";
+                ? baseUrl(`/api/productos/${producto.id_producto}`)
+                : baseUrl("/api/productos");
 
             // Usar FormData para enviar archivos
             const formDataToSend = new FormData();

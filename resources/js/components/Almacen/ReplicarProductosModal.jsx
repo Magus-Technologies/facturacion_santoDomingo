@@ -10,6 +10,7 @@ import {
 } from "../ui/select";
 import { toast } from "@/lib/sweetalert";
 import { Loader2, Copy, AlertCircle, CheckCircle2 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ReplicarProductosModal({ isOpen, onClose, onSuccess, almacenActivo }) {
     const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ export default function ReplicarProductosModal({ isOpen, onClose, onSuccess, alm
         setLoadingEmpresas(true);
         try {
             const token = localStorage.getItem("auth_token");
-            const res = await fetch("/api/empresas", {
+            const res = await fetch(baseUrl("/api/empresas"), {
                 headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
             });
             const data = await res.json();
@@ -63,7 +64,7 @@ export default function ReplicarProductosModal({ isOpen, onClose, onSuccess, alm
                 const body = { almacen: alm };
                 if (empresaDestino && empresaDestino !== "todas") body.id_empresa_destino = empresaDestino;
 
-                const res = await fetch("/api/productos/replicar-masivo", {
+                const res = await fetch(baseUrl("/api/productos/replicar-masivo"), {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,

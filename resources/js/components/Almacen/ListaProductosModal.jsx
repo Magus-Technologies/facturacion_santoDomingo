@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "../ui/table";
 import { toast } from "@/lib/sweetalert";
 import { Loader2, Search, Edit, Eye, Trash2, Warehouse, AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ListaProductosModal({ isOpen, onClose, productos, warnings = [], onSuccess, almacen = "1" }) {
     const [loading, setLoading] = useState(false);
@@ -103,7 +104,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                 headers['X-Empresa-Activa'] = empresaActiva.id_empresa;
             }
 
-            const response = await fetch("/api/productos/importar-lista", {
+            const response = await fetch(baseUrl("/api/productos/importar-lista"), {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({

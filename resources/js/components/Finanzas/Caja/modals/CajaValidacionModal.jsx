@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import ResumenVentasPorMetodo from '../components/ResumenVentasPorMetodo';
 import ModalDetalleVentas from '../components/ModalDetalleVentas';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function CajaValidacionModal({ isOpen, caja, onClose, onSuccess }) {
     const [resumen, setResumen] = useState(null);
@@ -29,7 +30,7 @@ export default function CajaValidacionModal({ isOpen, caja, onClose, onSuccess }
         try {
             setLoadingResumen(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${caja.id_caja}/resumen`, {
+            const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/resumen`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();
@@ -61,9 +62,9 @@ export default function CajaValidacionModal({ isOpen, caja, onClose, onSuccess }
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const endpoint = decision === 'autorizar' 
-                ? `/api/cajas/${caja.id_caja}/autorizar`
-                : `/api/cajas/${caja.id_caja}/rechazar`;
+            const endpoint = decision === 'autorizar'
+                ? baseUrl(`/api/cajas/${caja.id_caja}/autorizar`)
+                : baseUrl(`/api/cajas/${caja.id_caja}/rechazar`);
 
             const res = await fetch(endpoint, {
                 method: 'POST',

@@ -4,6 +4,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { consultarRUC } from '@/services/apisPeru';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Componente de autocompletado para buscar proveedores por RUC o razón social.
@@ -57,7 +58,7 @@ export default function ProveedorAutocomplete({ onProveedorSelect, value = '' })
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/proveedores?search=${encodeURIComponent(term)}`, {
+            const response = await fetch(baseUrl(`/api/proveedores?search=${encodeURIComponent(term)}`), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -100,7 +101,7 @@ export default function ProveedorAutocomplete({ onProveedorSelect, value = '' })
 
                 // Crear proveedor en el backend
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('/api/proveedores', {
+                const response = await fetch(baseUrl('/api/proveedores'), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -129,7 +130,7 @@ export default function ProveedorAutocomplete({ onProveedorSelect, value = '' })
                 } else {
                     // Si ya existe (error de validación unique), buscar y seleccionar
                     if (provResponse.errors?.ruc) {
-                        const searchResp = await fetch(`/api/proveedores?search=${ruc}`, {
+                        const searchResp = await fetch(baseUrl(`/api/proveedores?search=${ruc}`), {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Accept': 'application/json'

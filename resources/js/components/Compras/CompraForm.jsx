@@ -14,6 +14,7 @@ import PrintOptionsModal from "../shared/PrintOptionsModal";
 // Hook personalizado
 import { useCompraForm } from "./hooks/useCompraForm";
 import { getSimboloMoneda } from "./utils/compraHelpers";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function CompraForm({ compraId = null }) {
     const {
@@ -69,7 +70,7 @@ export default function CompraForm({ compraId = null }) {
                     <div>
                         <nav className="text-sm text-gray-500 mb-2">
                             <a
-                                href="/compras"
+                                href={baseUrl("/compras")}
                                 className="hover:text-primary-600"
                             >
                                 Compras
@@ -91,7 +92,7 @@ export default function CompraForm({ compraId = null }) {
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={() => (window.location.href = "/compras")}
+                            onClick={() => (window.location.href = baseUrl("/compras"))}
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Regresar
@@ -174,7 +175,7 @@ export default function CompraForm({ compraId = null }) {
                     isOpen={showPrintModal}
                     onClose={() => {
                         setShowPrintModal(false);
-                        window.location.href = "/compras";
+                        window.location.href = baseUrl("/compras");
                     }}
                     ventaId={compraGuardada.id}
                     numeroCompleto={compraGuardada.numero_completo}

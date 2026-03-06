@@ -23,6 +23,7 @@ import {
 import MainLayout from "../Layout/MainLayout";
 import { confirmDelete, toast } from "@/lib/sweetalert";
 import UserModal from "./UserModal";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function UserList() {
     const [users, setUsers] = useState([]);
@@ -43,7 +44,7 @@ export default function UserList() {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
 
-            const response = await fetch("/api/users", {
+            const response = await fetch(baseUrl("/api/users"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -73,7 +74,7 @@ export default function UserList() {
                 try {
                     const token = localStorage.getItem("auth_token");
 
-                    const response = await fetch(`/api/users/${user.id}`, {
+                    const response = await fetch(baseUrl(`/api/users/${user.id}`), {
                         method: "DELETE",
                         headers: {
                             Authorization: `Bearer ${token}`,

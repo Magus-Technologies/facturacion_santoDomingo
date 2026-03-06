@@ -3,6 +3,7 @@ import MainLayout from "../Layout/MainLayout";
 import { ChevronDown, ChevronUp, Loader2, Save } from "lucide-react";
 import Swal from "sweetalert2";
 import "quill/dist/quill.snow.css";
+import { baseUrl } from "@/lib/baseUrl";
 
 /* ──────────────────────────────────────────────────
    Editor Quill — se monta una sola vez al hacerse visible
@@ -156,7 +157,7 @@ function DocumentPreview({ secciones, empresa }) {
                                       flexShrink: 0, overflow: "hidden" }}>
                             {empresa?.logo ? (
                                 <img
-                                    src={`/storage/${empresa.logo}`}
+                                    src={baseUrl(`/storage/${empresa.logo}`)}
                                     alt="Logo"
                                     style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
                                 />
@@ -384,7 +385,7 @@ export default function PlantillaImpresion() {
                 headers["X-Empresa-Activa"] = empresaActiva.id_empresa;
 
                 // Cargar empresa fresca desde la API para obtener logo y dirección
-                const empRes = await fetch(`/api/empresas/${empresaActiva.id_empresa}`, { headers });
+                const empRes = await fetch(baseUrl(`/api/empresas/${empresaActiva.id_empresa}`), { headers });
                 if (empRes.ok) {
                     const empJson = await empRes.json();
                     if (empJson.success && empJson.data) {
@@ -395,7 +396,7 @@ export default function PlantillaImpresion() {
                 }
             }
 
-            const res = await fetch("/api/plantilla-impresion", { headers });
+            const res = await fetch(baseUrl("/api/plantilla-impresion"), { headers });
             const json = await res.json();
 
             if (json.success && json.data) {
@@ -467,7 +468,7 @@ export default function PlantillaImpresion() {
                 despedida_activo: secciones.despedida.activo,
             };
 
-            const res = await fetch("/api/plantilla-impresion", {
+            const res = await fetch(baseUrl("/api/plantilla-impresion"), {
                 method: "POST",
                 headers,
                 body: JSON.stringify(body),

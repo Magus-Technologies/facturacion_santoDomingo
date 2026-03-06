@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { baseUrl } from "@/lib/baseUrl";
 import {
     Menu,
     X,
@@ -42,7 +43,7 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
         setShowEmpresaMenu(false);
         try {
             const token = localStorage.getItem("auth_token");
-            const res = await fetch("/api/switch-empresa", {
+            const res = await fetch(baseUrl("/api/switch-empresa"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -74,11 +75,11 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
         localStorage.removeItem("user");
         localStorage.removeItem("empresas");
         localStorage.removeItem("empresa_activa");
-        window.location.href = "/login";
+        window.location.href = baseUrl("/login");
 
         // Invalidar token en segundo plano (no bloquea al usuario)
         if (token) {
-            fetch("/api/logout", {
+            fetch(baseUrl("/api/logout"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -184,7 +185,7 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                     </div>
 
                                     <a
-                                        href="/perfil"
+                                        href={baseUrl("/perfil")}
                                         className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                                     >
                                         <User className="h-4 w-4 text-gray-500" />
@@ -194,7 +195,7 @@ export default function Header({ toggleSidebar, isSidebarOpen, isCollapsed }) {
                                     </a>
 
                                     <a
-                                        href="/configuracion"
+                                        href={baseUrl("/configuracion")}
                                         className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                                     >
                                         <Settings className="h-4 w-4 text-gray-500" />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useMovimientosCaja = (cajaId) => {
     const [movimientos, setMovimientos] = useState([]);
@@ -16,7 +17,7 @@ export const useMovimientosCaja = (cajaId) => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${cajaId}/movimientos`, {
+            const res = await fetch(baseUrl(`/api/cajas/${cajaId}/movimientos`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();
@@ -37,7 +38,7 @@ export const useMovimientosCaja = (cajaId) => {
     const registrarMovimiento = async (tipo, monto, concepto) => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${cajaId}/movimientos`, {
+            const res = await fetch(baseUrl(`/api/cajas/${cajaId}/movimientos`), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -68,7 +69,7 @@ export const useMovimientosCaja = (cajaId) => {
     const eliminarMovimiento = async (movimientoId) => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/movimientos-caja/${movimientoId}`, {
+            const res = await fetch(baseUrl(`/api/movimientos-caja/${movimientoId}`), {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`,

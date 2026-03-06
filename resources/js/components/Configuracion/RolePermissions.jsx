@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { toast } from "@/lib/sweetalert";
 import { Loader2, Shield, Check, X } from "lucide-react";
 import MainLayout from "../Layout/MainLayout";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function RolePermissions() {
     const [roles, setRoles] = useState([]);
@@ -21,7 +22,7 @@ export default function RolePermissions() {
     const fetchRoles = async () => {
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/users/roles", {
+            const response = await fetch(baseUrl("/api/users/roles"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -42,7 +43,7 @@ export default function RolePermissions() {
     const fetchPermissions = async () => {
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/permissions", {
+            const response = await fetch(baseUrl("/api/permissions"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -61,7 +62,7 @@ export default function RolePermissions() {
         setLoading(true);
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/permissions/role/${rolId}`, {
+            const response = await fetch(baseUrl(`/api/permissions/role/${rolId}`), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -137,7 +138,7 @@ export default function RolePermissions() {
         try {
             const token = localStorage.getItem("auth_token");
             const response = await fetch(
-                `/api/permissions/role/${selectedRole.rol_id}`,
+                baseUrl(`/api/permissions/role/${selectedRole.rol_id}`),
                 {
                     method: "PUT",
                     headers: {

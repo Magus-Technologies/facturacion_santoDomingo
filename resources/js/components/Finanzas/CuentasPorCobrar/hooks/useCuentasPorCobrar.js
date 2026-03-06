@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useCuentasPorCobrar = () => {
     const [cuotas, setCuotas] = useState([]);
@@ -14,7 +15,7 @@ export const useCuentasPorCobrar = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch('/api/cuentas-por-cobrar', {
+            const response = await fetch(baseUrl('/api/cuentas-por-cobrar'), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -36,7 +37,7 @@ export const useCuentasPorCobrar = () => {
     const registrarPago = async (id, pagoData) => {
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/cuentas-por-cobrar/${id}/pagar`, {
+            const response = await fetch(baseUrl(`/api/cuentas-por-cobrar/${id}/pagar`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('auth_token');
@@ -25,7 +26,7 @@ export const useGuiasRemision = () => {
         try {
             setLoading(true);
             setError(null);
-            const res = await fetch('/api/guias-remision', {
+            const res = await fetch(baseUrl('/api/guias-remision'), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -40,7 +41,7 @@ export const useGuiasRemision = () => {
 
     const fetchMotivos = async () => {
         try {
-            const res = await fetch('/api/guias-remision/motivos', {
+            const res = await fetch(baseUrl('/api/guias-remision/motivos'), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -52,7 +53,7 @@ export const useGuiasRemision = () => {
 
     const crearGuia = async (payload) => {
         try {
-            const res = await fetch('/api/guias-remision', {
+            const res = await fetch(baseUrl('/api/guias-remision'), {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(payload),
@@ -75,7 +76,7 @@ export const useGuiasRemision = () => {
 
     const enviarGuia = async (id) => {
         try {
-            const res = await fetch(`/api/guias-remision/${id}/enviar`, {
+            const res = await fetch(baseUrl(`/api/guias-remision/${id}/enviar`), {
                 method: 'POST',
                 headers: getAuthHeaders(),
             });
@@ -97,7 +98,7 @@ export const useGuiasRemision = () => {
 
     const consultarTicket = async (id) => {
         try {
-            const res = await fetch(`/api/guias-remision/${id}/ticket`, {
+            const res = await fetch(baseUrl(`/api/guias-remision/${id}/ticket`), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -120,7 +121,7 @@ export const useGuiasRemision = () => {
 
     const buscarUbigeos = async (query) => {
         try {
-            const res = await fetch(`/api/guias-remision/ubigeos?q=${encodeURIComponent(query)}`, {
+            const res = await fetch(baseUrl(`/api/guias-remision/ubigeos?q=${encodeURIComponent(query)}`), {
                 headers: getAuthHeaders(),
             });
             return await res.json();

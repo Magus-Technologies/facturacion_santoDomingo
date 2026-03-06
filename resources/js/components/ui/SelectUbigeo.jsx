@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 import {
     Select,
     SelectContent,
@@ -111,7 +112,7 @@ export default function SelectUbigeo({
     const cargarDepartamentos = async () => {
         setLoadingDepartamentos(true);
         try {
-            const response = await fetch("/api/departamentos");
+            const response = await fetch(baseUrl("/api/departamentos"));
             const data = await response.json();
             setDepartamentos(data);
         } catch (error) {
@@ -124,7 +125,7 @@ export default function SelectUbigeo({
     const cargarProvincias = async (departamentoId) => {
         setLoadingProvincias(true);
         try {
-            const response = await fetch(`/api/provincias/${departamentoId}`);
+            const response = await fetch(baseUrl(`/api/provincias/${departamentoId}`));
             const data = await response.json();
             setProvincias(data);
         } catch (error) {
@@ -138,7 +139,7 @@ export default function SelectUbigeo({
         setLoadingDistritos(true);
         try {
             const response = await fetch(
-                `/api/distritos/${departamentoId}/${provinciaId}`,
+                baseUrl(`/api/distritos/${departamentoId}/${provinciaId}`),
             );
             const data = await response.json();
             setDistritos(data);
@@ -170,7 +171,7 @@ export default function SelectUbigeo({
 
                     // 2. Cargar y setear provincia
                     const respProvincias = await fetch(
-                        `/api/provincias/${dept}`,
+                        baseUrl(`/api/provincias/${dept}`),
                     );
                     const dataProvincias = await respProvincias.json();
                     setProvincias(dataProvincias);
@@ -181,7 +182,7 @@ export default function SelectUbigeo({
 
                     // 3. Cargar y setear distrito
                     const respDistritos = await fetch(
-                        `/api/distritos/${dept}/${prov}`,
+                        baseUrl(`/api/distritos/${dept}/${prov}`),
                     );
                     const dataDistritos = await respDistritos.json();
                     setDistritos(dataDistritos);

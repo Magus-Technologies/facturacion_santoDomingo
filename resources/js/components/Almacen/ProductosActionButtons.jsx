@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 import {
     Plus,
     FileSpreadsheet,
@@ -117,7 +118,7 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                             <span className="hidden sm:inline">Traslado</span>
                         </Button>
                     </PermissionGuard> */}
-                    <a href="/historial-movimientos">
+                    <a href={baseUrl("/historial-movimientos")}>
                         <Button variant="outline" size="sm" className="gap-2">
                             <History className="h-4 w-4" />
                             <span className="hidden sm:inline">Historial</span>

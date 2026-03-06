@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 import { toast } from '@/lib/sweetalert';
 import { 
     calcularTotalCompra, 
@@ -61,7 +62,7 @@ export const useCompraForm = (compraId = null) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/compras/${compraId}`, {
+            const response = await fetch(baseUrl(`/api/compras/${compraId}`), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -278,7 +279,7 @@ export const useCompraForm = (compraId = null) => {
             const token = localStorage.getItem('auth_token');
             const dataToSend = prepararDatosCompra(proveedor, formData, productos);
 
-            const url = isEditing ? `/api/compras/${compraId}` : '/api/compras';
+            const url = isEditing ? baseUrl(`/api/compras/${compraId}`) : baseUrl('/api/compras');
             const method = isEditing ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
@@ -303,7 +304,7 @@ export const useCompraForm = (compraId = null) => {
                     setShowPrintModal(true);
                 } else {
                     setTimeout(() => {
-                        window.location.href = '/compras';
+                        window.location.href = baseUrl('/compras');
                     }, 1000);
                 }
             } else {

@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Search, Package, Plus, Check } from "lucide-react";
 import { toast } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Modal de búsqueda múltiple de productos
@@ -51,7 +52,7 @@ export default function ProductMultipleSearch({
 
             // Buscar productos
             const response = await fetch(
-                `/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}&limit=50`,
+                baseUrl(`/api/productos?search=${encodeURIComponent(term)}&almacen=${almacen}&limit=50`),
                 { headers },
             );
 
@@ -308,7 +309,7 @@ export default function ProductMultipleSearch({
                                             {/* Imagen */}
                                             {producto.imagen ? (
                                                 <img
-                                                    src={`/storage/productos/${producto.imagen}`}
+                                                    src={baseUrl(`/storage/productos/${producto.imagen}`)}
                                                     alt={producto.nombre}
                                                     className="w-12 h-12 object-cover rounded flex-shrink-0"
                                                     onError={(e) => {

@@ -1,3 +1,5 @@
+import { baseUrl } from '@/lib/baseUrl';
+
 /**
  * Funciones auxiliares para el módulo de Clientes
  */
@@ -43,17 +45,17 @@ export const consultarUbigeo = async (ubigeo) => {
 
     try {
         // Obtener nombre del departamento
-        const respDept = await fetch('/api/departamentos');
+        const respDept = await fetch(baseUrl('/api/departamentos'));
         const dataDept = await respDept.json();
         const departamento = dataDept.find(d => d.departamento === dept);
 
         // Obtener nombre de la provincia
-        const respProv = await fetch(`/api/provincias/${dept}`);
+        const respProv = await fetch(baseUrl(`/api/provincias/${dept}`));
         const dataProv = await respProv.json();
         const provincia = dataProv.find(p => p.provincia === prov);
 
         // Obtener nombre del distrito
-        const respDist = await fetch(`/api/distritos/${dept}/${prov}`);
+        const respDist = await fetch(baseUrl(`/api/distritos/${dept}/${prov}`));
         const dataDist = await respDist.json();
         const distrito = dataDist.find(d => d.distrito === dist);
 

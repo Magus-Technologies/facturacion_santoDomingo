@@ -9,6 +9,7 @@ import { useSunat } from "./hooks/useSunat";
 import { getVentasColumns } from "./columns/ventasColumns";
 import DetallesVentaModal from "./DetallesVentaModal";
 import DescontarStockModal from "./DescontarStockModal";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function VentasList() {
     const {
@@ -74,7 +75,7 @@ export default function VentasList() {
     const handleView = async (venta) => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/ventas/${venta.id_venta}`, {
+            const res = await fetch(baseUrl(`/api/ventas/${venta.id_venta}`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
             });
             const data = await res.json();
@@ -99,13 +100,13 @@ export default function VentasList() {
     const handleVerXml = (venta) => {
         if (!venta.nombre_xml) return;
         const token = localStorage.getItem("auth_token");
-        window.open(`/api/comprobantes/xml/${venta.nombre_xml}.xml?token=${token}`, "_blank");
+        window.open(baseUrl(`/api/comprobantes/xml/${venta.nombre_xml}.xml?token=${token}`), "_blank");
     };
 
     const handleDescargarCdr = async (venta) => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/comprobantes/${venta.id_venta}/cdr`, {
+            const res = await fetch(baseUrl(`/api/comprobantes/${venta.id_venta}/cdr`), {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) throw new Error("Error al descargar CDR");
@@ -125,7 +126,7 @@ export default function VentasList() {
     };
 
     const handleGenerarGuia = (venta) => {
-        window.location.href = `/guia-remision/add?venta_id=${venta.id_venta}`;
+        window.location.href = baseUrl(`/guia-remision/add?venta_id=${venta.id_venta}`);
     };
 
     const handleDescontarStock = (venta) => {
@@ -136,7 +137,7 @@ export default function VentasList() {
         const { toast } = await import("@/lib/sweetalert");
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/ventas/${venta.id_venta}/descontar-stock`, {
+            const res = await fetch(baseUrl(`/api/ventas/${venta.id_venta}/descontar-stock`), {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

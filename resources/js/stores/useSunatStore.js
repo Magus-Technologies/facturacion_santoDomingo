@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { baseUrl } from '@/lib/baseUrl';
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('auth_token');
@@ -16,7 +17,7 @@ export const useSunatStore = create((set, get) => ({
     generarXml: async (ventaId) => {
         set({ loading: true, error: null });
         try {
-            const res = await fetch(`/api/comprobantes/generar-xml/${ventaId}`, {
+            const res = await fetch(baseUrl(`/api/comprobantes/generar-xml/${ventaId}`), {
                 method: 'POST',
                 headers: getAuthHeaders(),
             });
@@ -32,7 +33,7 @@ export const useSunatStore = create((set, get) => ({
     enviarSunat: async (ventaId) => {
         set({ loading: true, error: null });
         try {
-            const res = await fetch(`/api/comprobantes/enviar/${ventaId}`, {
+            const res = await fetch(baseUrl(`/api/comprobantes/enviar/${ventaId}`), {
                 method: 'POST',
                 headers: getAuthHeaders(),
             });
@@ -48,7 +49,7 @@ export const useSunatStore = create((set, get) => ({
     consultarEstado: async (ventaId) => {
         set({ loading: true, error: null });
         try {
-            const res = await fetch(`/api/comprobantes/estado/${ventaId}`, {
+            const res = await fetch(baseUrl(`/api/comprobantes/estado/${ventaId}`), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();

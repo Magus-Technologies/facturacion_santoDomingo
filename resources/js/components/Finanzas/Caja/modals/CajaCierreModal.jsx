@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,7 @@ export default function CajaCierreModal({ isOpen, caja, onClose, onSuccess }) {
         try {
             setLoadingDenom(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/cajas/denominaciones', {
+            const res = await fetch(baseUrl('/api/cajas/denominaciones'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();
@@ -97,7 +98,7 @@ export default function CajaCierreModal({ isOpen, caja, onClose, onSuccess }) {
                 }));
             }
 
-            const res = await fetch(`/api/cajas/${caja.id_caja}/cierre`, {
+            const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/cierre`), {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 import { toast, confirmDelete } from '@/lib/sweetalert';
 
 /**
@@ -104,7 +105,7 @@ export const useCotizaciones = () => {
         if (typeof setPrintCotizacionState === 'function') {
             setPrintCotizacionState(cotizacion);
         } else {
-            window.open(`/reporteCOT/a4.php?id=${cotizacion.id}`, '_blank');
+            window.open(baseUrl(`/reporteCOT/a4.php?id=${cotizacion.id}`), '_blank');
         }
     };
 
@@ -112,7 +113,7 @@ export const useCotizaciones = () => {
      * Navega a la creación de nueva cotización
      */
     const handleCreate = () => {
-        window.location.href = '/cotizaciones/nueva';
+        window.location.href = baseUrl('/cotizaciones/nueva');
     };
 
     /**

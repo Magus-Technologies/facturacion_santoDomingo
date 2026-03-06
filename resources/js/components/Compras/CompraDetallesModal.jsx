@@ -19,6 +19,8 @@ import {
     Receipt,
 } from "lucide-react";
 
+import { baseUrl } from "@/lib/baseUrl";
+
 export default function CompraDetallesModal({ isOpen, onClose, compraId }) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
@@ -34,7 +36,7 @@ export default function CompraDetallesModal({ isOpen, onClose, compraId }) {
         try {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/compras/${compraId}`, {
+            const response = await fetch(baseUrl(`/api/compras/${compraId}`), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -62,8 +64,8 @@ export default function CompraDetallesModal({ isOpen, onClose, compraId }) {
         const token = localStorage.getItem("auth_token");
         const url =
             formato === "a4"
-                ? `/reporteOC/a4.php?id=${compraId}&token=${token}`
-                : `/reporteOC/ticket.php?id=${compraId}&token=${token}`;
+                ? baseUrl(`/reporteOC/a4.php?id=${compraId}&token=${token}`)
+                : baseUrl(`/reporteOC/ticket.php?id=${compraId}&token=${token}`);
         window.open(url, "_blank");
     };
 

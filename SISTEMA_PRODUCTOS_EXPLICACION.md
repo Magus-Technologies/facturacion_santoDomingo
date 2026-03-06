@@ -1,2 +1,2 @@
 php artisan make:command SyncPermissions
-php artisan permissions:sync
+php artisan permissions:sync 

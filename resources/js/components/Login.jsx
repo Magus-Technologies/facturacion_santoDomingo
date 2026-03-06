@@ -14,6 +14,7 @@ import {
     Wine,
     Grape,
 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 // Partículas flotantes para el panel izquierdo
 function FloatingParticles() {
@@ -87,7 +88,7 @@ export default function Login({ onLoginSuccess }) {
             }
 
             try {
-                const response = await fetch("/api/verify", {
+                const response = await fetch(baseUrl("/api/verify"), {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: "application/json",
@@ -95,7 +96,7 @@ export default function Login({ onLoginSuccess }) {
                 });
 
                 if (response.ok) {
-                    window.location.href = "/inicio";
+                    window.location.href = baseUrl("/inicio");
                 } else {
                     localStorage.removeItem("auth_token");
                     localStorage.removeItem("user");
@@ -129,7 +130,7 @@ export default function Login({ onLoginSuccess }) {
         setError("");
 
         try {
-            const response = await fetch("/api/login", {
+            const response = await fetch(baseUrl("/api/login"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -157,7 +158,7 @@ export default function Login({ onLoginSuccess }) {
                     setPermissions(data.permissions);
                 }
 
-                window.location.href = "/inicio";
+                window.location.href = baseUrl("/inicio");
 
                 if (onLoginSuccess) {
                     onLoginSuccess(data);
@@ -216,7 +217,7 @@ export default function Login({ onLoginSuccess }) {
                             {/* Glow detrás del logo */}
                             <div className="absolute inset-0 blur-2xl bg-accent-300/10 rounded-full scale-110 login-glow-pulse" />
                             <img
-                                src="/images/logos/logo.svg"
+                                src={baseUrl("/images/logos/logo.svg")}
                                 alt="Santo Domingo Logo"
                                 className="relative h-52 xl:h-64 w-auto object-contain drop-shadow-2xl"
                                 style={{ filter: 'brightness(1.1)' }}
@@ -286,7 +287,7 @@ export default function Login({ onLoginSuccess }) {
                         mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
                     }`}>
                         <img
-                            src="/images/logos/logo.svg"
+                            src={baseUrl("/images/logos/logo.svg")}
                             alt="Santo Domingo Logo"
                             className="h-32 w-auto object-contain mx-auto drop-shadow-lg"
                         />
@@ -442,7 +443,7 @@ export default function Login({ onLoginSuccess }) {
                             className="inline-block transition-all duration-300 hover:scale-105"
                         >
                             <img
-                                src="/images/login/magus.svg"
+                                src={baseUrl("/images/login/magus.svg")}
                                 alt="Magus Technologies"
                                 className="h-12 w-auto mx-auto transition-all duration-300"
                                 style={{

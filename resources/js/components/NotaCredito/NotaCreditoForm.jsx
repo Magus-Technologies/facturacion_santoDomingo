@@ -44,6 +44,7 @@ import {
     Building2,
 } from "lucide-react";
 import { toast } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem("auth_token");
@@ -71,7 +72,7 @@ export default function NotaCreditoForm() {
 
     const fetchMotivos = async () => {
         try {
-            const res = await fetch("/api/notas-credito/motivos", {
+            const res = await fetch(baseUrl("/api/notas-credito/motivos"), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -95,7 +96,7 @@ export default function NotaCreditoForm() {
                 numero: numero.trim(),
             });
             const res = await fetch(
-                `/api/notas-credito/buscar-venta?${params}`,
+                baseUrl(`/api/notas-credito/buscar-venta?${params}`),
                 { headers: getAuthHeaders() },
             );
             const data = await res.json();
@@ -125,7 +126,7 @@ export default function NotaCreditoForm() {
         setGuardando(true);
 
         try {
-            const res = await fetch("/api/notas-credito", {
+            const res = await fetch(baseUrl("/api/notas-credito"), {
                 method: "POST",
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
@@ -138,7 +139,7 @@ export default function NotaCreditoForm() {
 
             if (data.success) {
                 toast.success("Nota de crédito creada y XML generado");
-                window.location.href = "/nota-credito";
+                window.location.href = baseUrl("/nota-credito");
             } else {
                 toast.error(
                     data.message || "Error al crear nota de crédito",
@@ -153,7 +154,7 @@ export default function NotaCreditoForm() {
     const handleVerPdf = () => {
         if (!venta) return;
         window.open(
-            `/reporteNV/a4.php?id=${venta.id_venta}`,
+            baseUrl(`/reporteNV/a4.php?id=${venta.id_venta}`),
             "_blank",
         );
     };
@@ -182,7 +183,7 @@ export default function NotaCreditoForm() {
                     <div>
                         <nav className="text-sm text-gray-500 mb-2">
                             <a
-                                href="/nota-credito"
+                                href={baseUrl("/nota-credito")}
                                 className="hover:text-primary-600"
                             >
                                 Notas de Crédito
@@ -208,7 +209,7 @@ export default function NotaCreditoForm() {
                         <Button
                             variant="outline"
                             onClick={() =>
-                                (window.location.href = "/nota-credito")
+                                (window.location.href = baseUrl("/nota-credito"))
                             }
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />

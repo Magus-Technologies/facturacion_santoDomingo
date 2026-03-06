@@ -14,6 +14,7 @@ import MetodoPago from "../../shared/MetodoPago";
 // Hook personalizado
 import { useVentaForm } from "./hooks/useVentaForm";
 import { getSimboloMoneda } from "./utils/ventaHelpers";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function VentaForm({ ventaId = null }) {
     const {
@@ -285,7 +286,7 @@ export default function VentaForm({ ventaId = null }) {
                     <div>
                         <nav className="text-sm text-gray-500 mb-2">
                             <a
-                                href="/ventas"
+                                href={baseUrl("/ventas")}
                                 className="hover:text-primary-600"
                             >
                                 Ventas
@@ -305,7 +306,7 @@ export default function VentaForm({ ventaId = null }) {
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={() => (window.location.href = "/ventas")}
+                            onClick={() => (window.location.href = baseUrl("/ventas"))}
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Regresar

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import MainLayout from "../Layout/MainLayout";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ProveedoresList() {
     const [proveedores, setProveedores] = useState([]);
@@ -44,7 +45,7 @@ export default function ProveedoresList() {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
 
-            const response = await fetch("/api/proveedores", {
+            const response = await fetch(baseUrl("/api/proveedores"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -67,7 +68,7 @@ export default function ProveedoresList() {
     };
 
     const handleExport = (tipo) => {
-        const url = `/proveedores/descargar-${tipo}`;
+        const url = baseUrl(`/proveedores/descargar-${tipo}`);
         window.open(url, "_blank");
     };
 
@@ -82,7 +83,7 @@ export default function ProveedoresList() {
                     const token = localStorage.getItem("auth_token");
 
                     const response = await fetch(
-                        `/api/proveedores/${proveedor.proveedor_id}`,
+                        baseUrl(`/api/proveedores/${proveedor.proveedor_id}`),
                         {
                             method: "DELETE",
                             headers: {

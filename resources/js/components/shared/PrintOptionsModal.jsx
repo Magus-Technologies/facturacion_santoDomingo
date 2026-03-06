@@ -2,6 +2,7 @@ import { Printer, FileText, Download } from "lucide-react";
 import { Button } from "../ui/button";
 import { Modal } from "../ui/modal";
 import { useState, useCallback } from "react";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Modal para mostrar preview de PDF y opciones de impresión
@@ -24,9 +25,9 @@ export default function PrintOptionsModal({
                   : "reporteNV";
 
         if (formato === "ticket") {
-            return `/${folder}/ticket.php?id=${ventaId}`;
+            return baseUrl(`/${folder}/ticket.php?id=${ventaId}`);
         } else {
-            return `/${folder}/a4.php?id=${ventaId}`;
+            return baseUrl(`/${folder}/a4.php?id=${ventaId}`);
         }
     }, [tipo, formato, ventaId]);
 

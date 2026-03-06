@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,7 +52,7 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja, ca
         try {
             setLoadingCajas(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/cajas', {
+            const res = await fetch(baseUrl('/api/cajas'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -71,7 +72,7 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja, ca
         try {
             setLoadingDenom(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/cajas/denominaciones', {
+            const res = await fetch(baseUrl('/api/cajas/denominaciones'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -126,7 +127,7 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja, ca
                     .map(d => ({ id_denominacion: d.id_denominacion, cantidad: d.cantidad }));
             }
 
-            const res = await fetch(`/api/cajas/${cajaActual.id_caja}/abrir`, {
+            const res = await fetch(baseUrl(`/api/cajas/${cajaActual.id_caja}/abrir`), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,

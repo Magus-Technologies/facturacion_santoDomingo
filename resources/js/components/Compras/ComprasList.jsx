@@ -13,6 +13,7 @@ import { useCompras } from "./hooks/useCompras";
 import { getComprasColumns } from "./columns/comprasColumns";
 import CompraDetallesModal from "./CompraDetallesModal";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ComprasList() {
     const [viewCompraId, setViewCompraId] = useState(null);
@@ -81,7 +82,7 @@ export default function ComprasList() {
                         <PermissionGuard permission="compras.create">
                             <Button
                                 onClick={() =>
-                                    (window.location.href = "/compras/nueva")
+                                    (window.location.href = baseUrl("/compras/nueva"))
                                 }
                                 className="gap-2"
                             >

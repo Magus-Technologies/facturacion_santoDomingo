@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('auth_token');
@@ -25,7 +26,7 @@ export const useNotasCredito = () => {
         try {
             setLoading(true);
             setError(null);
-            const res = await fetch('/api/notas-credito', {
+            const res = await fetch(baseUrl('/api/notas-credito'), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -40,7 +41,7 @@ export const useNotasCredito = () => {
 
     const fetchMotivos = async () => {
         try {
-            const res = await fetch('/api/notas-credito/motivos', {
+            const res = await fetch(baseUrl('/api/notas-credito/motivos'), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -54,7 +55,7 @@ export const useNotasCredito = () => {
 
     const crearNota = async (payload) => {
         try {
-            const res = await fetch('/api/notas-credito', {
+            const res = await fetch(baseUrl('/api/notas-credito'), {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(payload),
@@ -77,7 +78,7 @@ export const useNotasCredito = () => {
 
     const enviarNota = async (id) => {
         try {
-            const res = await fetch(`/api/notas-credito/${id}/enviar`, {
+            const res = await fetch(baseUrl(`/api/notas-credito/${id}/enviar`), {
                 method: 'POST',
                 headers: getAuthHeaders(),
             });
@@ -100,7 +101,7 @@ export const useNotasCredito = () => {
     const buscarVenta = async (serie, numero) => {
         try {
             const params = new URLSearchParams({ serie, numero });
-            const res = await fetch(`/api/notas-credito/buscar-venta?${params}`, {
+            const res = await fetch(baseUrl(`/api/notas-credito/buscar-venta?${params}`), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();

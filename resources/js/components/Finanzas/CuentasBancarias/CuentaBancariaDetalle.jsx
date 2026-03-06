@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, TrendingUp, TrendingDown } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 import MovimientoBancarioModal from './MovimientoBancarioModal';
 
 const fmt = (val, moneda = 'PEN') => {
@@ -23,7 +24,7 @@ export default function CuentaBancariaDetalle({ isOpen, onClose, cuenta }) {
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cuentas-bancarias/${cuenta.id_cuenta}/movimientos`, {
+            const res = await fetch(baseUrl(`/api/cuentas-bancarias/${cuenta.id_cuenta}/movimientos`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useDashboardFilters = () => {
     const [filters, setFilters] = useState({
@@ -46,21 +47,21 @@ export const useDashboardFilters = () => {
                 transRes, cajasRes, categoriasRes, marcasRes, fechasRes,
                 rentabilidadRes, clientesRes, horaRes, vendedoresRes, stockRes
             ] = await Promise.all([
-                fetch(`/api/dashboard/stats?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/ventas-por-dia?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/metodos-pago?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/ingresos-egresos?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/top-productos?${params}&limit=10`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/ultimas-transacciones?limit=10`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/cajas-pendientes`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/top-categorias?${params}&limit=10`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/top-marcas?${params}&limit=10`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/top-fechas?${params}&limit=10`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/rentabilidad?${params}&limit=15`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/top-clientes?${params}&limit=10`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/ventas-por-hora?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/vendedores?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
-                fetch(`/api/dashboard/stock-bajo`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/stats?${params}`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/ventas-por-dia?${params}`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/metodos-pago?${params}`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/ingresos-egresos?${params}`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/top-productos?${params}&limit=10`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/ultimas-transacciones?limit=10`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/cajas-pendientes`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/top-categorias?${params}&limit=10`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/top-marcas?${params}&limit=10`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/top-fechas?${params}&limit=10`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/rentabilidad?${params}&limit=15`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/top-clientes?${params}&limit=10`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/ventas-por-hora?${params}`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/vendedores?${params}`), { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(baseUrl(`/api/dashboard/stock-bajo`), { headers: { Authorization: `Bearer ${token}` } }),
             ]);
 
             const [

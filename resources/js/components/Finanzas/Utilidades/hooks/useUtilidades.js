@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 
 const PERIODOS = [
     { id: 'hoy',    label: 'HOY' },
@@ -19,7 +20,7 @@ export function useUtilidades() {
             setError(null);
             const token   = localStorage.getItem('auth_token');
             const headers = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
-            const res     = await fetch(`/api/finanzas/utilidades?periodo=${p}`, { headers });
+            const res     = await fetch(baseUrl(`/api/finanzas/utilidades?periodo=${p}`), { headers });
             const json    = await res.json();
             if (json.success) {
                 setData(json.data);

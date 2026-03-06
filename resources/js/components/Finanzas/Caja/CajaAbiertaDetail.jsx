@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 import { usePermissions } from '@/hooks/usePermissions';
 import MovimientoModal from './MovimientoModal';
 
@@ -23,7 +24,7 @@ export default function CajaAbiertaDetail({ isOpen, caja, onClose, onCerrar }) {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${caja.id_caja}/movimientos`, {
+            const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/movimientos`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
             });
             const data = await res.json();

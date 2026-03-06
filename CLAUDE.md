@@ -113,5 +113,6 @@ SUNAT files stored under `storage/app/sunat/`:
 - Excel exports use PhpSpreadsheet with styled headers and alternating row colors
 - Caja permissions are per-user (not role-based): `puede_abrir_caja`, `puede_cerrar_caja`, `puede_autorizar_cierre`, `puede_registrar_movimientos`, `puede_ver_reportes`
 - New React components must be registered in `resources/js/app.jsx`'s `components` object AND have a corresponding Blade view with `data-react-component` attribute
+- **URL handling**: Use `baseUrl()` from `@/lib/baseUrl` for ALL URLs. Supports subdirectory deployment via `VITE_BASE_URL` env var. Navigation: `window.location.href = baseUrl('/ruta')`. Links: `href={baseUrl('/ruta')}`. API: `fetch(baseUrl('/api/endpoint'))`. The axios instance in `services/api.js` already has `baseUrl('/api')` as baseURL. NEVER hardcode paths like `"/login"` or `"/api/..."` — always wrap with `baseUrl()`
 - QR codes on invoices use `chillerlan/php-qrcode`
 - Export controllers live in `app/Http/Controllers/Exports/` (Excel) and `app/Http/Controllers/Reportes/` (PDF)

@@ -6,6 +6,7 @@ import { ArrowLeft, Truck } from 'lucide-react';
 import { TransportistaForm } from './TransportistaForm';
 import api from '@/services/api';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from "@/lib/baseUrl";
 
 export function TransportistaAddPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +16,7 @@ export function TransportistaAddPage() {
         try {
             await api.post('/transportistas', data);
             toast.success('Transportista creado correctamente');
-            window.location.href = '/facturacion/transportistas';
+            window.location.href = baseUrl('/facturacion/transportistas');
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
@@ -31,7 +32,7 @@ export function TransportistaAddPage() {
         <MainLayout>
             <div className="mb-6">
                 <nav className="text-sm text-gray-500 mb-2">
-                    <a href="/facturacion/transportistas" className="hover:text-primary-600">
+                    <a href={baseUrl("/facturacion/transportistas")} className="hover:text-primary-600">
                         Transportistas
                     </a>
                     <span className="mx-2">/</span>
@@ -42,7 +43,7 @@ export function TransportistaAddPage() {
                         <Truck className="h-6 w-6 text-primary-600" />
                         Nuevo Transportista
                     </h1>
-                    <Button variant="outline" onClick={() => (window.location.href = '/facturacion/transportistas')}>
+                    <Button variant="outline" onClick={() => (window.location.href = baseUrl('/facturacion/transportistas'))}>
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Regresar
                     </Button>

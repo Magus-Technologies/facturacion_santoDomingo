@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Custom hook para manejar la lógica de la lista de compras
@@ -19,7 +20,7 @@ export const useCompras = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch('/api/compras', {
+            const response = await fetch(baseUrl('/api/compras'), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -51,7 +52,7 @@ export const useCompras = () => {
         if (result.isConfirmed) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`/api/compras/${id}/anular`, {
+                const response = await fetch(baseUrl(`/api/compras/${id}/anular`), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

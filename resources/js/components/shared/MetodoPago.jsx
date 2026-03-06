@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/lib/sweetalert";
 import { useEffect, useState } from "react";
+import { baseUrl } from "@/lib/baseUrl";
 
 const TIPO_ICONS = {
     Efectivo: Banknote,
@@ -50,7 +51,7 @@ export default function MetodoPago({
         const cargarMetodos = async () => {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('/api/metodos-pago', {
+                const response = await fetch(baseUrl('/api/metodos-pago'), {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json',

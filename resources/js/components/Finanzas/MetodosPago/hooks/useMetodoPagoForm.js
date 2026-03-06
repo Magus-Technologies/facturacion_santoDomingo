@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const initialState = {
     nombre: '', codigo: '', descripcion: '', tipo: 'Otro',
@@ -40,7 +41,7 @@ export const useMetodoPagoForm = (metodo, isOpen, onClose, onSuccess) => {
     const fetchBancos = async () => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/bancos?solo_activos=1', {
+            const res = await fetch(baseUrl('/api/bancos?solo_activos=1'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -51,7 +52,7 @@ export const useMetodoPagoForm = (metodo, isOpen, onClose, onSuccess) => {
     const fetchCuentasByBanco = async (idBanco) => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cuentas-bancarias?id_banco=${idBanco}`, {
+            const res = await fetch(baseUrl(`/api/cuentas-bancarias?id_banco=${idBanco}`), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -86,7 +87,7 @@ export const useMetodoPagoForm = (metodo, isOpen, onClose, onSuccess) => {
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const url = isEditing ? `/api/metodos-pago/${metodo.id_metodo_pago}` : '/api/metodos-pago';
+            const url = isEditing ? baseUrl(`/api/metodos-pago/${metodo.id_metodo_pago}`) : baseUrl('/api/metodos-pago');
             const body = {
                 ...formData,
                 id_banco: formData.es_efectivo ? null : (formData.id_banco || null),

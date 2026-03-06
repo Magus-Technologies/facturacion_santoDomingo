@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 import { toast } from '@/lib/sweetalert';
 import {
     calcularSubtotal,
@@ -91,7 +92,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/cotizaciones/${cotizacionId}`, {
+            const response = await fetch(baseUrl(`/api/cotizaciones/${cotizacionId}`), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -158,7 +159,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
     const obtenerProximoNumero = async () => {
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/cotizaciones/proximo-numero?serie=${formData.serie}`, {
+            const response = await fetch(baseUrl(`/api/cotizaciones/proximo-numero?serie=${formData.serie}`), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -338,7 +339,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
             
             const dataToSend = prepararDatosCotizacion(cliente, formData, productos, user, totales);
 
-            const url = isEditing ? `/api/cotizaciones/${cotizacionId}` : '/api/cotizaciones';
+            const url = isEditing ? baseUrl(`/api/cotizaciones/${cotizacionId}`) : baseUrl('/api/cotizaciones');
             const method = isEditing ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
@@ -355,7 +356,7 @@ export const useCotizacionForm = (cotizacionId = null) => {
             if (data.success) {
                 toast.success(isEditing ? 'Cotización actualizada' : 'Cotización registrada exitosamente');
                 setTimeout(() => {
-                    window.location.href = '/cotizaciones';
+                    window.location.href = baseUrl('/cotizaciones');
                 }, 1000);
             } else {
                 toast.error(data.message || 'Error al guardar la cotización');

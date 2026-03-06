@@ -16,6 +16,7 @@ import {
     CheckCircle,
     XCircle,
 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ProveedorDetallesModal({
     isOpen,
@@ -89,7 +90,7 @@ export default function ProveedorDetallesModal({
             <Button
                 className="gap-2"
                 onClick={() =>
-                    (window.location.href = `/compras?proveedor=${proveedorId}`)
+                    (window.location.href = baseUrl(`/compras?proveedor=${proveedorId}`))
                 }
             >
                 <ShoppingCart className="h-4 w-4" />

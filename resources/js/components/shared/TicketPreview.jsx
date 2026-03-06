@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Componente de preview para formato Ticket (8cm)
@@ -19,7 +20,7 @@ export default function TicketPreview({ ventaId }) {
             const token = localStorage.getItem('auth_token');
             
             // Obtener datos de la venta
-            const ventaResponse = await fetch(`/api/ventas/${ventaId}`, {
+            const ventaResponse = await fetch(baseUrl(`/api/ventas/${ventaId}`), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',
@@ -32,7 +33,7 @@ export default function TicketPreview({ ventaId }) {
                 
                 // Obtener datos de las empresas
                 if (ventaData.venta.empresas_ids && ventaData.venta.empresas_ids.length > 0) {
-                    const empresasResponse = await fetch('/api/empresas', {
+                    const empresasResponse = await fetch(baseUrl('/api/empresas'), {
                         headers: {
                             Authorization: `Bearer ${token}`,
                             Accept: 'application/json',
@@ -80,7 +81,7 @@ export default function TicketPreview({ ventaId }) {
                         <div key={empresa.id_empresa}>
                             {empresa.logo && (
                                 <img
-                                    src={`/storage/${empresa.logo}`}
+                                    src={baseUrl(`/storage/${empresa.logo}`)}
                                     alt={empresa.comercial}
                                     className="h-16 mx-auto object-contain"
                                 />

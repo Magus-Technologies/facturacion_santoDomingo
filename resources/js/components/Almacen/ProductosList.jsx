@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { toast, confirmDelete } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 import ProductoModal from "./ProductoModal";
 import ProductosActionButtons from "./ProductosActionButtons";
 import {
@@ -53,7 +54,7 @@ export default function ProductosList() {
             }
 
             const response = await fetch(
-                `/api/productos?almacen=${almacenActivo}`,
+                baseUrl(`/api/productos?almacen=${almacenActivo}`),
                 { headers },
             );
 
@@ -83,7 +84,7 @@ export default function ProductosList() {
                     const token = localStorage.getItem("auth_token");
 
                     const response = await fetch(
-                        `/api/productos/${producto.id_producto}`,
+                        baseUrl(`/api/productos/${producto.id_producto}`),
                         {
                             method: "DELETE",
                             headers: {
@@ -490,7 +491,7 @@ export default function ProductosList() {
                             <div className="relative h-48 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
                                 {producto.imagen ? (
                                     <img
-                                        src={`/storage/${producto.imagen}`}
+                                        src={baseUrl(`/storage/${producto.imagen}`)}
                                         alt={producto.nombre}
                                         className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                                     />

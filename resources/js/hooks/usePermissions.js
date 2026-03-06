@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useEffect } from 'react';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Store global de permisos usando Zustand
@@ -67,7 +68,7 @@ export const useLoadPermissions = () => {
             const token = localStorage.getItem('auth_token');
             if (!token) return;
 
-            const response = await fetch('/api/permissions/user', {
+            const response = await fetch(baseUrl('/api/permissions/user'), {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',

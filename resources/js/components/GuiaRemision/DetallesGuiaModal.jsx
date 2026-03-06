@@ -21,6 +21,7 @@ import {
     Shield,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { baseUrl } from "@/lib/baseUrl";
 
 const estadoConfig = {
     pendiente: {
@@ -110,7 +111,7 @@ export default function DetallesGuiaModal({
     ];
 
     const handleVerPdf = () => {
-        window.open(`/reporteGR/a4.php?id=${guia.id}`, "_blank");
+        window.open(baseUrl(`/reporteGR/a4.php?id=${guia.id}`), "_blank");
     };
 
     return (

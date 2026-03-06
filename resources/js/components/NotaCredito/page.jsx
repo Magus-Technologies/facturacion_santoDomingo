@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import MainLayout from "../Layout/MainLayout";
 import { useNotasCredito } from "./hooks/useNotasCredito";
 import { getNotaCreditoColumns } from "./columns/notaCreditoColumns";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function NotaCreditoPage() {
     const {
@@ -24,13 +25,13 @@ export default function NotaCreditoPage() {
     const handleVerXml = (nota) => {
         if (!nota.nombre_xml) return;
         const token = localStorage.getItem("auth_token");
-        window.open(`/api/notas-credito/xml/${nota.nombre_xml}.xml?token=${token}`, "_blank");
+        window.open(baseUrl(`/api/notas-credito/xml/${nota.nombre_xml}.xml?token=${token}`), "_blank");
     };
 
     const handleDescargarCdr = async (nota) => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/notas-credito/${nota.id}/cdr`, {
+            const res = await fetch(baseUrl(`/api/notas-credito/${nota.id}/cdr`), {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) throw new Error("Error al descargar CDR");
@@ -93,7 +94,7 @@ export default function NotaCreditoPage() {
                     </div>
                     <Button
                         onClick={() =>
-                            (window.location.href = "/nota-credito/add")
+                            (window.location.href = baseUrl("/nota-credito/add"))
                         }
                         className="gap-2 ml-auto"
                     >

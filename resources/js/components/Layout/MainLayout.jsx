@@ -3,10 +3,12 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Loader from "../Loader";
 import { useLoadPermissions } from "@/hooks/usePermissions";
+import { baseUrl } from "@/lib/baseUrl";
+import BASE_URL from "@/lib/baseUrl";
 
 export default function MainLayout({
     children,
-    currentPath = window.location.pathname + window.location.search,
+    currentPath = (window.location.pathname + window.location.search).replace(new RegExp(`^${BASE_URL}`), '') || '/',
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -19,11 +21,11 @@ export default function MainLayout({
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
         if (!token) {
-            window.location.replace("/login");
+            window.location.replace(baseUrl("/login"));
             return;
         }
 
-        fetch("/api/verify", {
+        fetch(baseUrl("/api/verify"), {
             headers: {
                 Authorization: `Bearer ${token}`,
                 Accept: "application/json",
@@ -36,13 +38,13 @@ export default function MainLayout({
                 } else {
                     localStorage.removeItem("auth_token");
                     localStorage.removeItem("user");
-                    window.location.replace("/login");
+                    window.location.replace(baseUrl("/login"));
                 }
             })
             .catch(() => {
                 localStorage.removeItem("auth_token");
                 localStorage.removeItem("user");
-                window.location.replace("/login");
+                window.location.replace(baseUrl("/login"));
             });
     }, []);
 

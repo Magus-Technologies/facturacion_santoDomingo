@@ -24,6 +24,7 @@ import {
     getEstadoColor,
 } from "../utils/compraHelpers";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Componente para mostrar el documento con opciones de impresión
@@ -66,8 +67,8 @@ const DocumentCell = ({ compra }) => {
         const token = localStorage.getItem("auth_token");
         const url =
             formato === "a4"
-                ? `/reporteOC/a4.php?id=${compra.id_compra}&token=${token}`
-                : `/reporteOC/ticket.php?id=${compra.id_compra}&token=${token}`;
+                ? baseUrl(`/reporteOC/a4.php?id=${compra.id_compra}&token=${token}`)
+                : baseUrl(`/reporteOC/ticket.php?id=${compra.id_compra}&token=${token}`);
         window.open(url, "_blank");
         setIsOpen(false);
     };
@@ -241,14 +242,14 @@ export const getComprasColumns = (handlers) => [
                                 <Eye className="mr-2 h-4 w-4 text-blue-600" />
                                 Ver detalle
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { const token = localStorage.getItem("auth_token"); window.open(`/reporteOC/a4.php?id=${compra.id_compra}&token=${token}`, "_blank"); }}>
+                            <DropdownMenuItem onClick={() => { const token = localStorage.getItem("auth_token"); window.open(baseUrl(`/reporteOC/a4.php?id=${compra.id_compra}&token=${token}`), "_blank"); }}>
                                 <Printer className="mr-2 h-4 w-4 text-gray-600" />
                                 Imprimir A4
                             </DropdownMenuItem>
                             {compra.estado === "1" && (
                                 <>
                                     <PermissionGuard permission="compras.edit">
-                                        <DropdownMenuItem onClick={() => (window.location.href = `/compras/editar/${compra.id_compra}`)}>
+                                        <DropdownMenuItem onClick={() => (window.location.href = baseUrl(`/compras/editar/${compra.id_compra}`))}>
                                             <Edit className="mr-2 h-4 w-4 text-yellow-600" />
                                             Editar
                                         </DropdownMenuItem>

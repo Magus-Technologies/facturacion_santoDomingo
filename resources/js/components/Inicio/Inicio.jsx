@@ -1,5 +1,6 @@
 import React from "react";
 import MainLayout from "../Layout/MainLayout";
+import { baseUrl } from "@/lib/baseUrl";
 import {
     LayoutDashboard, Plus, Eye, FileText, Receipt, FileCheck,
     FileX, Truck, Users, BookOpen, ShoppingCart, UserCog,
@@ -73,7 +74,7 @@ export default function Inicio() {
                         <p className="text-gray-500 mt-1">¿Qué deseas hacer hoy?</p>
                     </div>
                     <a
-                        href="/dashboard"
+                        href={baseUrl("/dashboard")}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors no-underline shadow-sm"
                     >
                         <LayoutDashboard className="h-4 w-4" />
@@ -94,7 +95,7 @@ export default function Inicio() {
                                 return (
                                     <a
                                         key={accion.path}
-                                        href={accion.path}
+                                        href={baseUrl(accion.path)}
                                         className={`flex flex-col items-center justify-between gap-3 px-3 pt-4 pb-5 rounded-xl ${grupo.color} text-white text-center transition-all hover:scale-105 hover:shadow-md no-underline`}
                                     >
                                         <span className="text-sm font-medium leading-tight">{accion.label}</span>

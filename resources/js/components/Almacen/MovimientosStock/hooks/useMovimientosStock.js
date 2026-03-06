@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { baseUrl } from "@/lib/baseUrl";
 
 const getAuthHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -28,7 +29,7 @@ export const useMovimientosStock = () => {
                 if (value) params.append(key, value);
             });
 
-            const res = await fetch(`/api/movimientos-stock?${params}`, {
+            const res = await fetch(baseUrl(`/api/movimientos-stock?${params}`), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { baseUrl } from "@/lib/baseUrl";
 import { createPortal } from "react-dom";
 import {
     LayoutDashboard,
@@ -185,14 +186,14 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="flex items-center justify-center h-16 border-b border-primary-500/30 px-4">
-                        <a href="/inicio" className="flex items-center justify-center">
+                        <a href={baseUrl("/inicio")} className="flex items-center justify-center">
                             {isCollapsed ? (
                                 <div className="h-10 w-10 bg-accent-500 rounded-lg flex items-center justify-center font-bold text-gray-900 text-xl">
                                     I
                                 </div>
                             ) : (
                                 <img
-                                    src="/images/logos/logo.svg"
+                                    src={baseUrl("/images/logos/logo.svg")}
                                     alt="ilidesava"
                                     className="h-12 w-auto"
                                 />
@@ -275,7 +276,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                             </button>
                                         ) : (
                                             <a
-                                                href={module.path}
+                                                href={baseUrl(module.path)}
                                                 className={`w-full flex items-center ${
                                                     isCollapsed ? 'justify-center' : 'justify-between'
                                                 } px-4 py-3 rounded-lg transition-all duration-200 group ${
@@ -318,7 +319,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                                         return (
                                                             <li key={submodule.id}>
                                                                 <a
-                                                                    href={submodule.path}
+                                                                    href={baseUrl(submodule.path)}
                                                                     className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                                                                         isActive(
                                                                             submodule.path
@@ -387,7 +388,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                         return (
                                             <a
                                                 key={submodule.id}
-                                                href={submodule.path}
+                                                href={baseUrl(submodule.path)}
                                                 className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
                                                     isActive(submodule.path)
                                                         ? "bg-orange-50 text-orange-600 font-semibold border-l-4 border-orange-500"

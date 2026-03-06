@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, Building2 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Selector simple de empresa (una sola empresa)
@@ -16,7 +17,7 @@ export default function SelectEmpresa({ value, onChange, error, placeholder = "S
     const fetchEmpresas = async () => {
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/empresas", {
+            const response = await fetch(baseUrl("/api/empresas"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",

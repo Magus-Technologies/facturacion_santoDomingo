@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { DataTable } from "./ui/data-table";
 import { toast, confirmDelete } from "@/lib/sweetalert";
 import { Plus, Edit, Trash2, Loader2, FolderOpen } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function CategoriasModal({ isOpen, onClose }) {
     const [categorias, setCategorias] = useState([]);
@@ -28,7 +29,7 @@ export default function CategoriasModal({ isOpen, onClose }) {
         try {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/categorias", {
+            const response = await fetch(baseUrl("/api/categorias"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -53,8 +54,8 @@ export default function CategoriasModal({ isOpen, onClose }) {
         try {
             const token = localStorage.getItem("auth_token");
             const url = isEditing
-                ? `/api/categorias/${selectedCategoria.id}`
-                : "/api/categorias";
+                ? baseUrl(`/api/categorias/${selectedCategoria.id}`)
+                : baseUrl("/api/categorias");
             const method = isEditing ? "PUT" : "POST";
 
             const response = await fetch(url, {
@@ -110,7 +111,7 @@ export default function CategoriasModal({ isOpen, onClose }) {
             onConfirm: async () => {
                 try {
                     const token = localStorage.getItem("auth_token");
-                    const response = await fetch(`/api/categorias/${categoria.id}`, {
+                    const response = await fetch(baseUrl(`/api/categorias/${categoria.id}`), {
                         method: "DELETE",
                         headers: {
                             Authorization: `Bearer ${token}`,

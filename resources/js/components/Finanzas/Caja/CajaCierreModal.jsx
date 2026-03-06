@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function CajaCierreModal({ isOpen, onClose, caja, onSuccess }) {
     const [form, setForm] = useState({ saldo_final_real: '', observaciones_cierre: '' });
@@ -24,7 +25,7 @@ export default function CajaCierreModal({ isOpen, onClose, caja, onSuccess }) {
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${caja.id_caja}/cierre`, {
+            const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/cierre`), {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,

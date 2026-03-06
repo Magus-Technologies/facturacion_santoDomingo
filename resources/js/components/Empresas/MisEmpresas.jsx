@@ -16,6 +16,7 @@ import {
     Plus,
 } from "lucide-react";
 import MainLayout from "../Layout/MainLayout";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function MisEmpresas() {
     const [empresas, setEmpresas] = useState([]);
@@ -33,7 +34,7 @@ export default function MisEmpresas() {
             setLoading(true);
             const token = localStorage.getItem("auth_token");
 
-            const response = await fetch("/api/empresas", {
+            const response = await fetch(baseUrl("/api/empresas"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",

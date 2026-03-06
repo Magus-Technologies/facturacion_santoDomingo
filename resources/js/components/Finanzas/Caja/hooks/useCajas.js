@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast, confirmDelete } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export const useCajas = () => {
     const [cajas, setCajas] = useState([]);
@@ -30,8 +31,8 @@ export const useCajas = () => {
             const headers = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
 
             const [cajasRes, activaRes] = await Promise.all([
-                fetch('/api/cajas', { headers }),
-                fetch('/api/cajas/activa', { headers }),
+                fetch(baseUrl('/api/cajas'), { headers }),
+                fetch(baseUrl('/api/cajas/activa'), { headers }),
             ]);
 
             const cajasData = await cajasRes.json();
@@ -68,7 +69,7 @@ export const useCajas = () => {
             onConfirm: async () => {
                 try {
                     const token = localStorage.getItem('auth_token');
-                    const res = await fetch(`/api/cajas/${caja.id_caja}/activar`, {
+                    const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/activar`), {
                         method: 'POST',
                         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
                     });
@@ -110,7 +111,7 @@ export const useCajas = () => {
             onConfirm: async () => {
                 try {
                     const token = localStorage.getItem('auth_token');
-                    const res = await fetch(`/api/cajas/${caja.id_caja}/autorizar`, {
+                    const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/autorizar`), {
                         method: 'POST',
                         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
                     });
@@ -131,7 +132,7 @@ export const useCajas = () => {
             onConfirm: async () => {
                 try {
                     const token = localStorage.getItem('auth_token');
-                    const res = await fetch(`/api/cajas/${caja.id_caja}/rechazar`, {
+                    const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/rechazar`), {
                         method: 'POST',
                         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
                     });

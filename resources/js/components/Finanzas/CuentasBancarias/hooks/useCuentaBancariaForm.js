@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const INITIAL = {
     id_banco: '',
@@ -43,7 +44,7 @@ export const useCuentaBancariaForm = (cuenta, isOpen, onClose, onSuccess) => {
     const fetchBancos = async () => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('/api/bancos?solo_activos=true', {
+            const res = await fetch(baseUrl('/api/bancos?solo_activos=true'), {
                 headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
             });
             const data = await res.json();
@@ -68,7 +69,7 @@ export const useCuentaBancariaForm = (cuenta, isOpen, onClose, onSuccess) => {
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const url = isEditing ? `/api/cuentas-bancarias/${cuenta.id_cuenta}` : '/api/cuentas-bancarias';
+            const url = isEditing ? baseUrl(`/api/cuentas-bancarias/${cuenta.id_cuenta}`) : baseUrl('/api/cuentas-bancarias');
             const method = isEditing ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method,

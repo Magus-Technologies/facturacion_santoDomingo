@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 import {
     calcularSubtotal,
     calcularIGV,
@@ -89,7 +90,7 @@ export const useVentaForm = (ventaId = null) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`/api/ventas/${ventaId}`, {
+            const response = await fetch(baseUrl(`/api/ventas/${ventaId}`), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',
@@ -151,7 +152,7 @@ export const useVentaForm = (ventaId = null) => {
             const serieAUsar = serie || formData.serie;
             const token = localStorage.getItem('auth_token');
             const response = await fetch(
-                `/api/ventas/proximo-numero?serie=${serieAUsar}`,
+                baseUrl(`/api/ventas/proximo-numero?serie=${serieAUsar}`),
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -365,7 +366,7 @@ export const useVentaForm = (ventaId = null) => {
 
             const dataToSend = prepararDatosVenta(cliente, formData, productos, totales);
 
-            const url = isEditing ? `/api/ventas/${ventaId}` : '/api/ventas';
+            const url = isEditing ? baseUrl(`/api/ventas/${ventaId}`) : baseUrl('/api/ventas');
             const method = isEditing ? 'PUT' : 'POST';
 
             // Usar FormData para soportar subida de voucher
@@ -451,7 +452,7 @@ export const useVentaForm = (ventaId = null) => {
             '2': '/ventas?tipo=factura',
             '6': '/ventas?tipo=nota'
         };
-        window.location.href = tipoRedirect[ventaGuardada?.tipo] || '/ventas';
+        window.location.href = baseUrl(tipoRedirect[ventaGuardada?.tipo] || '/ventas');
     };
 
     return {

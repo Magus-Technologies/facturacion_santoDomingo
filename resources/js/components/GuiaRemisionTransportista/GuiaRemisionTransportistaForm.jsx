@@ -22,6 +22,7 @@ import { toast } from '@/lib/sweetalert';
 import ClienteAutocomplete from '@/components/shared/ClienteAutocomplete';
 import { consultarDNI, consultarRUC } from '@/services/apisPeru';
 import api from '@/services/api';
+import { baseUrl } from "@/lib/baseUrl";
 
 // ─── constantes ──────────────────────────────────────────────────────────────
 
@@ -273,7 +274,7 @@ export default function GuiaRemisionTransportistaForm() {
                 })),
             });
             toast.success('Guía de remisión transportista creada y XML generado');
-            window.location.href = '/guia-remision-transportista';
+            window.location.href = baseUrl('/guia-remision-transportista');
         } catch (err) {
             if (err.response?.status === 422) {
                 setErrors(err.response.data.errors || {});
@@ -295,7 +296,7 @@ export default function GuiaRemisionTransportistaForm() {
                 <div className="flex items-center justify-between">
                     <div>
                         <nav className="text-sm text-gray-500 mb-2">
-                            <a href="/guia-remision-transportista" className="hover:text-primary-600">
+                            <a href={baseUrl("/guia-remision-transportista")} className="hover:text-primary-600">
                                 GR Transportista
                             </a>
                             <span className="mx-2">/</span>
@@ -315,7 +316,7 @@ export default function GuiaRemisionTransportistaForm() {
                             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                             Crear Guía
                         </Button>
-                        <Button variant="outline" onClick={() => (window.location.href = '/guia-remision-transportista')}>
+                        <Button variant="outline" onClick={() => (window.location.href = baseUrl('/guia-remision-transportista'))}>
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Regresar
                         </Button>

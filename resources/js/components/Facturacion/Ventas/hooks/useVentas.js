@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast, confirmDelete } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Custom hook para manejar la lógica de la lista de ventas
@@ -21,7 +22,7 @@ export const useVentas = () => {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
 
-            const response = await fetch('/api/ventas', {
+            const response = await fetch(baseUrl('/api/ventas'), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',
@@ -58,7 +59,7 @@ export const useVentas = () => {
                     const token = localStorage.getItem('auth_token');
 
                     const response = await fetch(
-                        `/api/ventas/${venta.id_venta}/anular`,
+                        baseUrl(`/api/ventas/${venta.id_venta}/anular`),
                         {
                             method: 'POST',
                             headers: {
@@ -92,7 +93,7 @@ export const useVentas = () => {
      * Navega a la vista de detalle
      */
     const handleView = (venta) => {
-        window.location.href = `/ventas/ver/${venta.id_venta}`;
+        window.location.href = baseUrl(`/ventas/ver/${venta.id_venta}`);
     };
 
     /**
@@ -100,14 +101,14 @@ export const useVentas = () => {
      */
     const handlePrint = (venta) => {
         // Abrir el PDF A4 en nueva pestaña
-        window.open(`/reporteNV/a4.php?id=${venta.id_venta}`, '_blank');
+        window.open(baseUrl(`/reporteNV/a4.php?id=${venta.id_venta}`), '_blank');
     };
 
     /**
      * Navega a la creación de nueva venta
      */
     const handleNuevaVenta = () => {
-        window.location.href = '/ventas/productos';
+        window.location.href = baseUrl('/ventas/productos');
     };
 
     return {

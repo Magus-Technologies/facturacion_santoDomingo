@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { toast } from "@/lib/sweetalert";
 import { Loader2, FileSpreadsheet, Upload, Download } from "lucide-react";
 import ListaProductosModal from "./ListaProductosModal";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen = "1" }) {
     const [loading, setLoading] = useState(false);
@@ -56,7 +57,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen
                 headers['X-Empresa-Activa'] = empresaActiva.id_empresa;
             }
 
-            const response = await fetch("/api/productos/leer-excel", {
+            const response = await fetch(baseUrl("/api/productos/leer-excel"), {
                 method: 'POST',
                 headers,
                 body: formData,
@@ -106,7 +107,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen
         setLoadingPlantilla(true);
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/productos/plantilla-excel", {
+            const response = await fetch(baseUrl("/api/productos/plantilla-excel"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

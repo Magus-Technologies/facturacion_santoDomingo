@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { toast } from "@/lib/sweetalert";
 import { consultarDocumento } from "@/services/apisPeru";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function EmpresaModal({ isOpen, onClose, empresa = null, onSuccess }) {
     const isEditing = !!empresa;
@@ -110,7 +111,7 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
             // Si hay logo guardado y no hay nuevo archivo, eliminar del servidor
             try {
                 const token = localStorage.getItem("auth_token");
-                const response = await fetch(`/api/empresas/${empresa.id_empresa}/logo`, {
+                const response = await fetch(baseUrl(`/api/empresas/${empresa.id_empresa}/logo`), {
                     method: "DELETE",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -176,15 +177,15 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
                     const dist = data.ubigeo.substring(4, 6);
                     
                     try {
-                        const respDept = await fetch('/api/departamentos');
+                        const respDept = await fetch(baseUrl('/api/departamentos'));
                         const dataDept = await respDept.json();
                         const departamento = dataDept.find(d => d.departamento === dept);
-                        
-                        const respProv = await fetch(`/api/provincias/${dept}`);
+
+                        const respProv = await fetch(baseUrl(`/api/provincias/${dept}`));
                         const dataProv = await respProv.json();
                         const provincia = dataProv.find(p => p.provincia === prov);
-                        
-                        const respDist = await fetch(`/api/distritos/${dept}/${prov}`);
+
+                        const respDist = await fetch(baseUrl(`/api/distritos/${dept}/${prov}`));
                         const dataDist = await respDist.json();
                         const distrito = dataDist.find(d => d.distrito === dist);
                         
@@ -223,7 +224,7 @@ export default function EmpresaModal({ isOpen, onClose, empresa = null, onSucces
 
         try {
             const token = localStorage.getItem("auth_token");
-            const url = isEditing ? `/api/empresas/${empresa.id_empresa}` : `/api/empresas`;
+            const url = isEditing ? baseUrl(`/api/empresas/${empresa.id_empresa}`) : baseUrl(`/api/empresas`);
 
             // Usar FormData para enviar archivos
             const formDataToSend = new FormData();

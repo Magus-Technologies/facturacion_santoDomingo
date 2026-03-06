@@ -34,6 +34,7 @@ import {
     getEstadoBadge,
     getSunatBadge,
 } from "../utils/ventaHelpers";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Componente para mostrar el documento con opciones de impresión
@@ -75,8 +76,8 @@ const DocumentCell = ({ venta }) => {
     const handlePrint = (formato) => {
         const url =
             formato === "a4"
-                ? `/reporteNV/a4.php?id=${venta.id_venta}`
-                : `/reporteNV/ticket.php?id=${venta.id_venta}`;
+                ? baseUrl(`/reporteNV/a4.php?id=${venta.id_venta}`)
+                : baseUrl(`/reporteNV/ticket.php?id=${venta.id_venta}`);
         window.open(url, "_blank");
         setIsOpen(false);
     };
@@ -269,7 +270,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`/storage/${voucher}`, "_blank");
+                            window.open(baseUrl(`/storage/${voucher}`), "_blank");
                         }}
                         className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-800 transition-colors"
                         title="Ver voucher"

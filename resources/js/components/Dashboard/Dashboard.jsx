@@ -13,6 +13,7 @@ import {
     ArrowDownRight,
     Loader2,
 } from "lucide-react";
+import { baseUrl } from "@/lib/baseUrl";
 
 const ICON_MAP = {
     DollarSign: DollarSign,
@@ -45,7 +46,7 @@ export default function Dashboard() {
                 headers["X-Empresa-Activa"] = empresaActiva.id_empresa;
             }
 
-            const response = await fetch("/api/dashboard/stats", { headers });
+            const response = await fetch(baseUrl("/api/dashboard/stats"), { headers });
 
             if (!response.ok) {
                 throw new Error("Error al cargar datos del dashboard");
@@ -183,7 +184,7 @@ export default function Dashboard() {
                                 </p>
                             </div>
                             <a
-                                href="/ventas"
+                                href={baseUrl("/ventas")}
                                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                             >
                                 Ver todas →
@@ -251,21 +252,21 @@ export default function Dashboard() {
                         </h2>
                         <div className="space-y-3">
                             <a
-                                href="/ventas/productos"
+                                href={baseUrl("/ventas/productos")}
                                 className="w-full flex items-center gap-3 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors no-underline"
                             >
                                 <ShoppingCart className="h-5 w-5" />
                                 <span className="font-medium">Nueva Venta</span>
                             </a>
                             <a
-                                href="/productos"
+                                href={baseUrl("/productos")}
                                 className="w-full flex items-center gap-3 px-4 py-3 bg-accent-500 hover:bg-accent-600 text-gray-900 rounded-lg transition-colors no-underline"
                             >
                                 <Package className="h-5 w-5" />
                                 <span className="font-medium">Ver Inventario</span>
                             </a>
                             <a
-                                href="/clientes"
+                                href={baseUrl("/clientes")}
                                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors no-underline"
                             >
                                 <Users className="h-5 w-5" />

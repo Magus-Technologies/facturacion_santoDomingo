@@ -44,6 +44,7 @@ import {
 import { toast } from "@/lib/sweetalert";
 import ClienteAutocomplete from "../shared/ClienteAutocomplete";
 import { consultarDNI, consultarRUC } from "@/services/apisPeru";
+import { baseUrl } from "@/lib/baseUrl";
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem("auth_token");
@@ -184,7 +185,7 @@ export default function GuiaRemisionForm() {
 
     const fetchMotivos = async () => {
         try {
-            const res = await fetch("/api/guias-remision/motivos", {
+            const res = await fetch(baseUrl("/api/guias-remision/motivos"), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -196,7 +197,7 @@ export default function GuiaRemisionForm() {
 
     const fetchProximoNumero = async () => {
         try {
-            const res = await fetch("/api/guias-remision/proximo-numero", {
+            const res = await fetch(baseUrl("/api/guias-remision/proximo-numero"), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -210,7 +211,7 @@ export default function GuiaRemisionForm() {
 
     const fetchTransportistasActivos = async () => {
         try {
-            const res = await fetch("/api/transportistas/activos", {
+            const res = await fetch(baseUrl("/api/transportistas/activos"), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -222,7 +223,7 @@ export default function GuiaRemisionForm() {
 
     const fetchEmpresa = async () => {
         try {
-            const res = await fetch("/api/guias-remision/empresa", {
+            const res = await fetch(baseUrl("/api/guias-remision/empresa"), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -258,7 +259,7 @@ export default function GuiaRemisionForm() {
     const cargarVentaPorId = async (ventaId) => {
         setBuscando(true);
         try {
-            const res = await fetch(`/api/ventas/${ventaId}`, {
+            const res = await fetch(baseUrl(`/api/ventas/${ventaId}`), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();
@@ -474,7 +475,7 @@ export default function GuiaRemisionForm() {
 
         setSubmitting(true);
         try {
-            const res = await fetch("/api/guias-remision", {
+            const res = await fetch(baseUrl("/api/guias-remision"), {
                 method: "POST",
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
@@ -499,7 +500,7 @@ export default function GuiaRemisionForm() {
 
             if (data.success) {
                 toast.success("Guía de remisión creada exitosamente");
-                window.location.href = "/guia-remision";
+                window.location.href = baseUrl("/guia-remision");
             } else {
                 toast.error(data.message || "Error al crear la guía");
             }
@@ -520,7 +521,7 @@ export default function GuiaRemisionForm() {
                     <div>
                         <nav className="text-sm text-gray-500 mb-2">
                             <a
-                                href="/guia-remision"
+                                href={baseUrl("/guia-remision")}
                                 className="hover:text-primary-600"
                             >
                                 Guías de Remisión
@@ -551,7 +552,7 @@ export default function GuiaRemisionForm() {
                         <Button
                             variant="outline"
                             onClick={() =>
-                                (window.location.href = "/guia-remision")
+                                (window.location.href = baseUrl("/guia-remision"))
                             }
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />

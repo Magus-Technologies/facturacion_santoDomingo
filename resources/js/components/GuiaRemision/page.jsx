@@ -10,6 +10,7 @@ import MainLayout from "../Layout/MainLayout";
 import { useGuiasRemision } from "./hooks/useGuiasRemision";
 import { getGuiaRemisionColumns } from "./columns/guiaRemisionColumns";
 import DetallesGuiaModal from "./DetallesGuiaModal";
+import { baseUrl } from "@/lib/baseUrl";
 
 export default function GuiaRemisionPage() {
     const {
@@ -28,7 +29,7 @@ export default function GuiaRemisionPage() {
     const handleVerXml = (guia) => {
         if (!guia.nombre_xml) return;
         const token = localStorage.getItem("auth_token");
-        window.open(`/api/guias-remision/xml/${guia.nombre_xml}.xml?token=${token}`, "_blank");
+        window.open(baseUrl(`/api/guias-remision/xml/${guia.nombre_xml}.xml?token=${token}`), "_blank");
     };
 
     const handleEnviar = async (guia) => {
@@ -44,13 +45,13 @@ export default function GuiaRemisionPage() {
     };
 
     const handleVerPdf = (guia) => {
-        window.open(`/reporteGR/a4.php?id=${guia.id}`, "_blank");
+        window.open(baseUrl(`/reporteGR/a4.php?id=${guia.id}`), "_blank");
     };
 
     const handleView = async (guia) => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/guias-remision/${guia.id}`, {
+            const res = await fetch(baseUrl(`/api/guias-remision/${guia.id}`), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
@@ -75,7 +76,7 @@ export default function GuiaRemisionPage() {
     const handleDescargarCdr = async (guia) => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch(`/api/guias-remision/${guia.id}/cdr`, {
+            const res = await fetch(baseUrl(`/api/guias-remision/${guia.id}/cdr`), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -105,7 +106,7 @@ export default function GuiaRemisionPage() {
     const handleExportar = async () => {
         const token = localStorage.getItem("auth_token");
         try {
-            const res = await fetch("/api/guias-remision/exportar-excel", {
+            const res = await fetch(baseUrl("/api/guias-remision/exportar-excel"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -169,7 +170,7 @@ export default function GuiaRemisionPage() {
                     </div>
                     <Button
                         onClick={() =>
-                            (window.location.href = "/guia-remision/add")
+                            (window.location.href = baseUrl("/guia-remision/add"))
                         }
                         className="gap-2 ml-auto"
                     >

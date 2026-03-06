@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) {
     const [form, setForm] = useState({ saldo_inicial: '', observaciones: '' });
@@ -24,7 +25,7 @@ export default function CajaAperturaModal({ isOpen, onClose, onSuccess, caja }) 
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch(`/api/cajas/${caja.id_caja}/abrir`, {
+            const res = await fetch(baseUrl(`/api/cajas/${caja.id_caja}/abrir`), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,

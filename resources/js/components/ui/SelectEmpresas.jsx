@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { Button } from "./button";
 import { Label } from "./label";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Componente para seleccionar una o múltiples empresas
@@ -33,7 +34,7 @@ export default function SelectEmpresas({
     const fetchEmpresas = async () => {
         try {
             const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/empresas", {
+            const response = await fetch(baseUrl("/api/empresas"), {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('transportistas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('id_empresa');
+            $table->integer('id_empresa');
             $table->char('tipo_documento', 1)->comment('1=DNI, 6=RUC');
             $table->string('numero_documento', 15)->unique();
             $table->string('razon_social', 255);

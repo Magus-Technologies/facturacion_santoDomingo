@@ -137,4 +137,35 @@ class PermissionController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Refrescar permisos del usuario actual
+     */
+    public function refreshUserPermissions(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            // Obtener permisos actualizados
+            if ($user->rol_id == 1) {
+                // Admin tiene todos los permisos
+                $permissions = Permission::pluck('name')->toArray();
+            } else {
+                // Otros usuarios obtienen permisos de su rol
+                $permissions = $user->rol ? $user->rol->permissions->pluck('name')->toArray() : [];
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permisos recargados correctamente',
+                'permissions' => $permissions,
+                'total' => count($permissions)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al refrescar permisos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -1,0 +1,197 @@
+================================================================================
+  SKILL: CORRECCIÓN DE LÓGICA DE APERTURA DE CAJA
+================================================================================
+
+PROBLEMA IDENTIFICADO
+─────────────────────────────────────────────────────────────────────────────
+
+La apertura de caja se está implementando como "activar una caja" (cambiar 
+estado de Inactiva a Abierta), cuando en realidad debería ser "crear una 
+sesión diaria" (agregar dinero a un vendedor cada día).
+
+SÍNTOMA PRINCIPAL:
+En http://localhost:8000/finanzas/caja, el modal de apertura solo lista 
+cajas con estado "Inactiva". Esto significa que una caja solo se puede 
+abrir UNA VEZ.
+
+IMPACTO:
+- ❌ No se puede reutilizar la misma caja al día siguiente
+- ❌ Se necesitaría crear una nueva caja cada día (incorrecto)
+- ❌ No hay histórico de sesiones
+- ❌ Confusión en la lógica de negocio
+
+
+SOLUCIÓN PROPUESTA
+─────────────────────────────────────────────────────────────────────────────
+
+Cambiar de:
+  Caja (Permanente) → Estado: Inactiva/Abierta/Cerrada
+
+A:
+  Caja (Configuración) → Activa/Inactiva
+      ↓
+  Sesión de Caja (Operación Diaria) → Abierta/Cerrada/Validada
+
+
+BENEFICIOS
+─────────────────────────────────────────────────────────────────────────────
+
+✅ Permite múltiples aperturas del mismo vendedor
+✅ Separación clara: Configuración vs Operación
+✅ Histórico completo de sesiones
+✅ Mejor auditoría
+✅ Más flexible para cambios futuros
+✅ Escalable
+
+
+CAMBIOS NECESARIOS
+─────────────────────────────────────────────────────────────────────────────
+
+1. BASE DE DATOS
+   - Crear tabla: sesiones_caja
+   - Modificar tabla: cajas (cambiar 'estado' por 'activo')
+   - Migrar datos existentes
+
+2. MODELOS
+   - Crear: SesionCaja.php
+   - Actualizar: Caja.php
+   - Actualizar: MovimientoCaja.php
+
+3. SERVICIOS
+   - Crear: SesionCajaService
+   - Actualizar: CajaService
+
+4. CONTROLADORES
+   - Crear: SesionCajaController
+   - Actualizar: CajaController
+   - Actualizar: Rutas
+
+5. FRONTEND
+   - Actualizar: CajaAperturaModal
+   - Actualizar: Hooks (useCajas)
+   - Actualizar: Llamadas API
+
+
+ESTIMACIÓN DE TIEMPO
+─────────────────────────────────────────────────────────────────────────────
+
+Base de Datos ..................... 1 hora
+Modelos ........................... 1 hora
+Servicios ......................... 2 horas
+Controladores ..................... 2 horas
+Frontend .......................... 3 horas
+Testing ........................... 2 horas
+Documentación ..................... 1 hora
+─────────────────────────────────────────────────────────────────────────────
+TOTAL ............................. 12 horas
+
+
+DOCUMENTACIÓN INCLUIDA
+─────────────────────────────────────────────────────────────────────────────
+
+1. README.md
+   - Resumen ejecutivo
+   - El problema y la solución
+   - Impacto y beneficios
+
+2. SKILL.md
+   - Análisis conceptual detallado
+   - Cambios necesarios
+   - Impacto en otras áreas
+
+3. PLAN_IMPLEMENTACION.md
+   - Plan detallado con migraciones
+   - Cambios en modelos, servicios, controladores
+   - Checklist de implementación
+   - Riesgos y mitigación
+
+4. COMPARATIVA_VISUAL.md
+   - Estructura de datos (antes vs después)
+   - Flujo de negocio (antes vs después)
+   - Interfaz de usuario (antes vs después)
+   - Ejemplos prácticos
+
+5. EJEMPLOS_CODIGO.md
+   - Código de modelos
+   - Código de servicios
+   - Código de controladores
+   - Código de frontend
+
+6. INDICE.md
+   - Índice de documentos
+   - Cómo usar esta skill
+   - Checklist de lectura
+
+7. RESUMEN_EJECUTIVO.txt
+   - Este archivo
+
+
+PRÓXIMOS PASOS
+─────────────────────────────────────────────────────────────────────────────
+
+1. Revisar esta skill con el equipo
+2. Aprobar la solución propuesta
+3. Crear skills separadas para cada fase:
+   - Migración de base de datos
+   - Actualización de modelos
+   - Actualización de servicios
+   - Actualización de controladores
+   - Actualización de frontend
+   - Testing
+
+4. Ejecutar en orden
+
+
+CÓMO EMPEZAR
+─────────────────────────────────────────────────────────────────────────────
+
+1. Lee: .claude/skills/correccion-logica-caja/README.md
+2. Lee: .claude/skills/correccion-logica-caja/SKILL.md
+3. Lee: .claude/skills/correccion-logica-caja/COMPARATIVA_VISUAL.md
+4. Lee: .claude/skills/correccion-logica-caja/PLAN_IMPLEMENTACION.md
+5. Revisa: .claude/skills/correccion-logica-caja/EJEMPLOS_CODIGO.md
+
+
+RIESGOS Y MITIGACIÓN
+─────────────────────────────────────────────────────────────────────────────
+
+Riesgo: Pérdida de datos históricos
+Probabilidad: Baja
+Impacto: Alto
+Mitigación: Backup antes de migración, verificar datos
+
+Riesgo: Incompatibilidad con código existente
+Probabilidad: Media
+Impacto: Medio
+Mitigación: Tests exhaustivos, mantener compatibilidad
+
+Riesgo: Rendimiento de queries
+Probabilidad: Baja
+Impacto: Medio
+Mitigación: Índices en sesiones_caja, optimizar queries
+
+Riesgo: Confusión de usuarios
+Probabilidad: Media
+Impacto: Bajo
+Mitigación: Documentación clara, capacitación
+
+
+CONCLUSIÓN
+─────────────────────────────────────────────────────────────────────────────
+
+Esta skill propone una corrección fundamental en la lógica de apertura de 
+caja. El cambio es necesario para que el sistema funcione correctamente y 
+sea escalable.
+
+La implementación requiere cambios en múltiples capas (BD, Backend, Frontend),
+pero el beneficio es significativo: permitir que los vendedores abran caja 
+múltiples veces sin necesidad de crear nuevas cajas.
+
+Se recomienda implementar esta solución lo antes posible.
+
+
+================================================================================
+Creado: 2026-03-05
+Versión: 1.0
+Estado: Propuesta
+================================================================================

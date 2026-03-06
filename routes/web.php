@@ -162,6 +162,16 @@ Route::get('/reporteCOT/a4.php', function (Request $request) {
 });
 
 
+// Facturación - Catálogos auxiliares
+Route::get('/facturacion/transportistas', function () { return view('facturacion.transportistas'); })->name('facturacion.transportistas');
+
+// Finanzas - Catálogos
+Route::get('/finanzas/utilidades', function () { return view('finanzas.utilidades'); })->name('finanzas.utilidades');
+Route::get('/finanzas/bancos', function () { return view('finanzas.bancos'); })->name('finanzas.bancos');
+Route::get('/finanzas/metodos-pago', function () { return view('finanzas.metodos-pago'); })->name('finanzas.metodos-pago');
+Route::get('/finanzas/caja', function () { return view('finanzas.caja'); })->name('finanzas.caja');
+Route::get('/finanzas/cuentas-bancarias', function () { return view('finanzas.cuentas-bancarias'); })->name('finanzas.cuentas-bancarias');
+
 // Cuentas por Cobrar
 Route::get('/cuentas-por-cobrar', function () { return view('finanzas.cuentas-por-cobrar'); })->name('cuentas-por-cobrar');
 Route::get('cuentas-por-cobrar/descargar-pdf', [\App\Http\Controllers\Exports\CuentasPorCobrarExportController::class, 'exportPdf']);

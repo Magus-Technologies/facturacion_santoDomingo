@@ -20,6 +20,7 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
         telefono: '',
         telefono2: '',
         email: '',
+        foto: null,
         ubigeo: '',
         departamento: '',
         provincia: '',
@@ -38,6 +39,7 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
                     telefono: cliente.telefono || '',
                     telefono2: cliente.telefono2 || '',
                     email: cliente.email || '',
+                    foto: null,
                     ubigeo: cliente.ubigeo || '',
                     departamento: cliente.departamento || '',
                     provincia: cliente.provincia || '',
@@ -53,6 +55,7 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
                     telefono: '',
                     telefono2: '',
                     email: '',
+                    foto: null,
                     ubigeo: '',
                     departamento: '',
                     provincia: '',
@@ -68,7 +71,14 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
      */
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        
+        // Si es un archivo, guardarlo directamente
+        if (value instanceof File) {
+            console.log('Guardando archivo:', name, value.name);
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
         
         // Limpiar error del campo al escribir
         setErrors((prev) => {
@@ -167,26 +177,52 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
             const token = localStorage.getItem('auth_token');
             const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-            // Agregar id_empresa del usuario logueado
-            const dataToSend = {
-                ...formData,
-                id_empresa: user.id_empresa || 1,
-            };
+            // Crear FormData para enviar archivo
+            const formDataToSend = new FormData();
+            
+            // Agregar campos de texto
+            formDataToSend.append('documento', formData.documento);
+            formDataToSend.append('datos', formData.datos);
+            formDataToSend.append('direccion', formData.direccion);
+            formDataToSend.append('direccion2', formData.direccion2);
+            formDataToSend.append('telefono', formData.telefono);
+            formDataToSend.append('telefono2', formData.telefono2);
+            formDataToSend.append('email', formData.email);
+            formDataToSend.append('ubigeo', formData.ubigeo);
+            formDataToSend.append('departamento', formData.departamento);
+            formDataToSend.append('provincia', formData.provincia);
+            formDataToSend.append('distrito', formData.distrito);
+            formDataToSend.append('id_empresa', user.id_empresa || 1);
+
+            // Para PUT, agregar _method
+            if (isEditing) {
+                formDataToSend.append('_method', 'PUT');
+            }
+
+            // Agregar foto si existe
+            if (formData.foto instanceof File) {
+                console.log('Agregando foto al FormData:', formData.foto.name);
+                formDataToSend.append('foto', formData.foto);
+            } else {
+                console.log('No hay foto para enviar. formData.foto:', formData.foto);
+            }
 
             const url = isEditing
                 ? `/api/clientes/${cliente.id_cliente}`
                 : '/api/clientes';
 
-            const method = isEditing ? 'PUT' : 'POST';
+            // Usar POST para ambos casos (POST para crear, POST con _method=PUT para actualizar)
+            const method = 'POST';
+
+            console.log('Enviando formulario:', { url, method, tieneArchivo: formData.foto instanceof File });
 
             const response = await fetch(url, {
                 method,
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
                     Accept: 'application/json',
                 },
-                body: JSON.stringify(dataToSend),
+                body: formDataToSend,
             });
 
             const data = await response.json();

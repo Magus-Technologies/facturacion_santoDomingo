@@ -116,6 +116,7 @@ export default function GuiaRemisionForm() {
     const [consultandoTransportista, setConsultandoTransportista] =
         useState(false);
     const [consultandoConductor, setConsultandoConductor] = useState(false);
+    const [transportistasActivos, setTransportistasActivos] = useState([]);
 
     const handleConsultarTransportista = async () => {
         const ruc = form.transportista_documento.trim();
@@ -171,6 +172,7 @@ export default function GuiaRemisionForm() {
         fetchMotivos();
         fetchEmpresa();
         fetchProximoNumero();
+        fetchTransportistasActivos();
 
         // Si viene venta_id en la URL, cargar automáticamente
         const params = new URLSearchParams(window.location.search);
@@ -203,6 +205,18 @@ export default function GuiaRemisionForm() {
             }
         } catch (err) {
             console.error("Error obteniendo próximo número:", err);
+        }
+    };
+
+    const fetchTransportistasActivos = async () => {
+        try {
+            const res = await fetch("/api/transportistas/activos", {
+                headers: getAuthHeaders(),
+            });
+            const data = await res.json();
+            if (data.success) setTransportistasActivos(data.data || []);
+        } catch {
+            // silencioso
         }
     };
 
@@ -810,7 +824,41 @@ export default function GuiaRemisionForm() {
                         </CardHeader>
                         <CardContent>
                             {form.mod_transporte === "01" ? (
-                                <><div className="grid grid-cols-3 gap-3">
+                                <>{transportistasActivos.length > 0 && (
+                                    <div className="mb-3">
+                                        <Label className="text-xs text-gray-500 mb-1 block">
+                                            Seleccionar del catálogo
+                                        </Label>
+                                        <Select
+                                            value=""
+                                            onValueChange={(id) => {
+                                                const t = transportistasActivos.find(
+                                                    (t) => t.id.toString() === id
+                                                );
+                                                if (t) {
+                                                    setForm((prev) => ({
+                                                        ...prev,
+                                                        transportista_documento: t.numero_documento || "",
+                                                        transportista_nombre: t.razon_social || "",
+                                                        transportista_nro_mtc: t.numero_mtc || "",
+                                                    }));
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Elegir transportista guardado..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {transportistasActivos.map((t) => (
+                                                    <SelectItem key={t.id} value={t.id.toString()}>
+                                                        {t.razon_social} — {t.numero_documento}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-3 gap-3">
                                     <div>
                                         <Label className="text-xs text-gray-500 mb-1 block">
                                             RUC Transportista <span className="text-red-500">*</span>

@@ -32,17 +32,33 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     // Permisos
     Route::get('permissions', [\App\Http\Controllers\Api\PermissionController::class, 'index']);
     Route::get('permissions/user', [\App\Http\Controllers\Api\PermissionController::class, 'getUserPermissions']);
+    Route::post('permissions/refresh', [\App\Http\Controllers\Api\PermissionController::class, 'refreshUserPermissions']);
     Route::get('permissions/role/{rolId}', [\App\Http\Controllers\Api\PermissionController::class, 'getRolePermissions']);
     Route::put('permissions/role/{rolId}', [\App\Http\Controllers\Api\PermissionController::class, 'updateRolePermissions']);
 
     // Dashboard
-    Route::get('/dashboard/stats', [\App\Http\Controllers\Api\DashboardController::class, 'getStats']);
+    Route::get('/dashboard/stats', [\App\Http\Controllers\Api\DashboardController::class, 'stats']);
+    Route::get('/dashboard/ventas-por-dia', [\App\Http\Controllers\Api\DashboardController::class, 'ventasPorDia']);
+    Route::get('/dashboard/metodos-pago', [\App\Http\Controllers\Api\DashboardController::class, 'metodosPago']);
+    Route::get('/dashboard/ingresos-egresos', [\App\Http\Controllers\Api\DashboardController::class, 'ingresosEgresos']);
+    Route::get('/dashboard/top-productos', [\App\Http\Controllers\Api\DashboardController::class, 'topProductos']);
+    Route::get('/dashboard/ultimas-transacciones', [\App\Http\Controllers\Api\DashboardController::class, 'ultimasTransacciones']);
+    Route::get('/dashboard/cajas-pendientes', [\App\Http\Controllers\Api\DashboardController::class, 'cajasPendientes']);
+    Route::get('/dashboard/top-categorias', [\App\Http\Controllers\Api\DashboardController::class, 'topCategorias']);
+    Route::get('/dashboard/top-marcas', [\App\Http\Controllers\Api\DashboardController::class, 'topMarcas']);
+    Route::get('/dashboard/top-fechas', [\App\Http\Controllers\Api\DashboardController::class, 'topFechas']);
+    Route::get('/dashboard/rentabilidad', [\App\Http\Controllers\Api\DashboardController::class, 'rentabilidad']);
+    Route::get('/dashboard/top-clientes', [\App\Http\Controllers\Api\DashboardController::class, 'topClientes']);
+    Route::get('/dashboard/ventas-por-hora', [\App\Http\Controllers\Api\DashboardController::class, 'ventasPorHora']);
+    Route::get('/dashboard/vendedores', [\App\Http\Controllers\Api\DashboardController::class, 'vendedores']);
+    Route::get('/dashboard/stock-bajo', [\App\Http\Controllers\Api\DashboardController::class, 'stockBajo']);
 
     // Clientes
     Route::get('clientes', [\App\Http\Controllers\Api\ClienteController::class, 'index'])->middleware('permission:clientes.view');
     Route::post('clientes', [\App\Http\Controllers\Api\ClienteController::class, 'store'])->middleware('permission:clientes.create');
     Route::get('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'show'])->middleware('permission:clientes.view');
     Route::put('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'update'])->middleware('permission:clientes.edit');
+    Route::post('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'update'])->middleware('permission:clientes.edit'); // POST para FormData con foto
     Route::delete('clientes/{id}', [\App\Http\Controllers\Api\ClienteController::class, 'destroy'])->middleware('permission:clientes.delete');
     Route::post('clientes/buscar-documento', [\App\Http\Controllers\Api\ClienteController::class, 'buscarPorDocumento']);
 
@@ -176,6 +192,69 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('guias-remision/{id}/ticket', [\App\Http\Controllers\GuiaRemisionController::class, 'consultarTicket']);
     Route::get('guias-remision/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionController::class, 'xml'])->where('nombre', '.*');
 
+    // -----------------------------------------------------------------------
+    // MÓDULO FINANZAS
+    // -----------------------------------------------------------------------
+
+    // Bancos
+    Route::get('bancos', [\App\Http\Controllers\Api\BancoController::class, 'index']);
+    Route::post('bancos', [\App\Http\Controllers\Api\BancoController::class, 'store'])->middleware('permission:finanzas.create');
+    Route::get('bancos/{id}', [\App\Http\Controllers\Api\BancoController::class, 'show']);
+    Route::put('bancos/{id}', [\App\Http\Controllers\Api\BancoController::class, 'update'])->middleware('permission:finanzas.edit');
+    Route::delete('bancos/{id}', [\App\Http\Controllers\Api\BancoController::class, 'destroy'])->middleware('permission:finanzas.delete');
+
+    // Transportistas
+    Route::get('transportistas/activos', [\App\Http\Controllers\Api\TransportistaController::class, 'activos']);
+    Route::get('transportistas', [\App\Http\Controllers\Api\TransportistaController::class, 'index']);
+    Route::post('transportistas', [\App\Http\Controllers\Api\TransportistaController::class, 'store'])->middleware('permission:guias-remision.create');
+    Route::get('transportistas/{id}', [\App\Http\Controllers\Api\TransportistaController::class, 'show']);
+    Route::put('transportistas/{id}', [\App\Http\Controllers\Api\TransportistaController::class, 'update'])->middleware('permission:guias-remision.edit');
+    Route::delete('transportistas/{id}', [\App\Http\Controllers\Api\TransportistaController::class, 'destroy'])->middleware('permission:guias-remision.delete');
+
+    // Métodos de Pago
+    Route::get('metodos-pago', [\App\Http\Controllers\Api\MetodoPagoController::class, 'index']);
+    Route::post('metodos-pago', [\App\Http\Controllers\Api\MetodoPagoController::class, 'store'])->middleware('permission:finanzas.create');
+    Route::get('metodos-pago/empresa/configuracion', [\App\Http\Controllers\Api\MetodoPagoController::class, 'configuracionEmpresa']);
+    Route::post('metodos-pago/empresa/configuracion', [\App\Http\Controllers\Api\MetodoPagoController::class, 'guardarConfiguracionEmpresa'])->middleware('permission:finanzas.edit');
+    Route::get('metodos-pago/{id}', [\App\Http\Controllers\Api\MetodoPagoController::class, 'show']);
+    Route::put('metodos-pago/{id}', [\App\Http\Controllers\Api\MetodoPagoController::class, 'update'])->middleware('permission:finanzas.edit');
+    Route::delete('metodos-pago/{id}', [\App\Http\Controllers\Api\MetodoPagoController::class, 'destroy'])->middleware('permission:finanzas.delete');
+
+    // Cajas
+    Route::get('cajas/activa', [\App\Http\Controllers\Api\CajaController::class, 'cajaActiva']);
+    Route::get('cajas/denominaciones', [\App\Http\Controllers\Api\CajaController::class, 'denominaciones']);
+    Route::get('cajas', [\App\Http\Controllers\Api\CajaController::class, 'index'])->middleware('permission:caja.view');
+    Route::post('cajas', [\App\Http\Controllers\Api\CajaController::class, 'store'])->middleware('permission:caja.create');
+    Route::get('cajas/{id}', [\App\Http\Controllers\Api\CajaController::class, 'show'])->middleware('permission:caja.view');
+    Route::get('cajas/{id}/resumen', [\App\Http\Controllers\Api\CajaController::class, 'resumen'])->middleware('permission:caja.view');
+    Route::get('cajas/{id}/ventas-por-metodo', [\App\Http\Controllers\Api\CajaController::class, 'ventasPorMetodo'])->middleware('permission:caja.view');
+    Route::get('cajas/{id}/auditoria', [\App\Http\Controllers\Api\CajaController::class, 'auditoria'])->middleware('permission:caja.view');
+    Route::get('cajas/{id}/arqueo', [\App\Http\Controllers\Api\CajaController::class, 'arqueo'])->middleware('permission:caja.view');
+    Route::post('cajas/{id}/activar', [\App\Http\Controllers\Api\CajaController::class, 'activar']);
+    Route::post('cajas/{id}/abrir', [\App\Http\Controllers\Api\CajaController::class, 'abrir'])->middleware('permission:caja.abrir');
+    Route::put('cajas/{id}/cierre', [\App\Http\Controllers\Api\CajaController::class, 'cierre'])->middleware('permission:caja.edit');
+    Route::post('cajas/{id}/autorizar', [\App\Http\Controllers\Api\CajaController::class, 'autorizarCierre'])->middleware('permission:caja.autorizar');
+    Route::post('cajas/{id}/rechazar', [\App\Http\Controllers\Api\CajaController::class, 'rechazarCierre'])->middleware('permission:caja.autorizar');
+    Route::get('cajas/{id}/movimientos', [\App\Http\Controllers\Api\CajaController::class, 'movimientos'])->middleware('permission:caja.view');
+    Route::post('cajas/{id}/movimientos', [\App\Http\Controllers\Api\CajaController::class, 'registrarMovimiento'])->middleware('permission:caja.edit');
+    Route::get('cajas/permisos/{usuario_id}', [\App\Http\Controllers\Api\CajaController::class, 'obtenerPermisos'])->middleware('permission:caja.autorizar');
+    Route::post('cajas/permisos/{usuario_id}', [\App\Http\Controllers\Api\CajaController::class, 'actualizarPermisos'])->middleware('permission:caja.autorizar');
+
+    // Utilidades / BI Financiero
+    Route::get('finanzas/utilidades', [\App\Http\Controllers\Api\UtilidadesController::class, 'index'])->middleware('permission:utilidades.view');
+
+    // Cuentas Bancarias
+    Route::get('cuentas-bancarias', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'index'])->middleware('permission:banco.view');
+    Route::post('cuentas-bancarias', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'store'])->middleware('permission:banco.create');
+    Route::get('cuentas-bancarias/{id}', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'show'])->middleware('permission:banco.view');
+    Route::put('cuentas-bancarias/{id}', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'update'])->middleware('permission:banco.edit');
+    Route::delete('cuentas-bancarias/{id}', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'destroy'])->middleware('permission:banco.delete');
+    Route::get('cuentas-bancarias/{id}/movimientos', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'movimientos'])->middleware('permission:banco.view');
+    Route::post('cuentas-bancarias/{id}/movimientos', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'registrarMovimiento'])->middleware('permission:banco.edit');
+    Route::get('cuentas-bancarias/{id}/conciliaciones', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'conciliaciones'])->middleware('permission:banco.view');
+    Route::post('cuentas-bancarias/{id}/conciliaciones', [\App\Http\Controllers\Api\CuentaBancariaController::class, 'registrarConciliacion'])->middleware('permission:banco.edit');
+
+    // -----------------------------------------------------------------------
     // Comunicación de Baja (anular facturas, NC, ND)
     Route::post('comunicacion-baja', [\App\Http\Controllers\ComunicacionBajaController::class, 'store']);
     Route::post('comunicacion-baja/consultar', [\App\Http\Controllers\ComunicacionBajaController::class, 'consultarTicket']);

@@ -119,11 +119,88 @@ export const useClientes = () => {
     };
 
     /**
-     * Muestra la información del cliente en un alert
+     * Muestra la información del cliente en un modal
      */
     const handleView = (cliente) => {
-        const info = getClienteInfoMessage(cliente);
-        alert(info);
+        // Crear un modal simple con la información del cliente
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        };
+
+        const content = document.createElement('div');
+        content.className = 'bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden';
+        content.onclick = (e) => e.stopPropagation();
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'flex items-center justify-between p-4 border-b border-gray-100';
+        header.innerHTML = `
+            <h3 class="font-semibold text-gray-900">Perfil del Cliente</h3>
+            <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors" onclick="this.closest('.fixed').remove()">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        `;
+
+        // Body
+        const body = document.createElement('div');
+        body.className = 'p-4 space-y-4';
+
+        // Foto
+        if (cliente.foto_url) {
+            const fotoDiv = document.createElement('div');
+            fotoDiv.innerHTML = `<img src="${cliente.foto_url}" alt="${cliente.datos}" class="w-full h-48 object-cover rounded-lg" />`;
+            body.appendChild(fotoDiv);
+        }
+
+        // Información
+        const info = document.createElement('div');
+        info.className = 'space-y-3';
+        info.innerHTML = `
+            <div>
+                <p class="text-xs text-gray-500 font-medium">NOMBRE</p>
+                <p class="text-sm font-semibold text-gray-900">${cliente.datos}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 font-medium">DOCUMENTO</p>
+                <p class="text-sm font-mono text-gray-900">${cliente.documento}</p>
+            </div>
+            ${cliente.email ? `
+            <div>
+                <p class="text-xs text-gray-500 font-medium">EMAIL</p>
+                <p class="text-sm text-gray-900">${cliente.email}</p>
+            </div>
+            ` : ''}
+            ${cliente.telefono ? `
+            <div>
+                <p class="text-xs text-gray-500 font-medium">TELÉFONO</p>
+                <p class="text-sm text-gray-900">${cliente.telefono}</p>
+            </div>
+            ` : ''}
+            ${cliente.direccion ? `
+            <div>
+                <p class="text-xs text-gray-500 font-medium">DIRECCIÓN</p>
+                <p class="text-sm text-gray-900">${cliente.direccion}</p>
+            </div>
+            ` : ''}
+            ${cliente.total_venta ? `
+            <div>
+                <p class="text-xs text-gray-500 font-medium">TOTAL VENTAS</p>
+                <p class="text-sm font-semibold text-green-700">S/. ${parseFloat(cliente.total_venta).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
+            </div>
+            ` : ''}
+        `;
+        body.appendChild(info);
+
+        content.appendChild(header);
+        content.appendChild(body);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
     };
 
     return {

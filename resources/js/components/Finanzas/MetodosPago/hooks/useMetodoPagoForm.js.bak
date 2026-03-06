@@ -1,0 +1,73 @@
+import { useState, useEffect } from 'react';
+import { toast } from '@/lib/sweetalert';
+
+const initialState = {
+    nombre: '', codigo: '', descripcion: '', tipo: 'Otro',
+    id_banco: '', requiere_referencia: false, requiere_comprobante: false, activo: true,
+};
+
+export const useMetodoPagoForm = (metodo, isOpen, onClose, onSuccess) => {
+    const isEditing = !!metodo;
+    const [formData, setFormData] = useState(initialState);
+    const [bancos, setBancos] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        if (isOpen) {
+            setFormData(metodo ? {
+                nombre: metodo.nombre || '',
+                codigo: metodo.codigo || '',
+                descripcion: metodo.descripcion || '',
+                tipo: metodo.tipo || 'Otro',
+                id_banco: metodo.id_banco || '',
+                requiere_referencia: metodo.requiere_referencia ?? false,
+                requiere_comprobante: metodo.requiere_comprobante ?? false,
+                activo: metodo.activo ?? true,
+            } : initialState);
+            setErrors({});
+            fetchBancos();
+        }
+    }, [metodo, isOpen]);
+
+    const fetchBancos = async () => {
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch('/api/bancos?solo_activos=1', {
+            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+        });
+        const data = await res.json();
+        if (data.success) setBancos(data.data);
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        setErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrors({});
+        try {
+            const token = localStorage.getItem('auth_token');
+            const url = isEditing ? `/api/metodos-pago/${metodo.id_metodo_pago}` : '/api/metodos-pago';
+            const body = { ...formData, id_banco: formData.id_banco || null };
+            const response = await fetch(url, {
+                method: isEditing ? 'PUT' : 'POST',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const data = await response.json();
+            if (data.success) {
+                onClose(); onSuccess?.();
+                setTimeout(() => toast.success(isEditing ? 'Método actualizado' : 'Método creado'), 300);
+            } else if (data.errors) {
+                setErrors(data.errors); toast.error('Corrige los errores');
+            } else toast.error(data.message || 'Error al guardar');
+        } catch { toast.error('Error de conexión'); }
+        finally { setLoading(false); }
+    };
+
+    return { formData, bancos, loading, errors, isEditing, handleChange, handleSubmit };
+};

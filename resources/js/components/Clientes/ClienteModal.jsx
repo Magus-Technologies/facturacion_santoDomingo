@@ -3,6 +3,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 import SelectUbigeo from "../ui/SelectUbigeo";
+import FotoUploadField from "./components/FotoUploadField";
 import { useClienteForm } from "./hooks/useClienteForm";
 
 export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
@@ -30,6 +31,15 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
             target: { name: "distrito", value: ubicacion.distritoNombre },
         });
         handleChange({ target: { name: "ubigeo", value: ubicacion.ubigeo } });
+    };
+
+    const handleFotoChange = (file) => {
+        handleChange({
+            target: {
+                name: "foto",
+                value: file,
+            },
+        });
     };
 
     return (
@@ -62,6 +72,16 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
         >
             <ModalForm onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Foto */}
+                    <div className="md:col-span-2">
+                        <FotoUploadField
+                            value={formData.foto}
+                            onChange={handleFotoChange}
+                            error={errors.foto?.[0]}
+                            existingFoto={cliente?.foto_url}
+                        />
+                    </div>
+
                     {/* Documento */}
                     <ModalField
                         label="RUC / DNI"

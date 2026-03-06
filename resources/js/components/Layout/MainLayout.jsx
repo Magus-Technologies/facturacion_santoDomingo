@@ -32,7 +32,7 @@ export default function MainLayout({
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
             {/* Sidebar */}
             <Sidebar
                 isOpen={isSidebarOpen}
@@ -51,9 +51,8 @@ export default function MainLayout({
 
             {/* Main Content Area */}
             <div
-                className={`transition-all duration-300 ${
-                    isCollapsed ? "lg:ml-20" : "lg:ml-64"
-                }`}
+                className={`transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64"
+                    }`}
             >
                 {/* Header */}
                 <Header
@@ -64,7 +63,7 @@ export default function MainLayout({
 
                 {/* Page Content */}
                 <main className="pt-16 min-h-screen">
-                    <div className="p-6">{children}</div>
+                    <div className="px-6 pt-4 pb-6">{children}</div>
                 </main>
             </div>
         </div>

@@ -14,6 +14,7 @@ class GuiaRemision extends Model
         'id_empresa',
         'id_usuario',
         'id_venta',
+        'id_transportista',
         'serie',
         'numero',
         'fecha_emision',
@@ -77,6 +78,11 @@ class GuiaRemision extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(GuiaRemisionDetalle::class, 'id_guia', 'id');
+    }
+
+    public function transportista(): BelongsTo
+    {
+        return $this->belongsTo(Transportista::class, 'id_transportista', 'id');
     }
 
     public function getNumeroCompletoAttribute(): string

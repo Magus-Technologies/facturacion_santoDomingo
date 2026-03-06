@@ -18,12 +18,23 @@ import {
     formatFecha,
     formatTotalVentas,
 } from "../utils/clienteHelpers";
+import FotoClienteCell from "../components/FotoClienteCell";
 
 /**
  * Definición de columnas para la tabla de clientes
  * @param {Object} handlers - Objeto con funciones: { handleView, handleEdit, handleDelete }
  */
 export const getClientesColumns = (handlers) => [
+    {
+        accessorKey: "foto_url",
+        header: "Foto",
+        cell: ({ row }) => (
+            <FotoClienteCell
+                fotoUrl={row.getValue("foto_url")}
+                nombreCliente={row.original.datos}
+            />
+        ),
+    },
     {
         accessorKey: "id_cliente",
         header: "ID",

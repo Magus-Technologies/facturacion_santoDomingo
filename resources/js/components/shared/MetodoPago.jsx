@@ -15,15 +15,19 @@ import {
     Upload,
     X,
     Image,
+    Loader2,
 } from "lucide-react";
 import { toast } from "@/lib/sweetalert";
+import { useEffect, useState } from "react";
 
-const METODOS_PAGO = [
-    { value: "1", label: "Efectivo", icon: Banknote },
-    { value: "4", label: "Transferencia", icon: Building2 },
-    { value: "5", label: "Yape / Plin", icon: Smartphone },
-    { value: "2", label: "Tarjeta", icon: CreditCard },
-];
+const TIPO_ICONS = {
+    Efectivo: Banknote,
+    Tarjeta: CreditCard,
+    Transferencia: Building2,
+    Billetera: Smartphone,
+    Cheque: CreditCard,
+    Otro: Banknote,
+};
 
 const BANCOS = [
     "BCP",
@@ -39,12 +43,41 @@ export default function MetodoPago({
     onMetodoPagoChange,
     condicionPago = "1", // "1" = Contado, "2" = Crédito
 }) {
+    const [metodos, setMetodos] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const cargarMetodos = async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/metodos-pago', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setMetodos(data.data);
+                }
+            } catch (error) {
+                console.error('Error al cargar métodos de pago:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        cargarMetodos();
+    }, []);
+
     // Si es crédito, no mostrar método de pago
     if (String(condicionPago) === "2") {
         return null;
     }
 
-    const requiresDetails = ["2", "4", "5"].includes(metodoPago.id_tipo_pago);
+    const requiresDetails = metodoPago.id_metodo_pago && 
+        ['Tarjeta', 'Transferencia', 'Billetera'].includes(
+            metodos.find(m => m.id_metodo_pago == metodoPago.id_metodo_pago)?.tipo
+        );
 
     const handleChange = (field, value) => {
         onMetodoPagoChange({ ...metodoPago, [field]: value });
@@ -86,9 +119,17 @@ export default function MetodoPago({
         });
     };
 
-    const MetodoIcon = METODOS_PAGO.find(
-        (m) => m.value === metodoPago.id_tipo_pago
-    )?.icon || Banknote;
+    const metodoSeleccionado = metodos.find(m => m.id_metodo_pago == metodoPago.id_metodo_pago);
+    const MetodoIcon = metodoSeleccionado ? (TIPO_ICONS[metodoSeleccionado.tipo] || Banknote) : Banknote;
+
+    if (loading) {
+        return (
+            <div className="pt-3 border-t space-y-3 flex items-center justify-center">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-xs text-gray-500">Cargando métodos...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="pt-3 border-t space-y-3">
@@ -99,21 +140,24 @@ export default function MetodoPago({
 
             {/* Selector de método */}
             <Select
-                value={metodoPago.id_tipo_pago}
-                onValueChange={(val) => handleChange("id_tipo_pago", val)}
+                value={metodoPago.id_metodo_pago ? String(metodoPago.id_metodo_pago) : ""}
+                onValueChange={(val) => handleChange("id_metodo_pago", val)}
             >
                 <SelectTrigger>
                     <SelectValue placeholder="Seleccione método" />
                 </SelectTrigger>
                 <SelectContent>
-                    {METODOS_PAGO.map((m) => (
-                        <SelectItem key={m.value} value={m.value}>
-                            <span className="flex items-center gap-2">
-                                <m.icon className="h-4 w-4" />
-                                {m.label}
-                            </span>
-                        </SelectItem>
-                    ))}
+                    {metodos.map((m) => {
+                        const Icon = TIPO_ICONS[m.tipo] || Banknote;
+                        return (
+                            <SelectItem key={m.id_metodo_pago} value={String(m.id_metodo_pago)}>
+                                <span className="flex items-center gap-2">
+                                    <Icon className="h-4 w-4" />
+                                    {m.nombre}
+                                </span>
+                            </SelectItem>
+                        );
+                    })}
                 </SelectContent>
             </Select>
 

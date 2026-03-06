@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "context": {
+      "command": "npx",
+      "args": ["@mseep/context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "ctx7sk-48fca70f-4df7-4525-95ee-d17010a487d3"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:\\Users\\Victor\\Desktop\\Demo\\facturacion_santoDomingo"],
+      "disabled": false,
+      "autoApprove": ["read_file", "list_directory"]
+    },
+    "web-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-web-search"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://user:password@localhost/dbname"
+      },
+      "disabled": true,
+      "autoApprove": []
+    }
+  }
+}

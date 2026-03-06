@@ -21,6 +21,7 @@ class Cliente extends Model
         'telefono',
         'telefono2',
         'email',
+        'foto_url',
         'id_empresa',
         'ultima_venta',
         'total_venta',

@@ -23,6 +23,8 @@ import {
     Printer,
     Wallet,
     TrendingDown,
+    Landmark,
+    CreditCard,
 } from "lucide-react";
 import menuData from "@/data/menuModules.json";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -48,6 +50,8 @@ const iconMap = {
     Wallet,
     TrendingDown,
     FileInvoice: FileText,
+    Landmark,
+    CreditCard,
 };
 
 export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard", toggleCollapse }) {
@@ -180,7 +184,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
             >
                 <div className="flex flex-col h-full">
                     {/* Logo */}
-                    <div className="flex items-center justify-center h-20 border-b border-primary-500/30 px-4">
+                    <div className="flex items-center justify-center h-16 border-b border-primary-500/30 px-4">
                         <a href="/inicio" className="flex items-center justify-center">
                             {isCollapsed ? (
                                 <div className="h-10 w-10 bg-accent-500 rounded-lg flex items-center justify-center font-bold text-gray-900 text-xl">

@@ -41,6 +41,7 @@ class GuiaRemisionController extends Controller
     {
         $rules = [
             'id_venta' => 'nullable|exists:ventas,id_venta',
+            'id_transportista' => 'nullable|exists:transportistas,id',
             'destinatario_tipo_doc' => 'required|in:1,4,6',
             'destinatario_documento' => 'required|string|max:15',
             'destinatario_nombre' => 'required|string|max:255',
@@ -140,6 +141,7 @@ class GuiaRemisionController extends Controller
                     'id_empresa' => $idEmpresa,
                     'id_usuario' => $request->user()->id,
                     'id_venta' => $request->id_venta,
+                    'id_transportista' => $request->id_transportista,
                     'serie' => 'T001',
                     'numero' => $ultimoNumero + 1,
                     'fecha_emision' => now()->toDateString(),

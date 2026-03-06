@@ -151,7 +151,7 @@ class Venta extends Model
 
     public function scopeActivas($query)
     {
-        return $query->where('estado', '!=', '2')->where('estado', '!=', 'A');
+        return $query->where('ventas.estado', '!=', '2')->where('ventas.estado', '!=', 'A');
     }
 
     public function scopeAnuladas($query)

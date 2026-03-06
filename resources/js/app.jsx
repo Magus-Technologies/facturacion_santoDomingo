@@ -1,6 +1,8 @@
 import { createRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Login from "./components/Login";
 import DashboardApp from "./components/DashboardApp";
+import DashboardPage from "./components/Dashboard/DashboardPage";
 import UserList from "./components/Usuarios/UserList";
 import RolePermissions from "./components/Configuracion/RolePermissions";
 import VentasList from "./components/Facturacion/Ventas/VentasList";
@@ -24,15 +26,32 @@ import Inicio from "./components/Inicio/Inicio";
 import PlantillaImpresion from "./components/Configuracion/PlantillaImpresion";
 import CuentasPorCobrar from "./components/Finanzas/CuentasPorCobrar/CuentasPorCobrar";
 import CuentasPorPagar from "./components/Finanzas/CuentasPorPagar/CuentasPorPagar";
+import BancosList from "./components/Finanzas/Bancos/BancosList";
+import MetodosPagoList from "./components/Finanzas/MetodosPago/MetodosPagoList";
+import CajasList from "./components/Finanzas/Caja/CajasList";
+import CuentasBancariasList from "./components/Finanzas/CuentasBancarias/CuentasBancariasList";
+import UtilidadesPage from "./components/Finanzas/Utilidades/UtilidadesPage";
+import { TransportistasPage } from "./components/Finanzas/Transportistas/TransportistasPage";
 
 import "./bootstrap";
 import "../css/app.css";
 import "../css/select-custom.css";
 
+// Crear QueryClient
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60 * 5, // 5 minutos
+            gcTime: 1000 * 60 * 10, // 10 minutos
+        },
+    },
+});
+
 // Registrar componentes disponibles para montado desde Blade
 const components = {
     Login,
     DashboardApp,
+    DashboardPage,
     NotFound,
     UserList,
     RolePermissions,
@@ -56,6 +75,12 @@ const components = {
     PlantillaImpresion,
     CuentasPorCobrar,
     CuentasPorPagar,
+    BancosList,
+    MetodosPagoList,
+    CajasList,
+    CuentasBancariasList,
+    UtilidadesPage,
+    TransportistasPage,
 };
 
 // Monta cada elemento con atributo data-react-component
@@ -74,7 +99,11 @@ function mountAll() {
             console.warn(`Componente React "${name}" no encontrado.`);
             return;
         }
-        createRoot(el).render(<Component {...props} />);
+        createRoot(el).render(
+            <QueryClientProvider client={queryClient}>
+                <Component {...props} />
+            </QueryClientProvider>
+        );
     });
 }
 

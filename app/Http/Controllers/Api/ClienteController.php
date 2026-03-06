@@ -26,6 +26,7 @@ class ClienteController extends Controller
                     'telefono',
                     'telefono2',
                     'email',
+                    'foto_url',
                     'id_empresa',
                     'ubigeo',
                     'departamento',
@@ -95,6 +96,7 @@ class ClienteController extends Controller
                 'telefono' => 'nullable|string|max:200',
                 'telefono2' => 'nullable|string|max:200',
                 'email' => 'nullable|email|max:200',
+                'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'id_empresa' => 'required|exists:empresas,id_empresa',
                 'ubigeo' => 'nullable|string|max:6',
                 'departamento' => 'nullable|string|max:100',
@@ -107,11 +109,32 @@ class ClienteController extends Controller
                 'id_empresa.required' => 'La empresa es obligatoria',
                 'id_empresa.exists' => 'La empresa seleccionada no existe',
                 'email.email' => 'El email no es válido',
+                'foto.image' => 'El archivo debe ser una imagen',
+                'foto.mimes' => 'La imagen debe ser JPEG, PNG, JPG o GIF',
+                'foto.max' => 'La imagen no debe exceder 2MB',
             ]);
 
             if (empty($validated['tipo_doc']) && !empty($validated['documento'])) {
                 $doc = $validated['documento'];
                 $validated['tipo_doc'] = strlen($doc) === 11 ? '6' : (strlen($doc) === 8 ? '1' : '4');
+            }
+
+            // Manejar la foto
+            \Log::info('Verificando archivo foto', ['hasFile' => $request->hasFile('foto')]);
+            if ($request->hasFile('foto')) {
+                \Log::info('Archivo foto encontrado');
+                $foto = $request->file('foto');
+                \Log::info('Detalles del archivo', [
+                    'nombre' => $foto->getClientOriginalName(),
+                    'tipo' => $foto->getMimeType(),
+                    'tamaño' => $foto->getSize()
+                ]);
+                $nombreFoto = 'cliente_' . time() . '.' . $foto->getClientOriginalExtension();
+                $ruta = $foto->storeAs('clientes', $nombreFoto, 'public');
+                $validated['foto_url'] = '/storage/' . $ruta;
+                \Log::info('Foto guardada', ['ruta' => $ruta, 'url' => $validated['foto_url']]);
+            } else {
+                \Log::info('No hay archivo foto en la solicitud');
             }
 
             $cliente = Cliente::create($validated);
@@ -182,6 +205,7 @@ class ClienteController extends Controller
                 'telefono' => 'nullable|string|max:200',
                 'telefono2' => 'nullable|string|max:200',
                 'email' => 'nullable|email|max:200',
+                'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'id_empresa' => 'sometimes|required|exists:empresas,id_empresa',
                 'ubigeo' => 'nullable|string|max:6',
                 'departamento' => 'nullable|string|max:100',
@@ -191,7 +215,28 @@ class ClienteController extends Controller
                 'documento.unique' => 'Este documento ya está registrado para esta empresa',
                 'datos.required' => 'El nombre o razón social es obligatorio',
                 'email.email' => 'El email no es válido',
+                'foto.image' => 'El archivo debe ser una imagen',
+                'foto.mimes' => 'La imagen debe ser JPEG, PNG, JPG o GIF',
+                'foto.max' => 'La imagen no debe exceder 2MB',
             ]);
+
+            // Manejar la foto
+            \Log::info('Update: Verificando archivo foto', ['hasFile' => $request->hasFile('foto')]);
+            if ($request->hasFile('foto')) {
+                \Log::info('Update: Archivo foto encontrado');
+                $foto = $request->file('foto');
+                \Log::info('Update: Detalles del archivo', [
+                    'nombre' => $foto->getClientOriginalName(),
+                    'tipo' => $foto->getMimeType(),
+                    'tamaño' => $foto->getSize()
+                ]);
+                $nombreFoto = 'cliente_' . time() . '.' . $foto->getClientOriginalExtension();
+                $ruta = $foto->storeAs('clientes', $nombreFoto, 'public');
+                $validated['foto_url'] = '/storage/' . $ruta;
+                \Log::info('Update: Foto guardada', ['ruta' => $ruta, 'url' => $validated['foto_url']]);
+            } else {
+                \Log::info('Update: No hay archivo foto en la solicitud');
+            }
 
             $cliente->update($validated);
 

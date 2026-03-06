@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "./Layout/MainLayout";
-import Dashboard from "./Dashboard/Dashboard";
+import DashboardPage from "./Dashboard/DashboardPage";
 import Loader from "./Loader";
 
 export default function DashboardApp() {
@@ -60,7 +60,7 @@ export default function DashboardApp() {
 
     return (
         <MainLayout>
-            <Dashboard />
+            <DashboardPage />
         </MainLayout>
     );
 }

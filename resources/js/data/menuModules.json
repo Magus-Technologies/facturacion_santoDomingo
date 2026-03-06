@@ -48,6 +48,12 @@
           "name": "Guías de Remisión",
           "icon": "Truck",
           "path": "/guia-remision"
+        },
+        {
+          "id": "transportistas",
+          "name": "Transportistas",
+          "icon": "Truck",
+          "path": "/facturacion/transportistas"
         }
       ]
     },
@@ -98,6 +104,36 @@
           "name": "Cuentas por Pagar",
           "icon": "TrendingDown",
           "path": "/cuentas-por-pagar"
+        },
+        {
+          "id": "bancos",
+          "name": "Bancos",
+          "icon": "Landmark",
+          "path": "/finanzas/bancos"
+        },
+        {
+          "id": "metodos-pago",
+          "name": "Métodos de Pago",
+          "icon": "CreditCard",
+          "path": "/finanzas/metodos-pago"
+        },
+        {
+          "id": "caja",
+          "name": "Control de Caja",
+          "icon": "Wallet",
+          "path": "/finanzas/caja"
+        },
+        {
+          "id": "cuentas-bancarias",
+          "name": "Cuentas Bancarias",
+          "icon": "Building2",
+          "path": "/finanzas/cuentas-bancarias"
+        },
+        {
+          "id": "utilidades",
+          "name": "Análisis de Utilidades",
+          "icon": "BarChart3",
+          "path": "/finanzas/utilidades"
         }
       ]
     },

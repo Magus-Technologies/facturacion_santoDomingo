@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Frontend Quality Check",
+  "description": "Verifica que el código frontend siga buenas prácticas de accesibilidad, rendimiento y mantenibilidad",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "**/*.jsx",
+      "**/*.tsx",
+      "**/*.vue",
+      "**/*.js",
+      "**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Revisa este archivo frontend siguiendo la skill 'frontend-best-practices'. Verifica: 1) Estructura y responsabilidad clara, 2) Accesibilidad (etiquetas semánticas, aria-*, contraste), 3) Responsividad, 4) Rendimiento, 5) Código limpio. Si encuentras mejoras, sugierelas o implementalas."
+  }
+}

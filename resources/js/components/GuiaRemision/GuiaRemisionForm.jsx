@@ -314,7 +314,7 @@ export default function GuiaRemisionForm() {
                 numero: numero.trim(),
             });
             const res = await fetch(
-                `/api/notas-credito/buscar-venta?${params}`,
+                baseUrl(`/api/notas-credito/buscar-venta?${params}`),
                 { headers: getAuthHeaders() }
             );
             const data = await res.json();

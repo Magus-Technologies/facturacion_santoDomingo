@@ -38,7 +38,7 @@ export default function ProveedorDetallesModal({
             setLoading(true);
             const token = localStorage.getItem("auth_token");
             const response = await fetch(
-                `/api/proveedores/${proveedorId}/detalles`,
+                baseUrl(`/api/proveedores/${proveedorId}/detalles`),
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

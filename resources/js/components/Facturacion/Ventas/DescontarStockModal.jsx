@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal } from "../../ui/modal";
 import { Button } from "../../ui/button";
+import { baseUrl } from "@/lib/baseUrl";
 import {
     CheckCircle,
     XCircle,
@@ -32,7 +33,7 @@ export default function DescontarStockModal({
         try {
             const token = localStorage.getItem("auth_token");
             const res = await fetch(
-                `/api/ventas/${venta.id_venta}/preview-descontar-stock`,
+                baseUrl(`/api/ventas/${venta.id_venta}/preview-descontar-stock`),
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

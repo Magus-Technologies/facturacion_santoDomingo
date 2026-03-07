@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
+import { baseUrl } from '@/lib/baseUrl';
 
 /**
  * Componente selector de precios múltiples
@@ -63,8 +64,8 @@ export default function ProductPriceSelector({
             const token = localStorage.getItem('auth_token');
             const tipo = producto.tipo || 'producto';
             const endpoint = tipo === 'repuesto'
-                ? `/api/repuesto_precios/${producto.id_producto}`
-                : `/api/producto_precios/${producto.id_producto}`;
+                ? baseUrl(`/api/repuesto_precios/${producto.id_producto}`)
+                : baseUrl(`/api/producto_precios/${producto.id_producto}`);
 
             const response = await fetch(endpoint, {
                 headers: {

@@ -30,7 +30,7 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
         setLoadingExcel(true);
 
         const token = localStorage.getItem("auth_token");
-        const url = `/api/productos/descargar-excel?almacen=${almacenActivo}&texto=${encodeURIComponent(busqueda || '')}`;
+        const url = baseUrl(`/api/productos/descargar-excel?almacen=${almacenActivo}&texto=${encodeURIComponent(busqueda || '')}`);
 
         fetch(url, {
             headers: { Authorization: `Bearer ${token}` },

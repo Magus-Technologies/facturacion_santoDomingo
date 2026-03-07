@@ -23,7 +23,7 @@ export const useCotizaciones = () => {
             const token = localStorage.getItem('auth_token');
             const empresaActiva = JSON.parse(localStorage.getItem('empresa_activa') || '{}');
 
-            let url = '/api/cotizaciones';
+            let url = baseUrl('/api/cotizaciones');
             if (empresaActiva.id_empresa) {
                 url += `?id_empresa=${empresaActiva.id_empresa}`;
             }
@@ -65,7 +65,7 @@ export const useCotizaciones = () => {
                     const token = localStorage.getItem('auth_token');
 
                     const response = await fetch(
-                        `/api/cotizaciones/${cotizacion.id}`,
+                        baseUrl(`/api/cotizaciones/${cotizacion.id}`),
                         {
                             method: 'DELETE',
                             headers: {
@@ -95,7 +95,7 @@ export const useCotizaciones = () => {
      * Navega a la vista de edición
      */
     const handleEdit = (cotizacion) => {
-        window.location.href = `/cotizaciones/editar/${cotizacion.id}`;
+        window.location.href = baseUrl(`/cotizaciones/editar/${cotizacion.id}`);
     };
 
     /**
@@ -133,7 +133,7 @@ export const useCotizaciones = () => {
             const tipoVenta = doc.length === 11 ? 'factura' : 'boleta';
             
             // Navegar pasando el ID de cotización
-            window.location.href = `/ventas/productos?tipo=${tipoVenta}&cotizacion_id=${cotizacion.id}`;
+            window.location.href = baseUrl(`/ventas/productos?tipo=${tipoVenta}&cotizacion_id=${cotizacion.id}`);
 
         } catch (err) {
             console.error('Error handleConvertir:', err);

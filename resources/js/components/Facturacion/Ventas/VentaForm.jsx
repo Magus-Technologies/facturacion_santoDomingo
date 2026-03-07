@@ -81,7 +81,7 @@ export default function VentaForm({ ventaId = null }) {
                     try {
                         const token = localStorage.getItem("auth_token");
                         const response = await fetch(
-                            `/api/cotizaciones/${cotizacionIdParam}`,
+                            baseUrl(`/api/cotizaciones/${cotizacionIdParam}`),
                             {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
@@ -154,7 +154,7 @@ export default function VentaForm({ ventaId = null }) {
                     try {
                         const token = localStorage.getItem("auth_token");
                         const response = await fetch(
-                            `/api/ventas/${notaVentaIdParam}`,
+                            baseUrl(`/api/ventas/${notaVentaIdParam}`),
                             {
                                 headers: {
                                     Authorization: `Bearer ${token}`,

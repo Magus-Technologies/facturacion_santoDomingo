@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 import { consultarDocumento } from '@/services/apisPeru';
 import { consultarUbigeo } from '../utils/clienteHelpers';
 
@@ -208,8 +209,8 @@ export const useClienteForm = (cliente, isOpen, onClose, onSuccess) => {
             }
 
             const url = isEditing
-                ? `/api/clientes/${cliente.id_cliente}`
-                : '/api/clientes';
+                ? baseUrl(`/api/clientes/${cliente.id_cliente}`)
+                : baseUrl('/api/clientes');
 
             // Usar POST para ambos casos (POST para crear, POST con _method=PUT para actualizar)
             const method = 'POST';

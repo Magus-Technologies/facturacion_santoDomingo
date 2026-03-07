@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Upload, X, User } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 
-export default function FotoUploadField({ value, onChange, error, existingFoto }) {
+export default function FotoUploadField({ value, onChange, error, existingFoto, compact = false }) {
     const [preview, setPreview] = useState(null);
 
     // Cargar foto existente cuando se abre el modal de edición
@@ -53,11 +53,11 @@ export default function FotoUploadField({ value, onChange, error, existingFoto }
             </label>
 
             {preview ? (
-                <div className="relative w-full">
+                <div className={`relative ${compact ? 'w-32 h-32' : 'w-full h-40'}`}>
                     <img
                         src={preview}
                         alt="Preview"
-                        className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                        className={`${compact ? 'w-32 h-32' : 'w-full h-40'} object-cover rounded-lg border border-gray-200`}
                     />
                     <button
                         type="button"
@@ -68,14 +68,14 @@ export default function FotoUploadField({ value, onChange, error, existingFoto }
                     </button>
                 </div>
             ) : (
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">
-                            <span className="font-semibold">Haz clic para subir</span> o arrastra una imagen
+                <label className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${compact ? 'w-32 h-32 p-2' : 'w-full h-40 p-4'}`}>
+                    <div className="flex flex-col items-center justify-center">
+                        <Upload className={`${compact ? 'w-6 h-6' : 'w-10 h-10'} text-gray-400 mb-2`} />
+                        <p className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 text-center`}>
+                            <span className="font-semibold">Haz clic</span> para subir
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                            PNG, JPG, GIF (máx. 2MB)
+                        <p className="text-xs text-gray-400 mt-0.5">
+                            PNG, JPG (máx. 2MB)
                         </p>
                     </div>
                     <input

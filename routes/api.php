@@ -262,6 +262,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('cajas/permisos/{usuario_id}', [\App\Http\Controllers\Api\CajaController::class, 'actualizarPermisos'])->middleware('permission:caja.autorizar');
 
     // Utilidades / BI Financiero
+    Route::get('finanzas/utilidades/exportar', [\App\Http\Controllers\Api\UtilidadesController::class, 'exportar'])->middleware('permission:utilidades.view');
     Route::get('finanzas/utilidades', [\App\Http\Controllers\Api\UtilidadesController::class, 'index'])->middleware('permission:utilidades.view');
 
     // Cuentas Bancarias

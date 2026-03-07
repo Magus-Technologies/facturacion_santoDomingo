@@ -71,62 +71,70 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
             }
         >
             <ModalForm onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Foto */}
-                    <div className="md:col-span-2">
+                {/* Sección superior: Datos principales + Foto a la derecha */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pb-6 border-b border-gray-200">
+                    {/* Datos principales - Columnas izquierda */}
+                    <div className="md:col-span-2 space-y-4 pt-6">
+                        {/* Documento */}
+                        <ModalField
+                            label="RUC / DNI"
+                            required
+                            error={errors.documento?.[0]}
+                        >
+                            <div className="relative">
+                                <Input
+                                    variant="outlined"
+                                    name="documento"
+                                    value={formData.documento}
+                                    onChange={handleChange}
+                                    placeholder="Ingrese RUC o DNI"
+                                    maxLength={11}
+                                    required
+                                    className="pr-10"
+                                />
+                                {consultando && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Los datos se completarán automáticamente al ingresar
+                                8 (DNI) u 11 (RUC) dígitos
+                            </p>
+                        </ModalField>
+
+                        {/* Nombre / Razón Social */}
+                        <ModalField
+                            label="Nombre / Razón Social"
+                            required
+                            error={errors.datos?.[0]}
+                        >
+                            <Input
+                                variant="outlined"
+                                name="datos"
+                                value={formData.datos}
+                                onChange={handleChange}
+                                placeholder="Ingrese nombre o razón social"
+                                required
+                            />
+                        </ModalField>
+                    </div>
+
+                    {/* Foto - Columna derecha, más grande */}
+                    <div className="md:col-span-1">
                         <FotoUploadField
                             value={formData.foto}
                             onChange={handleFotoChange}
                             error={errors.foto?.[0]}
                             existingFoto={cliente?.foto_url}
+                            compact={false}
                         />
                     </div>
+                </div>
 
-                    {/* Documento */}
-                    <ModalField
-                        label="RUC / DNI"
-                        required
-                        error={errors.documento?.[0]}
-                    >
-                        <div className="relative">
-                            <Input
-                                variant="outlined"
-                                name="documento"
-                                value={formData.documento}
-                                onChange={handleChange}
-                                placeholder="Ingrese RUC o DNI"
-                                maxLength={11}
-                                required
-                                className="pr-10"
-                            />
-                            {consultando && (
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                    <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
-                                </div>
-                            )}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                            Los datos se completarán automáticamente al ingresar
-                            8 (DNI) u 11 (RUC) dígitos
-                        </p>
-                    </ModalField>
-
-                    {/* Nombre / Razón Social */}
-                    <ModalField
-                        label="Nombre / Razón Social"
-                        required
-                        error={errors.datos?.[0]}
-                    >
-                        <Input
-                            variant="outlined"
-                            name="datos"
-                            value={formData.datos}
-                            onChange={handleChange}
-                            placeholder="Ingrese nombre o razón social"
-                            required
-                        />
-                    </ModalField>
-
+                {/* Sección de contacto */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-200">
                     {/* Email */}
                     <ModalField label="Email" error={errors.email?.[0]}>
                         <Input
@@ -163,12 +171,14 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
                             placeholder="999 999 999"
                         />
                     </ModalField>
+                </div>
 
+                {/* Sección de dirección */}
+                <div className="space-y-4">
                     {/* Dirección */}
                     <ModalField
                         label="Dirección Principal"
                         error={errors.direccion?.[0]}
-                        className="md:col-span-2"
                     >
                         <Input
                             variant="outlined"
@@ -179,19 +189,16 @@ export default function ClienteModal({ isOpen, onClose, cliente, onSuccess }) {
                         />
                     </ModalField>
 
-                    {/* Ubigeo - Ocupa las 2 columnas */}
-                    <div className="md:col-span-2">
-                        <SelectUbigeo
-                            value={formData}
-                            onChange={handleUbigeoChange}
-                        />
-                    </div>
+                    {/* Ubigeo */}
+                    <SelectUbigeo
+                        value={formData}
+                        onChange={handleUbigeoChange}
+                    />
 
                     {/* Dirección 2 */}
                     <ModalField
                         label="Dirección Secundaria"
                         error={errors.direccion2?.[0]}
-                        className="md:col-span-2"
                     >
                         <Input
                             variant="outlined"

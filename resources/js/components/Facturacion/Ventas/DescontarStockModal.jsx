@@ -19,6 +19,7 @@ export default function DescontarStockModal({
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [confirming, setConfirming] = useState(false);
+    const [almacenNombre, setAlmacenNombre] = useState("Almacén");
 
     useEffect(() => {
         if (isOpen && venta) {
@@ -44,6 +45,7 @@ export default function DescontarStockModal({
             const data = await res.json();
             if (data.success) {
                 setItems(data.data);
+                if (data.almacen_nombre) setAlmacenNombre(data.almacen_nombre);
             }
         } catch (error) {
             console.error("Error cargando preview:", error);
@@ -67,7 +69,7 @@ export default function DescontarStockModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Descontar Stock - Almacén Real"
+            title={`Descontar Stock - ${almacenNombre}`}
             size="lg"
             footer={
                 <div className="flex justify-end gap-3">
@@ -120,7 +122,7 @@ export default function DescontarStockModal({
                             <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
                             <p className="text-xs text-amber-700">
                                 Algunos productos quedarán con stock negativo
-                                en el Almacén Real.
+                                en {almacenNombre}.
                             </p>
                         </div>
                     )}
@@ -210,7 +212,7 @@ export default function DescontarStockModal({
 
                     {noEncontrados.length > 0 && (
                         <p className="text-xs text-gray-500 italic">
-                            Los productos no encontrados en Almacén Real no
+                            Los productos no encontrados en {almacenNombre} no
                             serán descontados.
                         </p>
                     )}

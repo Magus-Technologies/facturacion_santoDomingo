@@ -30,7 +30,7 @@ class ProductoRequest extends FormRequest
             'stock_maximo' => 'nullable|integer|min:0',
             'categoria_id' => 'nullable|exists:categorias,id',
             'unidad_id' => 'nullable|exists:unidades,id',
-            'almacen' => 'required|in:1,2',
+            'almacen' => 'required|exists:almacenes,id',
             'codsunat' => 'nullable|string|max:20',
             'usar_barra' => 'nullable|in:0,1',
             'usar_multiprecio' => 'nullable|in:0,1',

@@ -20,6 +20,8 @@ export default function ProductoModal({
     onClose,
     producto,
     almacen,
+    esPrincipal,
+    almacenes = [],
     onSuccess,
 }) {
     const isEditing = !!producto;
@@ -29,9 +31,12 @@ export default function ProductoModal({
     const [unidades, setUnidades] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
     const [isAutoCode, setIsAutoCode] = useState(true);
-    const [replicarEmpresas, setReplicarEmpresas] = useState(false);
+    const [replicarHijos, setReplicarHijos] = useState(false);
     const [showCategoriaModal, setShowCategoriaModal] = useState(false);
     const [showUnidadModal, setShowUnidadModal] = useState(false);
+
+    // Verificar si hay almacenes hijos
+    const tieneHijos = almacenes.some((a) => !a.es_principal);
 
     const [formData, setFormData] = useState({
         nombre: "",
@@ -225,9 +230,9 @@ export default function ProductoModal({
                 formDataToSend.append("imagen", formData.imagen);
             }
 
-            // Replicar a empresas (solo en creación)
-            if (!isEditing && replicarEmpresas) {
-                formDataToSend.append("replicar_empresas", "true");
+            // Replicar a almacenes hijos (solo en creación desde principal)
+            if (!isEditing && replicarHijos && esPrincipal) {
+                formDataToSend.append("replicar_hijos", "true");
             }
 
             // Para PUT, Laravel necesita _method
@@ -516,18 +521,18 @@ export default function ProductoModal({
                             </div>
                         </ModalField>
 
-                        {/* Replicar a todas las empresas (solo en creación) */}
-                        {!isEditing && (
+                        {/* Replicar a almacenes hijos (solo en creación desde principal) */}
+                        {!isEditing && esPrincipal && tieneHijos && (
                             <label className="flex items-start gap-2.5 cursor-pointer p-3 rounded-lg border border-blue-100 bg-blue-50/50 hover:bg-blue-50 transition-colors">
                                 <input
                                     type="checkbox"
-                                    checked={replicarEmpresas}
-                                    onChange={(e) => setReplicarEmpresas(e.target.checked)}
+                                    checked={replicarHijos}
+                                    onChange={(e) => setReplicarHijos(e.target.checked)}
                                     className="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 h-4 w-4"
                                 />
                                 <div>
-                                    <span className="text-sm font-medium text-gray-700 block">Replicar a todas las empresas</span>
-                                    <span className="text-xs text-gray-500">Crea este producto en todas las empresas activas (si no existe)</span>
+                                    <span className="text-sm font-medium text-gray-700 block">Replicar a almacenes hijos</span>
+                                    <span className="text-xs text-gray-500">Crea este producto en todos los almacenes hijos (si no existe)</span>
                                 </div>
                             </label>
                         )}

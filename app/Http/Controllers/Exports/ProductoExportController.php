@@ -131,12 +131,25 @@ class ProductoExportController extends Controller
     {
         try {
             $user = $request->user();
-            $almacen = $request->get('almacen', '1');
+            $almacen = (int) $request->get('almacen', 1);
             $busqueda = $request->get('texto', '');
-            
-            // Construir query
-            $query = DB::table("view_productos_$almacen")
-                ->where('id_empresa', $user->id_empresa);
+
+            // Obtener nombre del almacén
+            $almacenNombre = DB::table('almacenes')->where('id', $almacen)->value('nombre') ?? 'Almacén';
+
+            // Construir query directa (sin depender de vistas hardcodeadas)
+            $query = DB::table('productos')
+                ->leftJoin('categorias', 'categorias.id', '=', 'productos.categoria_id')
+                ->leftJoin('unidades', 'unidades.id', '=', 'productos.unidad_id')
+                ->where('productos.id_empresa', $user->id_empresa)
+                ->where('productos.almacen', $almacen)
+                ->where('productos.estado', '1')
+                ->select(
+                    'productos.*',
+                    'categorias.nombre as categoria',
+                    'unidades.nombre as unidad',
+                    'unidades.codigo as unidad_codigo'
+                );
             
             // Aplicar búsqueda si existe
             if (!empty($busqueda)) {
@@ -155,7 +168,7 @@ class ProductoExportController extends Controller
             $sheet = $spreadsheet->getActiveSheet();
             
             // Título
-            $sheet->setCellValue('A1', 'REPORTE DE PRODUCTOS - ALMACÉN ' . $almacen);
+            $sheet->setCellValue('A1', 'REPORTE DE PRODUCTOS - ' . $almacenNombre);
             $sheet->mergeCells('A1:J1');
             $sheet->getStyle('A1')->applyFromArray([
                 'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'FFFFFF']],

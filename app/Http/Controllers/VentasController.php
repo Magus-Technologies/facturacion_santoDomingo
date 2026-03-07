@@ -245,6 +245,8 @@ class VentasController extends Controller
                                 ->count();
                             $codigoAuto = 'LIB-' . str_pad($ultimoCodigo + 1, 4, '0', STR_PAD_LEFT);
 
+                            $almacenPrincipal = \App\Models\Almacen::where('id_empresa', $user->id_empresa)
+                                ->where('es_principal', true)->value('id') ?? 1;
                             $productoLibre = \App\Models\Producto::create([
                                 'codigo' => $codigoAuto,
                                 'nombre' => $nombreLibre,
@@ -252,7 +254,7 @@ class VentasController extends Controller
                                 'costo' => 0,
                                 'cantidad' => 0,
                                 'id_empresa' => $user->id_empresa,
-                                'almacen' => '1',
+                                'almacen' => $almacenPrincipal,
                             ]);
                         }
                         $idProducto = $productoLibre->id_producto;
@@ -494,14 +496,18 @@ class VentasController extends Controller
                 ->where('id_empresa', $user->id_empresa)
                 ->findOrFail($id);
 
+            // Obtener IDs de almacenes hijos (no principales)
+            $almacenesHijos = \App\Models\Almacen::where('id_empresa', $user->id_empresa)
+                ->where('es_principal', false)->where('estado', '1')->pluck('id');
+
             $items = [];
             foreach ($venta->productosVentas as $detalle) {
                 $productoOriginal = $detalle->producto;
                 $codigo = $productoOriginal?->codigo;
 
-                $productoAlmacen2 = $codigo
+                $productoHijo = $codigo && $almacenesHijos->isNotEmpty()
                     ? \App\Models\Producto::where('id_empresa', $user->id_empresa)
-                        ->where('almacen', '2')
+                        ->whereIn('almacen', $almacenesHijos)
                         ->where('codigo', $codigo)
                         ->first()
                     : null;
@@ -510,18 +516,23 @@ class VentasController extends Controller
                     'codigo' => $codigo ?? '-',
                     'nombre' => $productoOriginal?->nombre ?? $detalle->descripcion ?? '-',
                     'cantidad_venta' => $detalle->cantidad,
-                    'encontrado' => $productoAlmacen2 !== null,
-                    'stock_almacen2' => $productoAlmacen2?->cantidad ?? 0,
-                    'stock_despues' => $productoAlmacen2
-                        ? $productoAlmacen2->cantidad - $detalle->cantidad
+                    'encontrado' => $productoHijo !== null,
+                    'stock_almacen2' => $productoHijo?->cantidad ?? 0,
+                    'stock_despues' => $productoHijo
+                        ? $productoHijo->cantidad - $detalle->cantidad
                         : null,
                 ];
             }
+
+            // Obtener nombre del almacén hijo para mostrar en frontend
+            $almacenNombre = \App\Models\Almacen::where('id_empresa', $user->id_empresa)
+                ->where('es_principal', false)->where('estado', '1')->value('nombre') ?? 'Almacén';
 
             return response()->json([
                 'success' => true,
                 'data' => $items,
                 'stock_real_descontado' => (bool) $venta->stock_real_descontado,
+                'almacen_nombre' => $almacenNombre,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -546,26 +557,32 @@ class VentasController extends Controller
                     ->where('stock_real_descontado', false)
                     ->findOrFail($id);
 
-                foreach ($venta->productosVentas as $detalle) {
-                    // Buscar el producto equivalente en almacén 2
-                    $productoAlmacen2 = \App\Models\Producto::where('id_empresa', $user->id_empresa)
-                        ->where('almacen', '2')
-                        ->where('codigo', function ($query) use ($detalle) {
-                            $query->select('codigo')
-                                ->from('productos')
-                                ->where('id_producto', $detalle->id_producto)
-                                ->limit(1);
-                        })
-                        ->first();
+                // Obtener IDs de almacenes hijos (no principales)
+                $almacenesHijos = \App\Models\Almacen::where('id_empresa', $user->id_empresa)
+                    ->where('es_principal', false)->where('estado', '1')->pluck('id');
 
-                    if ($productoAlmacen2) {
-                        $stockAnterior = $productoAlmacen2->cantidad;
-                        $productoAlmacen2->decrement('cantidad', $detalle->cantidad);
-                        $productoAlmacen2->update(['ultima_salida' => now()]);
+                foreach ($venta->productosVentas as $detalle) {
+                    // Buscar el producto equivalente en almacenes hijos
+                    $productoHijo = $almacenesHijos->isNotEmpty()
+                        ? \App\Models\Producto::where('id_empresa', $user->id_empresa)
+                            ->whereIn('almacen', $almacenesHijos)
+                            ->where('codigo', function ($query) use ($detalle) {
+                                $query->select('codigo')
+                                    ->from('productos')
+                                    ->where('id_producto', $detalle->id_producto)
+                                    ->limit(1);
+                            })
+                            ->first()
+                        : null;
+
+                    if ($productoHijo) {
+                        $stockAnterior = $productoHijo->cantidad;
+                        $productoHijo->decrement('cantidad', $detalle->cantidad);
+                        $productoHijo->update(['ultima_salida' => now()]);
                         $stockNuevo = $stockAnterior - $detalle->cantidad;
 
                         MovimientoStock::create([
-                            'id_producto' => $productoAlmacen2->id_producto,
+                            'id_producto' => $productoHijo->id_producto,
                             'tipo_movimiento' => 'salida',
                             'cantidad' => $detalle->cantidad,
                             'stock_anterior' => $stockAnterior,
@@ -573,8 +590,8 @@ class VentasController extends Controller
                             'tipo_documento' => 'descuento_almacen',
                             'id_documento' => $venta->id_venta,
                             'documento_referencia' => $venta->serie . '-' . str_pad($venta->numero, 6, '0', STR_PAD_LEFT),
-                            'motivo' => 'Descuento de almacén real por venta',
-                            'id_almacen' => 2,
+                            'motivo' => 'Descuento de almacén hijo por venta',
+                            'id_almacen' => $productoHijo->almacen,
                             'id_empresa' => $user->id_empresa,
                             'id_usuario' => $user->id,
                             'fecha_movimiento' => now(),

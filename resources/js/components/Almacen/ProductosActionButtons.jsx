@@ -5,25 +5,23 @@ import { baseUrl } from "@/lib/baseUrl";
 import {
     Plus,
     FileSpreadsheet,
-    Minus,
-    ArrowLeftRight,
     History,
     Ruler,
     FolderOpen,
     Loader2,
-    Copy,
+    Warehouse,
 } from "lucide-react";
 import UnidadesModal from "../UnidadesModal";
 import CategoriasModal from "../CategoriasModal";
 import ImportarExcelModal from "./ImportarExcelModal";
-import ReplicarProductosModal from "./ReplicarProductosModal";
+import AlmacenesModal from "./AlmacenesModal";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
-export default function ProductosActionButtons({ onNuevoProducto, onRefresh, almacenActivo, busqueda }) {
+export default function ProductosActionButtons({ onNuevoProducto, onRefresh, almacenActivo, almacenNombre, busqueda, onAlmacenesChange }) {
     const [isUnidadesModalOpen, setIsUnidadesModalOpen] = useState(false);
     const [isCategoriasModalOpen, setIsCategoriasModalOpen] = useState(false);
     const [isImportarExcelModalOpen, setIsImportarExcelModalOpen] = useState(false);
-    const [isReplicarModalOpen, setIsReplicarModalOpen] = useState(false);
+    const [isAlmacenesModalOpen, setIsAlmacenesModalOpen] = useState(false);
     const [loadingExcel, setLoadingExcel] = useState(false);
 
     const handleExcelBusqueda = () => {
@@ -40,13 +38,13 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
             return response.blob();
         })
         .then(blob => {
-            const url = window.URL.createObjectURL(blob);
+            const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
+            a.href = blobUrl;
             a.download = `productos-almacen-${almacenActivo}-${new Date().toISOString().slice(0,10)}.xlsx`;
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
             toast.success("Excel descargado exitosamente");
         })
@@ -54,14 +52,9 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
         .finally(() => setLoadingExcel(false));
     };
 
-    const handleHistorial = () => {
-        toast.info("Función en desarrollo");
-    };
-
     return (
         <>
             <div className="flex items-center justify-between flex-wrap gap-3">
-                {/* Botones de operaciones */}
                 <div className="flex items-center gap-2 flex-wrap">
                     <Button
                         variant="outline"
@@ -88,36 +81,6 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                             <span className="hidden sm:inline">Importar Excel</span>
                         </Button>
                     </PermissionGuard>
-                    <PermissionGuard permission="productos.create">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => setIsReplicarModalOpen(true)}
-                            title="Copiar todos los productos de esta empresa a otras empresas"
-                        >
-                            <Copy className="h-4 w-4" />
-                            <span className="hidden sm:inline">Replicar a empresas</span>
-                        </Button>
-                    </PermissionGuard>
-                    {/* <PermissionGuard permission="productos.edit">
-                        <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("En desarrollo")}>
-                            <Plus className="h-4 w-4" />
-                            <span className="hidden sm:inline">Aumentar Stock</span>
-                        </Button>
-                    </PermissionGuard>
-                    <PermissionGuard permission="productos.edit">
-                        <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("En desarrollo")}>
-                            <Minus className="h-4 w-4" />
-                            <span className="hidden sm:inline">Disminuir Stock</span>
-                        </Button>
-                    </PermissionGuard>
-                    <PermissionGuard permission="productos.edit">
-                        <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("En desarrollo")}>
-                            <ArrowLeftRight className="h-4 w-4" />
-                            <span className="hidden sm:inline">Traslado</span>
-                        </Button>
-                    </PermissionGuard> */}
                     <a href={baseUrl("/historial-movimientos")}>
                         <Button variant="outline" size="sm" className="gap-2">
                             <History className="h-4 w-4" />
@@ -142,9 +105,19 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                         <FolderOpen className="h-4 w-4" />
                         <span className="hidden sm:inline">Categorías</span>
                     </Button>
+                    <PermissionGuard permission="productos.create">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => setIsAlmacenesModalOpen(true)}
+                        >
+                            <Warehouse className="h-4 w-4" />
+                            <span className="hidden sm:inline">Almacenes</span>
+                        </Button>
+                    </PermissionGuard>
                 </div>
 
-                {/* Botón Nuevo Producto */}
                 <PermissionGuard permission="productos.create">
                     <Button onClick={onNuevoProducto} className="gap-2">
                         <Plus className="h-5 w-5" />
@@ -153,7 +126,6 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                 </PermissionGuard>
             </div>
 
-            {/* Modales */}
             <UnidadesModal isOpen={isUnidadesModalOpen} onClose={() => setIsUnidadesModalOpen(false)} />
             <CategoriasModal isOpen={isCategoriasModalOpen} onClose={() => setIsCategoriasModalOpen(false)} />
             <ImportarExcelModal
@@ -161,12 +133,12 @@ export default function ProductosActionButtons({ onNuevoProducto, onRefresh, alm
                 onClose={() => setIsImportarExcelModalOpen(false)}
                 onSuccess={onRefresh}
                 almacen={almacenActivo}
+                almacenNombre={almacenNombre}
             />
-            <ReplicarProductosModal
-                isOpen={isReplicarModalOpen}
-                onClose={() => setIsReplicarModalOpen(false)}
-                onSuccess={onRefresh}
-                almacenActivo={almacenActivo}
+            <AlmacenesModal
+                isOpen={isAlmacenesModalOpen}
+                onClose={() => setIsAlmacenesModalOpen(false)}
+                onSuccess={onAlmacenesChange}
             />
         </>
     );

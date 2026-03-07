@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../../Layout/MainLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,17 @@ import { getMovimientosColumns } from "./columns/movimientosColumns";
 export default function MovimientosStockList() {
     const { movimientos, loading, error, filtros, aplicarFiltros, limpiarFiltros, refetch } = useMovimientosStock();
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
+    const [almacenes, setAlmacenes] = useState([]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("auth_token");
+        fetch(baseUrl("/api/almacenes"), {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        })
+        .then((r) => r.json())
+        .then((data) => { if (data.success) setAlmacenes(data.data); })
+        .catch(() => {});
+    }, []);
 
     const columns = getMovimientosColumns();
 
@@ -79,7 +90,7 @@ export default function MovimientosStockList() {
                                     <option value="compra">Compra</option>
                                     <option value="anulacion_venta">Anulación Venta</option>
                                     <option value="anulacion_compra">Anulación Compra</option>
-                                    <option value="descuento_almacen">Desc. Almacén Real</option>
+                                    <option value="descuento_almacen">Desc. Almacén</option>
                                 </select>
                             </div>
                             <div>
@@ -90,8 +101,11 @@ export default function MovimientosStockList() {
                                     onChange={(e) => aplicarFiltros({ id_almacen: e.target.value })}
                                 >
                                     <option value="">Todos</option>
-                                    <option value="1">Facturación</option>
-                                    <option value="2">Almacén Real</option>
+                                    {almacenes.map((alm) => (
+                                        <option key={alm.id} value={alm.id}>
+                                            {alm.nombre}{alm.es_principal ? " (Principal)" : ""}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <div>

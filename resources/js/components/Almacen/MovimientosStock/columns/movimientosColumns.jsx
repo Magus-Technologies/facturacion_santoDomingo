@@ -28,7 +28,7 @@ const documentoLabel = {
     compra: "Compra",
     anulacion_venta: "Anulación Venta",
     anulacion_compra: "Anulación Compra",
-    descuento_almacen: "Desc. Almacén Real",
+    descuento_almacen: "Desc. Almacén",
     nota_credito: "Nota de Crédito",
     ajuste: "Ajuste Manual",
 };
@@ -125,7 +125,7 @@ export const getMovimientosColumns = () => [
             const almacen = row.original.id_almacen;
             return (
                 <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                    {almacen == 1 ? "Facturación" : almacen == 2 ? "Almacén Real" : almacen || "-"}
+                    {row.original.almacen_nombre || `Almacén ${almacen}` || "-"}
                 </span>
             );
         },

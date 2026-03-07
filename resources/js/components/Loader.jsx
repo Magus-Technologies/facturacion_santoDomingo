@@ -22,8 +22,8 @@ const Loader = ({ variant = "dual", className, text = "Cargando..." }) => {
                 <div className="flex items-center justify-center gap-8">
                     {/* Logo 1 */}
                     <img
-                        src={baseUrl("/images/logos/Logo.svg")}
-                        alt="elidesava"
+                        src={baseUrl("/images/logos/logo.svg")}
+                        alt="facturacion logo"
                         className="h-28 w-auto animate-pulse"
                     />
                   

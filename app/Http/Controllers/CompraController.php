@@ -187,7 +187,7 @@ class CompraController extends Controller
                     'id_documento' => $compra->id_compra,
                     'documento_referencia' => $compra->serie . '-' . $compra->numero,
                     'motivo' => 'Compra a proveedor',
-                    'id_almacen' => 1,
+                    'id_almacen' => \App\Models\Producto::where('id_producto', $prod['id_producto'])->value('almacen') ?? 1,
                     'id_empresa' => $idEmpresa,
                     'id_usuario' => $idUsuario,
                     'fecha_movimiento' => now()
@@ -341,7 +341,7 @@ class CompraController extends Controller
                         'id_documento' => $compra->id_compra,
                         'documento_referencia' => $compra->serie . '-' . $compra->numero,
                         'motivo' => 'Anulación de compra',
-                        'id_almacen' => 1,
+                        'id_almacen' => \App\Models\Producto::where('id_producto', $detalle->id_producto)->value('almacen') ?? 1,
                         'id_empresa' => $compra->id_empresa,
                         'id_usuario' => $user->id,
                         'fecha_movimiento' => now()

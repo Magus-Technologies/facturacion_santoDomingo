@@ -134,7 +134,7 @@ export default function UserList() {
             header: "Nombre",
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shrink-0">
                         {row.getValue("name")?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -156,7 +156,7 @@ export default function UserList() {
                 const rol = row.original.rol;
                 return (
                     <div className="flex items-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-accent-100 border border-primary-200">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-linear-to-br from-primary-50 to-primary-200 text-red-500 border border-primary-200">
                             {rol?.nombre || "Sin rol"}
                         </span>
                     </div>

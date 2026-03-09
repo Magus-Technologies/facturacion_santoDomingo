@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class ProveedorController extends Controller
 {
@@ -103,10 +104,22 @@ class ProveedorController extends Controller
                 'message' => 'Proveedor creado exitosamente',
                 'data' => $proveedor
             ], 201);
+        } catch (QueryException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ya existe un proveedor con el RUC ingresado',
+                    'errors' => ['ruc' => ['El RUC ya está registrado']]
+                ], 422);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear proveedor'
+            ], 500);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al crear proveedor: ' . $e->getMessage()
+                'message' => 'Error al crear proveedor'
             ], 500);
         }
     }
@@ -146,10 +159,22 @@ class ProveedorController extends Controller
                 'message' => 'Proveedor actualizado exitosamente',
                 'data' => $proveedor
             ]);
+        } catch (QueryException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ya existe un proveedor con el RUC ingresado',
+                    'errors' => ['ruc' => ['El RUC ya está registrado']]
+                ], 422);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar proveedor'
+            ], 500);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al actualizar proveedor: ' . $e->getMessage()
+                'message' => 'Error al actualizar proveedor'
             ], 500);
         }
     }

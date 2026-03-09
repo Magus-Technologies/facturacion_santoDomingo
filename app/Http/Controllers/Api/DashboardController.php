@@ -133,9 +133,11 @@ class DashboardController extends Controller
         $metodos = $query->groupBy('metodos_pago.id_metodo_pago', 'metodos_pago.nombre')
             ->get()
             ->map(function ($item) {
-                $item->total = (float) ($item->total ?? 0);
-                $item->cantidad_ventas = (int) ($item->cantidad_ventas ?? 0);
-                return $item;
+                return [
+                    'nombre' => $item->nombre,
+                    'total' => (float) ($item->total ?? 0),
+                    'cantidad_ventas' => (int) ($item->cantidad_ventas ?? 0),
+                ];
             });
 
         return response()->json([

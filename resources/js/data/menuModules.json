@@ -168,6 +168,44 @@
           "path": "/configuracion/plantilla-impresion"
         }
       ]
+    },
+    {
+      "id": "ecommerce",
+      "name": "Ecommerce",
+      "icon": "ShoppingCart",
+      "path": "#",
+      "submodules": [
+        {
+          "id": "ecommerce-banners",
+          "name": "Banners/Selección",
+          "icon": "Image",
+          "path": "/ecommerce/productos"
+        },
+        {
+          "id": "ecommerce-exclusivos",
+          "name": "Productos Exclusivos",
+          "icon": "Package",
+          "path": "/ecommerce/exclusivos"
+        },
+        {
+          "id": "ecommerce-pedidos",
+          "name": "Pedidos",
+          "icon": "ShoppingCart",
+          "path": "/ecommerce/pedidos"
+        },
+        {
+          "id": "ecommerce-reportes",
+          "name": "Reportes",
+          "icon": "BarChart3",
+          "path": "/ecommerce/reportes"
+        },
+        {
+          "id": "ecommerce-configuracion",
+          "name": "Configuración",
+          "icon": "Settings",
+          "path": "/ecommerce/configuracion"
+        }
+      ]
     }
   ]
 }

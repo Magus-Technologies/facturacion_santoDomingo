@@ -20,6 +20,15 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/public/productos', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'index']);
 Route::get('/public/productos/{id}', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'show']);
 
+// API Pública de Banners Promocionales
+Route::get('/public/banners-promocionales', [\App\Http\Controllers\BannerPromocionalController::class, 'index']);
+Route::post('/public/banners-promocionales-test', [\App\Http\Controllers\BannerPromocionalController::class, 'store']);
+
+// API Pública de Grupo Selección (Categorías del Carrusel)
+Route::get('/public/grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'index']);
+Route::get('/public/grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'show']);
+Route::get('/public/productos-exclusivos', [\App\Http\Controllers\ProductoExclusivoController::class, 'index']);
+
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     // Autenticación
@@ -226,6 +235,46 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('transportistas/{id}', [\App\Http\Controllers\Api\TransportistaController::class, 'show']);
     Route::put('transportistas/{id}', [\App\Http\Controllers\Api\TransportistaController::class, 'update'])->middleware('permission:guias-remision.edit');
     Route::delete('transportistas/{id}', [\App\Http\Controllers\Api\TransportistaController::class, 'destroy'])->middleware('permission:guias-remision.delete');
+
+    // Banners Promocionales
+    Route::get('banners-promocionales', [\App\Http\Controllers\BannerPromocionalController::class, 'index']);
+    Route::post('banners-promocionales', [\App\Http\Controllers\BannerPromocionalController::class, 'store']);
+    Route::get('banners-promocionales/{id}', [\App\Http\Controllers\BannerPromocionalController::class, 'show']);
+    Route::put('banners-promocionales/{id}', [\App\Http\Controllers\BannerPromocionalController::class, 'update']);
+    Route::delete('banners-promocionales/{id}', [\App\Http\Controllers\BannerPromocionalController::class, 'destroy']);
+
+    // Grupo Selección (Carrusel de Categorías)
+    Route::get('grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'index']);
+    Route::post('grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'store']);
+    Route::get('grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'show']);
+    Route::put('grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'update']);
+    Route::delete('grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'destroy']);
+
+    // Productos Exclusivos (Tabs en Home)
+    Route::apiResource('productos-exclusivos', \App\Http\Controllers\ProductoExclusivoController::class);
+
+    // Test endpoint para verificar storage
+    Route::post('test-upload', function (Request $request) {
+        try {
+            $request->validate([
+                'file' => 'required|file|max:2048',
+            ]);
+
+            $path = $request->file('file')->store('test', 'public');
+            
+            return response()->json([
+                'success' => true,
+                'path' => $path,
+                'exists' => \Storage::disk('public')->exists($path),
+                'url' => asset('storage/' . $path),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    });
 
     // Métodos de Pago
     Route::get('metodos-pago', [\App\Http\Controllers\Api\MetodoPagoController::class, 'index']);

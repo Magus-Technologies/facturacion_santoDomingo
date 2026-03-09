@@ -20,7 +20,7 @@ Route::get('/', function () {
 
 Route::get('/inicio', function () {
     return view('inicio');
-})->name('inicio');
+})->middleware(['token.query', 'auth:sanctum'])->name('inicio');
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -204,3 +204,10 @@ Route::get('/reporteGR/a4.php', function (Request $request) {
 // Página pública de consulta de comprobante
 Route::get('/consulta', [\App\Http\Controllers\ConsultaComprobanteController::class, 'index']);
 Route::post('/consulta/buscar', [\App\Http\Controllers\ConsultaComprobanteController::class, 'consultar']);
+
+// Ecommerce
+Route::get('/ecommerce/productos', function () { return view('ecommerce.productos'); })->name('ecommerce.productos');
+Route::get('/ecommerce/reportes', function () { return view('ecommerce.reportes'); })->name('ecommerce.reportes');
+Route::get('/ecommerce/configuracion', function () { return view('ecommerce.configuracion'); })->name('ecommerce.configuracion');
+Route::get('/ecommerce/pedidos', function () { return view('ecommerce.pedidos'); })->name('ecommerce.pedidos');
+Route::get('/ecommerce/exclusivos', function () { return view('ecommerce.exclusivos'); })->name('ecommerce.exclusivos');

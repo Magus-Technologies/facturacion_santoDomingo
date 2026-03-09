@@ -68,10 +68,10 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
         return modules.filter(module => {
             // Dashboard y Ecommerce siempre visibles
             if (module.id === 'dashboard' || module.id === 'ecommerce') return true;
-            
+
             // Si tiene submódulos, filtrar los submódulos
             if (module.submodules) {
-                const filteredSubmodules = module.submodules.filter(sub => 
+                const filteredSubmodules = module.submodules.filter(sub =>
                     canView(sub.id)
                 );
                 // Solo mostrar el módulo padre si tiene al menos un submódulo visible
@@ -81,7 +81,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                 }
                 return false;
             }
-            
+
             // Módulo sin submódulos, verificar permiso
             return canView(module.id);
         });
@@ -177,16 +177,14 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
     return (
         <>
             <aside
-                className={`fixed left-0 top-0 h-full bg-gradient-to-b from-primary-600 to-primary-700 text-white transition-all duration-300 z-40 overflow-hidden ${
-                    isOpen ? "w-64" : "w-0 -translate-x-full"
-                } ${
-                    isCollapsed ? "lg:w-20" : "lg:w-64"
-                } lg:translate-x-0`}
+                className={`fixed left-0 top-0 h-full bg-gradient-to-b from-primary-600 to-primary-700 text-white transition-all duration-300 z-40 overflow-hidden ${isOpen ? "w-64" : "w-0 -translate-x-full"
+                    } ${isCollapsed ? "lg:w-20" : "lg:w-64"
+                    } lg:translate-x-0`}
             >
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="flex items-center justify-center h-16 border-b border-primary-500/30 px-4">
-                        <a href={baseUrl("/inicio")} className="flex items-center justify-center">
+                        <a href={baseUrl("/dashboard")} className="flex items-center justify-center">
                             {isCollapsed ? (
                                 <div className="h-10 w-10 bg-accent-500 rounded-lg flex items-center justify-center font-bold text-gray-900 text-xl">
                                     I
@@ -213,7 +211,7 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                 const isModuleActive = isActive(module.path) || hasActiveChild(module);
 
                                 return (
-                                    <li 
+                                    <li
                                         key={module.id}
                                         className="relative"
                                         data-module-id={module.id}
@@ -239,22 +237,19 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                                         toggleModule(module.id);
                                                     }
                                                 }}
-                                                className={`w-full flex items-center ${
-                                                    isCollapsed ? 'justify-center' : 'justify-between'
-                                                } px-4 py-3 rounded-lg transition-all duration-200 group ${
-                                                    isModuleActive || (isCollapsed && clickedModule === module.id)
+                                                className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'
+                                                    } px-4 py-3 rounded-lg transition-all duration-200 group ${isModuleActive || (isCollapsed && clickedModule === module.id)
                                                         ? "bg-accent-500 text-gray-900 shadow-lg"
                                                         : "hover:bg-primary-500/50 text-white/90 hover:text-white"
-                                                }`}
+                                                    }`}
                                                 title={isCollapsed ? module.name : ''}
                                             >
                                                 <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
                                                     <Icon
-                                                        className={`h-5 w-5 ${
-                                                            isModuleActive || (isCollapsed && clickedModule === module.id)
-                                                                ? "text-gray-900"
-                                                                : "text-white/80 group-hover:text-white"
-                                                        }`}
+                                                        className={`h-5 w-5 ${isModuleActive || (isCollapsed && clickedModule === module.id)
+                                                            ? "text-gray-900"
+                                                            : "text-white/80 group-hover:text-white"
+                                                            }`}
                                                     />
                                                     {!isCollapsed && (
                                                         <span className="font-medium text-sm">
@@ -264,11 +259,10 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                                 </div>
                                                 {!isCollapsed && (
                                                     <div
-                                                        className={`transition-transform duration-200 ${
-                                                            isModuleOpen
-                                                                ? "rotate-0"
-                                                                : "-rotate-90"
-                                                        }`}
+                                                        className={`transition-transform duration-200 ${isModuleOpen
+                                                            ? "rotate-0"
+                                                            : "-rotate-90"
+                                                            }`}
                                                     >
                                                         <ChevronDown className="h-4 w-4" />
                                                     </div>
@@ -277,22 +271,19 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                         ) : (
                                             <a
                                                 href={baseUrl(module.path)}
-                                                className={`w-full flex items-center ${
-                                                    isCollapsed ? 'justify-center' : 'justify-between'
-                                                } px-4 py-3 rounded-lg transition-all duration-200 group ${
-                                                    isModuleActive
+                                                className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'
+                                                    } px-4 py-3 rounded-lg transition-all duration-200 group ${isModuleActive
                                                         ? "bg-accent-500 text-gray-900 shadow-lg"
                                                         : "hover:bg-primary-500/50 text-white/90 hover:text-white"
-                                                }`}
+                                                    }`}
                                                 title={isCollapsed ? module.name : ''}
                                             >
                                                 <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
                                                     <Icon
-                                                        className={`h-5 w-5 ${
-                                                            isModuleActive
-                                                                ? "text-gray-900"
-                                                                : "text-white/80 group-hover:text-white"
-                                                        }`}
+                                                        className={`h-5 w-5 ${isModuleActive
+                                                            ? "text-gray-900"
+                                                            : "text-white/80 group-hover:text-white"
+                                                            }`}
                                                     />
                                                     {!isCollapsed && (
                                                         <span className="font-medium text-sm">
@@ -306,11 +297,10 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                         {/* Submódulos - Solo visible cuando NO está colapsado */}
                                         {hasSubmodules && !isCollapsed && (
                                             <ul
-                                                className={`ml-4 mt-1 space-y-1 overflow-hidden transition-all duration-300 ${
-                                                    isModuleOpen
-                                                        ? "max-h-96 opacity-100"
-                                                        : "max-h-0 opacity-0"
-                                                }`}
+                                                className={`ml-4 mt-1 space-y-1 overflow-hidden transition-all duration-300 ${isModuleOpen
+                                                    ? "max-h-96 opacity-100"
+                                                    : "max-h-0 opacity-0"
+                                                    }`}
                                             >
                                                 {module.submodules.map(
                                                     (submodule) => {
@@ -320,13 +310,12 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
                                                             <li key={submodule.id}>
                                                                 <a
                                                                     href={baseUrl(submodule.path)}
-                                                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-                                                                        isActive(
-                                                                            submodule.path
-                                                                        )
-                                                                            ? "bg-primary-500/30 text-white font-semibold border-l-4 border-accent-500"
-                                                                            : "text-white/80 hover:bg-primary-500/40 hover:text-white"
-                                                                    }`}
+                                                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${isActive(
+                                                                        submodule.path
+                                                                    )
+                                                                        ? "bg-primary-500/30 text-white font-semibold border-l-4 border-accent-500"
+                                                                        : "text-white/80 hover:bg-primary-500/40 hover:text-white"
+                                                                        }`}
                                                                 >
                                                                     <SubIcon className="h-4 w-4" />
                                                                     <span>
@@ -368,46 +357,47 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
             </aside>
 
             {/* Tooltip con submódulos - Renderizado fuera del aside usando Portal */}
-            {isCollapsed && clickedModule && createPortal(
-                <div 
-                    data-tooltip-menu
-                    className="fixed left-20 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100] min-w-[220px]"
-                    style={{ top: `${tooltipPosition.top}px` }}
-                >
-                    {filteredModules.map((module) => {
-                        if (module.id === clickedModule && module.submodules) {
-                            return (
-                                <div key={module.id}>
-                                    <div className="px-4 py-2 border-b border-gray-100">
-                                        <p className="text-sm font-semibold text-gray-900">
-                                            {module.name}
-                                        </p>
-                                    </div>
-                                    {module.submodules.map((submodule) => {
-                                        const SubIcon = iconMap[submodule.icon] || Circle;
-                                        return (
-                                            <a
-                                                key={submodule.id}
-                                                href={baseUrl(submodule.path)}
-                                                className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                                                    isActive(submodule.path)
+            {
+                isCollapsed && clickedModule && createPortal(
+                    <div
+                        data-tooltip-menu
+                        className="fixed left-20 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100] min-w-[220px]"
+                        style={{ top: `${tooltipPosition.top}px` }}
+                    >
+                        {filteredModules.map((module) => {
+                            if (module.id === clickedModule && module.submodules) {
+                                return (
+                                    <div key={module.id}>
+                                        <div className="px-4 py-2 border-b border-gray-100">
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                {module.name}
+                                            </p>
+                                        </div>
+                                        {module.submodules.map((submodule) => {
+                                            const SubIcon = iconMap[submodule.icon] || Circle;
+                                            return (
+                                                <a
+                                                    key={submodule.id}
+                                                    href={baseUrl(submodule.path)}
+                                                    className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive(submodule.path)
                                                         ? "bg-orange-50 text-orange-600 font-semibold border-l-4 border-orange-500"
                                                         : "text-gray-700 hover:bg-gray-50"
-                                                }`}
-                                            >
-                                                <SubIcon className="h-4 w-4" />
-                                                <span>{submodule.name}</span>
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        }
-                        return null;
-                    })}
-                </div>,
-                document.body
-            )}
+                                                        }`}
+                                                >
+                                                    <SubIcon className="h-4 w-4" />
+                                                    <span>{submodule.name}</span>
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>,
+                    document.body
+                )
+            }
         </>
     );
 }

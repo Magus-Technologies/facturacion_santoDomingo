@@ -15,12 +15,12 @@ use Illuminate\Http\Request;
 // --- RUTAS PÚBLICAS Y AUTENTICACIÓN ---
 
 Route::get('/', function () {
-    return redirect('/inicio');
+    return redirect('/dashboard');
 });
 
 Route::get('/inicio', function () {
-    return view('inicio');
-})->middleware(['token.query', 'auth:sanctum'])->name('inicio');
+    return redirect('/dashboard');
+});
 
 Route::get('/login', function () {
     return view('auth.login');

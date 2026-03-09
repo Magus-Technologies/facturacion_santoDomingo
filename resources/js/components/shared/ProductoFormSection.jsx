@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Plus, PenLine, Search } from "lucide-react";
 import ProductSearchInput from "./ProductSearchInput";
 import ProductPriceSelector from "./ProductPriceSelector";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Componente reutilizable para la sección de búsqueda y agregado de productos
@@ -34,11 +35,30 @@ export default function ProductoFormSection({
     submitButtonText = "Agregar",
     almacen = "1",
     onAlmacenChange,
+    almacenes: almacenesProp,
     disableAlmacenSelector = false,
     soloConStock = false,
     showModoLibre = false,
 }) {
     const [modoLibre, setModoLibre] = useState(false);
+    const [almacenesLocal, setAlmacenesLocal] = useState([]);
+
+    // Use provided almacenes or fetch from API
+    const almacenes = almacenesProp || almacenesLocal;
+
+    useEffect(() => {
+        if (!almacenesProp) {
+            const token = localStorage.getItem("auth_token");
+            fetch(baseUrl("/api/almacenes"), {
+                headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    if (data.success) setAlmacenesLocal(data.data);
+                })
+                .catch(() => {});
+        }
+    }, [almacenesProp]);
 
     const handleToggleModoLibre = () => {
         setModoLibre(!modoLibre);
@@ -115,46 +135,37 @@ export default function ProductoFormSection({
                 </div>
 
                 {/* Selección de Almacén */}
-                <div className="flex flex-col gap-2 mt-1">
-                    <Label className="text-sm font-medium text-gray-700">
-                        Almacén
-                    </Label>
-                    <div className="flex p-1 bg-gray-100 rounded-lg h-10 w-fit">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                !disableAlmacenSelector && onAlmacenChange("1")
-                            }
-                            disabled={disableAlmacenSelector}
-                            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
-                                almacen === "1"
-                                    ? "bg-white text-primary-700 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-700"
-                            } ${disableAlmacenSelector ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                        >
-                            Facturación
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                !disableAlmacenSelector && onAlmacenChange("2")
-                            }
-                            disabled={disableAlmacenSelector}
-                            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
-                                almacen === "2"
-                                    ? "bg-white text-primary-700 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-700"
-                            } ${disableAlmacenSelector ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                        >
-                            Almacén Real
-                        </button>
+                {almacenes.length > 1 && onAlmacenChange && (
+                    <div className="flex flex-col gap-2 mt-1">
+                        <Label className="text-sm font-medium text-gray-700">
+                            Almacén
+                        </Label>
+                        <div className="flex p-1 bg-gray-100 rounded-lg h-10 w-fit">
+                            {almacenes.map((alm) => (
+                                <button
+                                    key={alm.id}
+                                    type="button"
+                                    onClick={() =>
+                                        !disableAlmacenSelector && onAlmacenChange(String(alm.id))
+                                    }
+                                    disabled={disableAlmacenSelector}
+                                    className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
+                                        almacen === String(alm.id)
+                                            ? "bg-white text-primary-700 shadow-sm"
+                                            : "text-gray-500 hover:text-gray-700"
+                                    } ${disableAlmacenSelector ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                >
+                                    {alm.nombre}
+                                </button>
+                            ))}
+                        </div>
+                        {disableAlmacenSelector && (
+                            <p className="text-xs text-gray-500 italic">
+                                El almacén está determinado por el tipo de documento
+                            </p>
+                        )}
                     </div>
-                    {disableAlmacenSelector && (
-                        <p className="text-xs text-gray-500 italic">
-                            El almacén está determinado por el tipo de documento
-                        </p>
-                    )}
-                </div>
+                )}
             </div>
 
             {/* Descripción (editable, solo cuando no es modo libre) */}

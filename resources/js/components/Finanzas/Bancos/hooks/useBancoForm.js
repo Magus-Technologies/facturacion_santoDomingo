@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/sweetalert';
+import { baseUrl } from '@/lib/baseUrl';
 
 const initialState = {
     nombre: '', codigo_sunat: '', codigo_swift: '',
@@ -39,7 +40,7 @@ export const useBancoForm = (banco, isOpen, onClose, onSuccess) => {
         setErrors({});
         try {
             const token = localStorage.getItem('auth_token');
-            const url = isEditing ? `/api/bancos/${banco.id_banco}` : '/api/bancos';
+            const url = isEditing ? baseUrl(`/api/bancos/${banco.id_banco}`) : baseUrl('/api/bancos');
             const response = await fetch(url, {
                 method: isEditing ? 'PUT' : 'POST',
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },

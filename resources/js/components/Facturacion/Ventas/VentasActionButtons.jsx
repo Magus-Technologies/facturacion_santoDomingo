@@ -163,7 +163,7 @@ export default function VentasActionButtons({ onNuevaVenta }) {
         try {
             loading.show(config.mensajeLoading);
             await descargarArchivo(
-                `${config.endpoint}?mes=${mes}&anio=${anio}`,
+                baseUrl(`${config.endpoint}?mes=${mes}&anio=${anio}`),
                 config.nombreArchivo(mes, anio)
             );
             loading.close();

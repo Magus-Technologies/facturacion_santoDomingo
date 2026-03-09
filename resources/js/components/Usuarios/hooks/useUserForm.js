@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 
 /**
  * Custom hook para manejar la lógica del formulario de usuario
@@ -87,7 +88,7 @@ export const useUserForm = (user, isOpen, onClose, onSuccess) => {
         try {
             const token = localStorage.getItem("auth_token");
 
-            const url = isEditing ? `/api/users/${user.id}` : "/api/users";
+            const url = isEditing ? baseUrl(`/api/users/${user.id}`) : baseUrl("/api/users");
 
             const method = isEditing ? "PUT" : "POST";
 

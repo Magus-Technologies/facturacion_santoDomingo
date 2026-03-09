@@ -11,11 +11,161 @@
  Target Server Version : 80030 (8.0.30)
  File Encoding         : 65001
 
- Date: 04/03/2026 14:38:08
+ Date: 06/03/2026 19:07:31
 */
+
+DROP DATABASE IF EXISTS `factura_santoD`;
+CREATE DATABASE `factura_santoD` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `factura_santoD`;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for apertura_caja_billetes
+-- ----------------------------
+DROP TABLE IF EXISTS `apertura_caja_billetes`;
+CREATE TABLE `apertura_caja_billetes`  (
+  `id_apertura_billete` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_caja` bigint UNSIGNED NOT NULL,
+  `id_denominacion` bigint UNSIGNED NOT NULL,
+  `cantidad` int NOT NULL DEFAULT 0,
+  `subtotal` decimal(12, 2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_apertura_billete`) USING BTREE,
+  INDEX `apertura_caja_billetes_id_denominacion_foreign`(`id_denominacion` ASC) USING BTREE,
+  INDEX `apertura_caja_billetes_id_caja_index`(`id_caja` ASC) USING BTREE,
+  CONSTRAINT `apertura_caja_billetes_id_caja_foreign` FOREIGN KEY (`id_caja`) REFERENCES `cajas` (`id_caja`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `apertura_caja_billetes_id_denominacion_foreign` FOREIGN KEY (`id_denominacion`) REFERENCES `denominaciones_billetes` (`id_denominacion`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of apertura_caja_billetes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for arqueos_diarios
+-- ----------------------------
+DROP TABLE IF EXISTS `arqueos_diarios`;
+CREATE TABLE `arqueos_diarios`  (
+  `id_arqueo` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_caja` bigint UNSIGNED NOT NULL,
+  `id_empresa` int NOT NULL,
+  `fecha_arqueo` date NOT NULL,
+  `usuario_cierre` bigint UNSIGNED NOT NULL,
+  `usuario_validacion` bigint UNSIGNED NOT NULL,
+  `saldo_inicial` decimal(12, 2) NOT NULL,
+  `total_ventas` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `total_ingresos_manuales` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `total_egresos` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `total_teorico` decimal(12, 2) NOT NULL,
+  `total_real` decimal(12, 2) NOT NULL,
+  `diferencia` decimal(12, 2) NOT NULL,
+  `tipo_diferencia` enum('exacto','sobrante','faltante') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ventas_por_metodo` json NULL,
+  `estado` enum('cerrada','rechazada') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'cerrada',
+  `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `fecha_cierre` datetime NOT NULL,
+  `fecha_validacion` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_arqueo`) USING BTREE,
+  INDEX `arqueos_diarios_id_caja_foreign`(`id_caja` ASC) USING BTREE,
+  INDEX `arqueos_diarios_id_empresa_fecha_arqueo_index`(`id_empresa` ASC, `fecha_arqueo` ASC) USING BTREE,
+  INDEX `arqueos_diarios_usuario_cierre_index`(`usuario_cierre` ASC) USING BTREE,
+  INDEX `arqueos_diarios_usuario_validacion_index`(`usuario_validacion` ASC) USING BTREE,
+  CONSTRAINT `arqueos_diarios_id_caja_foreign` FOREIGN KEY (`id_caja`) REFERENCES `cajas` (`id_caja`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `arqueos_diarios_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `arqueos_diarios_usuario_cierre_foreign` FOREIGN KEY (`usuario_cierre`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `arqueos_diarios_usuario_validacion_foreign` FOREIGN KEY (`usuario_validacion`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arqueos_diarios
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for auditoria_cajas
+-- ----------------------------
+DROP TABLE IF EXISTS `auditoria_cajas`;
+CREATE TABLE `auditoria_cajas`  (
+  `id_auditoria` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_caja` bigint UNSIGNED NOT NULL,
+  `id_usuario` bigint UNSIGNED NOT NULL,
+  `accion` enum('Apertura','Cierre','Autorización Cierre','Rechazo Cierre','Modificación','Depósito') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Apertura',
+  `detalles` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `ip_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `user_agent` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_auditoria`) USING BTREE,
+  INDEX `auditoria_cajas_id_caja_index`(`id_caja` ASC) USING BTREE,
+  INDEX `auditoria_cajas_id_usuario_index`(`id_usuario` ASC) USING BTREE,
+  INDEX `auditoria_cajas_accion_index`(`accion` ASC) USING BTREE,
+  CONSTRAINT `auditoria_cajas_id_caja_foreign` FOREIGN KEY (`id_caja`) REFERENCES `cajas` (`id_caja`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `auditoria_cajas_id_usuario_foreign` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of auditoria_cajas
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for bancos
+-- ----------------------------
+DROP TABLE IF EXISTS `bancos`;
+CREATE TABLE `bancos`  (
+  `id_banco` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codigo_sunat` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `codigo_swift` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `telefono` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `website` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_banco`) USING BTREE,
+  UNIQUE INDEX `bancos_nombre_unique`(`nombre` ASC) USING BTREE,
+  UNIQUE INDEX `bancos_codigo_sunat_unique`(`codigo_sunat` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of bancos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for billeteras_digitales
+-- ----------------------------
+DROP TABLE IF EXISTS `billeteras_digitales`;
+CREATE TABLE `billeteras_digitales`  (
+  `id_billetera` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `id_metodo_pago` bigint UNSIGNED NOT NULL,
+  `id_banco` bigint UNSIGNED NOT NULL,
+  `numero_cuenta` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `titular` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `documento_tipo` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DNI',
+  `documento_numero` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `saldo` decimal(14, 2) NOT NULL DEFAULT 0.00,
+  `activa` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_billetera`) USING BTREE,
+  UNIQUE INDEX `billeteras_digitales_numero_cuenta_unique`(`numero_cuenta` ASC) USING BTREE,
+  INDEX `billeteras_digitales_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `billeteras_digitales_id_metodo_pago_index`(`id_metodo_pago` ASC) USING BTREE,
+  INDEX `billeteras_digitales_id_banco_index`(`id_banco` ASC) USING BTREE,
+  INDEX `billeteras_digitales_activa_index`(`activa` ASC) USING BTREE,
+  CONSTRAINT `billeteras_digitales_id_banco_foreign` FOREIGN KEY (`id_banco`) REFERENCES `bancos` (`id_banco`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `billeteras_digitales_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `billeteras_digitales_id_metodo_pago_foreign` FOREIGN KEY (`id_metodo_pago`) REFERENCES `metodos_pago` (`id_metodo_pago`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of billeteras_digitales
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for cache
@@ -45,6 +195,75 @@ CREATE TABLE `cache_locks`  (
 
 -- ----------------------------
 -- Records of cache_locks
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for caja_metodos_pago
+-- ----------------------------
+DROP TABLE IF EXISTS `caja_metodos_pago`;
+CREATE TABLE `caja_metodos_pago`  (
+  `id_caja_metodo` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_caja` bigint UNSIGNED NOT NULL,
+  `id_metodo_pago` bigint UNSIGNED NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_caja_metodo`) USING BTREE,
+  UNIQUE INDEX `caja_metodos_pago_id_caja_id_metodo_pago_unique`(`id_caja` ASC, `id_metodo_pago` ASC) USING BTREE,
+  INDEX `caja_metodos_pago_id_metodo_pago_foreign`(`id_metodo_pago` ASC) USING BTREE,
+  CONSTRAINT `caja_metodos_pago_id_caja_foreign` FOREIGN KEY (`id_caja`) REFERENCES `cajas` (`id_caja`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `caja_metodos_pago_id_metodo_pago_foreign` FOREIGN KEY (`id_metodo_pago`) REFERENCES `metodos_pago` (`id_metodo_pago`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of caja_metodos_pago
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for cajas
+-- ----------------------------
+DROP TABLE IF EXISTS `cajas`;
+CREATE TABLE `cajas`  (
+  `id_caja` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `nombre` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `id_responsable` bigint UNSIGNED NULL DEFAULT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `id_usuario_apertura` bigint UNSIGNED NULL DEFAULT NULL,
+  `id_usuario_cierre` bigint UNSIGNED NULL DEFAULT NULL,
+  `id_usuario_autoriza_cierre` bigint UNSIGNED NULL DEFAULT NULL,
+  `fecha_apertura` datetime NULL DEFAULT NULL,
+  `fecha_cierre` datetime NULL DEFAULT NULL,
+  `tipo_cierre` enum('monto_fijo','billetes') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `fecha_autorizacion_cierre` datetime NULL DEFAULT NULL,
+  `saldo_inicial` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `tipo_apertura` enum('monto_fijo','billetes') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'monto_fijo',
+  `saldo_final_teorico` decimal(12, 2) NULL DEFAULT NULL,
+  `saldo_final_real` decimal(12, 2) NULL DEFAULT NULL,
+  `diferencia` decimal(12, 2) NULL DEFAULT NULL,
+  `tipo_diferencia` enum('exacto','sobrante','faltante') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `estado` enum('Inactiva','Activa') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Inactiva',
+  `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `observaciones_cierre` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_caja`) USING BTREE,
+  INDEX `cajas_id_usuario_autoriza_cierre_foreign`(`id_usuario_autoriza_cierre` ASC) USING BTREE,
+  INDEX `cajas_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `cajas_fecha_apertura_index`(`fecha_apertura` ASC) USING BTREE,
+  INDEX `cajas_estado_index`(`estado` ASC) USING BTREE,
+  INDEX `cajas_id_usuario_apertura_index`(`id_usuario_apertura` ASC) USING BTREE,
+  INDEX `cajas_id_usuario_cierre_index`(`id_usuario_cierre` ASC) USING BTREE,
+  INDEX `cajas_id_responsable_foreign`(`id_responsable` ASC) USING BTREE,
+  CONSTRAINT `cajas_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cajas_id_responsable_foreign` FOREIGN KEY (`id_responsable`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `cajas_id_usuario_apertura_foreign` FOREIGN KEY (`id_usuario_apertura`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cajas_id_usuario_autoriza_cierre_foreign` FOREIGN KEY (`id_usuario_autoriza_cierre`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cajas_id_usuario_cierre_foreign` FOREIGN KEY (`id_usuario_cierre`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cajas
 -- ----------------------------
 
 -- ----------------------------
@@ -116,6 +335,29 @@ INSERT INTO `categorias` VALUES (49, 'Repuestos', NULL, '1', '2026-02-27 18:06:0
 INSERT INTO `categorias` VALUES (50, 'VARIOS', NULL, '1', '2026-03-02 16:17:22', '2026-03-02 16:17:22');
 
 -- ----------------------------
+-- Table structure for cierre_caja_billetes
+-- ----------------------------
+DROP TABLE IF EXISTS `cierre_caja_billetes`;
+CREATE TABLE `cierre_caja_billetes`  (
+  `id_cierre_billete` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_caja` bigint UNSIGNED NOT NULL,
+  `id_denominacion` bigint UNSIGNED NOT NULL,
+  `cantidad` int NOT NULL DEFAULT 0,
+  `subtotal` decimal(12, 2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_cierre_billete`) USING BTREE,
+  INDEX `cierre_caja_billetes_id_denominacion_foreign`(`id_denominacion` ASC) USING BTREE,
+  INDEX `cierre_caja_billetes_id_caja_index`(`id_caja` ASC) USING BTREE,
+  CONSTRAINT `cierre_caja_billetes_id_caja_foreign` FOREIGN KEY (`id_caja`) REFERENCES `cajas` (`id_caja`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `cierre_caja_billetes_id_denominacion_foreign` FOREIGN KEY (`id_denominacion`) REFERENCES `denominaciones_billetes` (`id_denominacion`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cierre_caja_billetes
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for cliente_venta
 -- ----------------------------
 DROP TABLE IF EXISTS `cliente_venta`;
@@ -156,6 +398,7 @@ CREATE TABLE `clientes`  (
   `telefono` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `telefono2` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `email` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `foto_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `id_empresa` int NOT NULL COMMENT 'Empresa a la que pertenece',
   `ultima_venta` datetime NULL DEFAULT NULL,
   `total_venta` decimal(10, 2) NULL DEFAULT 0.00,
@@ -178,19 +421,19 @@ CREATE TABLE `clientes`  (
 -- ----------------------------
 -- Records of clientes
 -- ----------------------------
-INSERT INTO `clientes` VALUES (4, '20608300393', '6', 'COMPAÑIA FOOD RETAIL S.A.C.', 'CAL. CESAR MORELLI NRO. 181 URB. SAN BORJA NORTE LIMA LIMA SAN BORJA', NULL, NULL, NULL, NULL, 1, NULL, 0.00, '15', NULL, NULL, NULL, '2026-01-06 17:25:33', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (5, '77425200', '1', 'EMER RODRIGO YARLEQUE ZAPATA', NULL, NULL, '+51 993 321 920', NULL, 'kiyotakahitori@gmail.com', 1, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-01-06 17:25:53', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (8, '20100128056', '6', 'SAGA FALABELLA S A', 'AV. PASEO DE LA REPUBLICA NRO. 3220 URB. JARDIN LIMA LIMA SAN ISIDRO', NULL, NULL, NULL, NULL, 1, NULL, 0.00, '150131', 'LIMA', 'LIMA', 'SAN ISIDRO', '2026-01-06 17:42:01', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (9, '77426190', '1', 'CLAUDIA NAOMI OQUENDO JUAREZ', '', NULL, NULL, NULL, NULL, 2, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-02-28 15:12:11', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (10, '10774252008', '6', 'YARLEQUE ZAPATA EMER RODRIGO', '', NULL, NULL, NULL, NULL, 2, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-02 17:10:12', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (11, '77425200', '1', 'EMER RODRIGO YARLEQUE ZAPATA', '', NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 12:24:29', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (12, '00000000', '1', 'CLIENTES VARIOS', '', NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 13:39:05', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (13, '', NULL, 'EMER CLIUS', '', NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 16:20:18', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (14, '576756765756', '4', 'emesdffsdv', 'fbdsbfbfsd', NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 16:53:57', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (15, '455464', '4', 'jorhe', 'vcscvsacsa', NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:16:41', '2026-03-04 12:36:22');
-INSERT INTO `clientes` VALUES (16, '534656756756', '4', 'fgnfn', 'gfnhgnngfnghf', NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:45:07', '2026-03-04 17:45:07');
-INSERT INTO `clientes` VALUES (17, '77425200', '1', 'EMER RODRIGO YARLEQUE ZAPATA', '', NULL, NULL, NULL, NULL, 4, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:59:01', '2026-03-04 17:59:01');
-INSERT INTO `clientes` VALUES (18, '456456544', '4', 'wefghfgd', '', NULL, NULL, NULL, NULL, 4, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:59:15', '2026-03-04 17:59:15');
+INSERT INTO `clientes` VALUES (4, '20608300393', '6', 'COMPAÑIA FOOD RETAIL S.A.C.', 'CAL. CESAR MORELLI NRO. 181 URB. SAN BORJA NORTE LIMA LIMA SAN BORJA', NULL, NULL, NULL, NULL, NULL, 1, NULL, 0.00, '15', NULL, NULL, NULL, '2026-01-06 17:25:33', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (5, '77425200', '1', 'EMER RODRIGO YARLEQUE ZAPATA', NULL, NULL, '+51 993 321 920', NULL, 'kiyotakahitori@gmail.com', NULL, 1, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-01-06 17:25:53', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (8, '20100128056', '6', 'SAGA FALABELLA S A', 'AV. PASEO DE LA REPUBLICA NRO. 3220 URB. JARDIN LIMA LIMA SAN ISIDRO', NULL, NULL, NULL, NULL, NULL, 1, NULL, 0.00, '150131', 'LIMA', 'LIMA', 'SAN ISIDRO', '2026-01-06 17:42:01', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (9, '77426190', '1', 'CLAUDIA NAOMI OQUENDO JUAREZ', '', NULL, NULL, NULL, NULL, NULL, 2, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-02-28 15:12:11', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (10, '10774252008', '6', 'YARLEQUE ZAPATA EMER RODRIGO', '', NULL, NULL, NULL, NULL, NULL, 2, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-02 17:10:12', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (11, '77425200', '1', 'EMER RODRIGO YARLEQUE ZAPATA', '', NULL, NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 12:24:29', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (12, '00000000', '1', 'CLIENTES VARIOS', '', NULL, NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 13:39:05', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (13, '', NULL, 'EMER CLIUS', '', NULL, NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 16:20:18', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (14, '576756765756', '4', 'emesdffsdv', 'fbdsbfbfsd', NULL, NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 16:53:57', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (15, '455464', '4', 'jorhe', 'vcscvsacsa', NULL, NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:16:41', '2026-03-04 12:36:22');
+INSERT INTO `clientes` VALUES (16, '534656756756', '4', 'fgnfn', 'gfnhgnngfnghf', NULL, NULL, NULL, NULL, NULL, 3, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:45:07', '2026-03-04 17:45:07');
+INSERT INTO `clientes` VALUES (17, '77425200', '1', 'EMER RODRIGO YARLEQUE ZAPATA', '', NULL, NULL, NULL, NULL, NULL, 4, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:59:01', '2026-03-04 17:59:01');
+INSERT INTO `clientes` VALUES (18, '456456544', '4', 'wefghfgd', '', NULL, NULL, NULL, NULL, NULL, 4, NULL, 0.00, NULL, NULL, NULL, NULL, '2026-03-04 17:59:15', '2026-03-04 17:59:15');
 
 -- ----------------------------
 -- Table structure for compra_empresa
@@ -254,6 +497,67 @@ CREATE TABLE `compras`  (
 INSERT INTO `compras` VALUES (1, 2, 'F001', '21', 5, 5, '2026-03-04', '2026-03-04', NULL, 1, 'PEN', 231.00, 0.00, 231.00, '', '', 2, 2, 1, '1', '2026-03-04 05:46:03', '2026-03-04 05:46:03');
 
 -- ----------------------------
+-- Table structure for conciliaciones_bancarias
+-- ----------------------------
+DROP TABLE IF EXISTS `conciliaciones_bancarias`;
+CREATE TABLE `conciliaciones_bancarias`  (
+  `id_conciliacion` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_cuenta` bigint UNSIGNED NOT NULL,
+  `id_empresa` int NOT NULL,
+  `id_usuario` bigint UNSIGNED NOT NULL,
+  `fecha_conciliacion` date NOT NULL,
+  `saldo_empresa` decimal(14, 2) NOT NULL,
+  `saldo_banco` decimal(14, 2) NOT NULL,
+  `diferencia` decimal(14, 2) NOT NULL,
+  `estado` enum('Pendiente','Conciliada','Diferencia') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pendiente',
+  `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_conciliacion`) USING BTREE,
+  INDEX `conciliaciones_bancarias_id_usuario_foreign`(`id_usuario` ASC) USING BTREE,
+  INDEX `conciliaciones_bancarias_id_cuenta_index`(`id_cuenta` ASC) USING BTREE,
+  INDEX `conciliaciones_bancarias_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `conciliaciones_bancarias_fecha_conciliacion_index`(`fecha_conciliacion` ASC) USING BTREE,
+  INDEX `conciliaciones_bancarias_estado_index`(`estado` ASC) USING BTREE,
+  CONSTRAINT `conciliaciones_bancarias_id_cuenta_foreign` FOREIGN KEY (`id_cuenta`) REFERENCES `cuentas_bancarias` (`id_cuenta`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `conciliaciones_bancarias_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `conciliaciones_bancarias_id_usuario_foreign` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of conciliaciones_bancarias
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for configuracion_metodos_pago
+-- ----------------------------
+DROP TABLE IF EXISTS `configuracion_metodos_pago`;
+CREATE TABLE `configuracion_metodos_pago`  (
+  `id_config` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `id_metodo_pago` bigint UNSIGNED NOT NULL,
+  `habilitado` tinyint(1) NOT NULL DEFAULT 1,
+  `comision` decimal(5, 2) NOT NULL DEFAULT 0.00,
+  `limite_minimo` decimal(12, 2) NULL DEFAULT NULL,
+  `limite_maximo` decimal(12, 2) NULL DEFAULT NULL,
+  `requiere_comprobante` tinyint(1) NOT NULL DEFAULT 0,
+  `requiere_referencia` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_config`) USING BTREE,
+  UNIQUE INDEX `configuracion_metodos_pago_id_empresa_id_metodo_pago_unique`(`id_empresa` ASC, `id_metodo_pago` ASC) USING BTREE,
+  INDEX `configuracion_metodos_pago_id_metodo_pago_foreign`(`id_metodo_pago` ASC) USING BTREE,
+  INDEX `configuracion_metodos_pago_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `configuracion_metodos_pago_habilitado_index`(`habilitado` ASC) USING BTREE,
+  CONSTRAINT `configuracion_metodos_pago_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `configuracion_metodos_pago_id_metodo_pago_foreign` FOREIGN KEY (`id_metodo_pago`) REFERENCES `metodos_pago` (`id_metodo_pago`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of configuracion_metodos_pago
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for cotizacion_cuotas
 -- ----------------------------
 DROP TABLE IF EXISTS `cotizacion_cuotas`;
@@ -268,7 +572,7 @@ CREATE TABLE `cotizacion_cuotas`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_cotizacion`(`cotizacion_id` ASC) USING BTREE,
   CONSTRAINT `fk_cotizacion_cuotas_cotizacion` FOREIGN KEY (`cotizacion_id`) REFERENCES `cotizaciones` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cotizacion_cuotas
@@ -347,6 +651,59 @@ INSERT INTO `cotizaciones` VALUES (5, 1, '2026-02-28', 9, NULL, NULL, 0.85, 0.15
 INSERT INTO `cotizaciones` VALUES (6, 2, '2026-03-02', 9, NULL, NULL, 93.22, 16.78, 110.00, 0.00, 1, 'PEN', 1.0000, NULL, NULL, NULL, 'pendiente', 2, 2, '2026-03-02 16:17:53', '2026-03-02 16:17:53');
 INSERT INTO `cotizaciones` VALUES (7, 3, '2026-03-02', 10, NULL, NULL, 93.22, 16.78, 110.00, 0.00, 1, 'PEN', 1.0000, NULL, NULL, NULL, 'aprobada', 2, 2, '2026-03-02 17:10:12', '2026-03-02 17:40:50');
 INSERT INTO `cotizaciones` VALUES (8, 4, '2026-03-02', NULL, 'emer', NULL, 93.22, 16.78, 110.00, 0.00, 1, 'PEN', 1.0000, NULL, NULL, NULL, 'pendiente', 2, 2, '2026-03-02 20:33:48', '2026-03-04 05:47:28');
+
+-- ----------------------------
+-- Table structure for cuentas_bancarias
+-- ----------------------------
+DROP TABLE IF EXISTS `cuentas_bancarias`;
+CREATE TABLE `cuentas_bancarias`  (
+  `id_cuenta` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `id_banco` bigint UNSIGNED NOT NULL,
+  `numero_cuenta` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipo_cuenta` enum('Corriente','Ahorros') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Corriente',
+  `moneda` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PEN',
+  `saldo_actual` decimal(14, 2) NOT NULL DEFAULT 0.00,
+  `saldo_banco` decimal(14, 2) NOT NULL DEFAULT 0.00,
+  `cci` varchar(17) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `activa` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_cuenta`) USING BTREE,
+  UNIQUE INDEX `cuentas_bancarias_numero_cuenta_unique`(`numero_cuenta` ASC) USING BTREE,
+  INDEX `cuentas_bancarias_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `cuentas_bancarias_id_banco_index`(`id_banco` ASC) USING BTREE,
+  INDEX `cuentas_bancarias_activa_index`(`activa` ASC) USING BTREE,
+  CONSTRAINT `cuentas_bancarias_id_banco_foreign` FOREIGN KEY (`id_banco`) REFERENCES `bancos` (`id_banco`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cuentas_bancarias_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cuentas_bancarias
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for denominaciones_billetes
+-- ----------------------------
+DROP TABLE IF EXISTS `denominaciones_billetes`;
+CREATE TABLE `denominaciones_billetes`  (
+  `id_denominacion` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `moneda` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PEN',
+  `valor` decimal(8, 2) NOT NULL,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `tipo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Billete',
+  `activa` tinyint(1) NOT NULL DEFAULT 1,
+  `orden` int NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_denominacion`) USING BTREE,
+  UNIQUE INDEX `denominaciones_billetes_moneda_valor_unique`(`moneda` ASC, `valor` ASC) USING BTREE,
+  INDEX `denominaciones_billetes_moneda_index`(`moneda` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of denominaciones_billetes
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for dias_compras
@@ -535,12 +892,18 @@ CREATE TABLE `guia_remision`  (
   `id_empresa` int NOT NULL,
   `id_usuario` bigint UNSIGNED NOT NULL,
   `id_venta` bigint UNSIGNED NULL DEFAULT NULL,
+  `id_transportista` bigint UNSIGNED NULL DEFAULT NULL,
   `serie` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'T001',
   `numero` int NOT NULL,
   `fecha_emision` date NOT NULL,
   `destinatario_tipo_doc` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '6',
   `destinatario_documento` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `destinatario_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remitente_tipo_doc` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `remitente_documento` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `remitente_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `remitente_direccion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `remitente_ubigeo` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `motivo_traslado` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `descripcion_motivo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `mod_transporte` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '01',
@@ -550,6 +913,7 @@ CREATE TABLE `guia_remision`  (
   `ubigeo_partida` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `dir_partida` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `ubigeo_llegada` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `establecimiento_codigo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `dir_llegada` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `transportista_tipo_doc` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `transportista_documento` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
@@ -561,6 +925,7 @@ CREATE TABLE `guia_remision`  (
   `conductor_apellidos` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `conductor_licencia` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `vehiculo_placa` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `vehiculo_placa_secundaria` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `vehiculo_m1l` tinyint(1) NOT NULL DEFAULT 0,
   `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `estado` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pendiente',
@@ -577,7 +942,9 @@ CREATE TABLE `guia_remision`  (
   INDEX `guia_remision_id_empresa_foreign`(`id_empresa` ASC) USING BTREE,
   INDEX `guia_remision_id_usuario_foreign`(`id_usuario` ASC) USING BTREE,
   INDEX `guia_remision_id_venta_foreign`(`id_venta` ASC) USING BTREE,
+  INDEX `guia_remision_id_transportista_foreign`(`id_transportista` ASC) USING BTREE,
   CONSTRAINT `guia_remision_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `guia_remision_id_transportista_foreign` FOREIGN KEY (`id_transportista`) REFERENCES `transportistas` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `guia_remision_id_usuario_foreign` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `guia_remision_id_venta_foreign` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`) ON DELETE SET NULL ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
@@ -585,9 +952,9 @@ CREATE TABLE `guia_remision`  (
 -- ----------------------------
 -- Records of guia_remision
 -- ----------------------------
-INSERT INTO `guia_remision` VALUES (7, 3, 2, 9, 'T001', 1, '2026-03-04', '1', '77425200', 'EMER RODRIGO YARLEQUE ZAPATA', '01', NULL, '01', '2026-03-04', 5.000, 'KGM', '150101', 'Jr República de Ecuador # 495 interior C - Lima - Lima - Lima', '150101', 'Av. Los Olivos 123 - Lima', '6', '20000000001', 'TRANSPORTES BETA SAC', NULL, '1', NULL, NULL, NULL, NULL, NULL, 0, NULL, 'pendiente', '20987654321-09-T001-1', 'sunat/xml/20987654321/20987654321-09-T001-1.xml', NULL, '80Mo7u627Kmuba6QO5QLhAb2ILU=', NULL, NULL, NULL, '2026-03-04 12:32:07', '2026-03-04 12:32:14');
-INSERT INTO `guia_remision` VALUES (8, 3, 2, 20, 'T001', 2, '2026-03-04', '1', '576756765756', 'emesdffsdv', '01', NULL, '02', '2026-03-04', 1.000, 'KGM', '150101', 'Jr República de Ecuador # 495 interior C - Lima - Lima - Lima', '150101', 'fbdsbfbfsd', '6', NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, 1, NULL, 'pendiente', '20000000001-09-T001-2', 'sunat/xml/20000000001/20000000001-09-T001-2.xml', NULL, '8fbOV+8NNw89+YSZDKIN4HOYME8=', NULL, NULL, NULL, '2026-03-04 16:54:58', '2026-03-04 16:54:58');
-INSERT INTO `guia_remision` VALUES (9, 3, 2, 20, 'T001', 3, '2026-03-04', '4', '576756765756', 'emesdffsdv', '01', NULL, '02', '2026-03-04', 1.000, 'KGM', '150101', 'Jr República de Ecuador # 495 interior C - Lima - Lima - Lima', '150101', 'fbdsbfbfsd', '6', NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, 1, NULL, 'pendiente', '20000000001-09-T001-3', 'sunat/xml/20000000001/20000000001-09-T001-3.xml', NULL, '6fdw1/30F0fTza/89d80PnHBfeg=', NULL, NULL, NULL, '2026-03-04 16:57:27', '2026-03-04 16:57:27');
+INSERT INTO `guia_remision` VALUES (7, 3, 2, 9, NULL, 'T001', 1, '2026-03-04', '1', '77425200', 'EMER RODRIGO YARLEQUE ZAPATA', NULL, NULL, NULL, NULL, NULL, '01', NULL, '01', '2026-03-04', 5.000, 'KGM', '150101', 'Jr República de Ecuador # 495 interior C - Lima - Lima - Lima', '150101', NULL, 'Av. Los Olivos 123 - Lima', '6', '20000000001', 'TRANSPORTES BETA SAC', NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 'pendiente', '20987654321-09-T001-1', 'sunat/xml/20987654321/20987654321-09-T001-1.xml', NULL, '80Mo7u627Kmuba6QO5QLhAb2ILU=', NULL, NULL, NULL, '2026-03-04 12:32:07', '2026-03-04 12:32:14');
+INSERT INTO `guia_remision` VALUES (8, 3, 2, 20, NULL, 'T001', 2, '2026-03-04', '1', '576756765756', 'emesdffsdv', NULL, NULL, NULL, NULL, NULL, '01', NULL, '02', '2026-03-04', 1.000, 'KGM', '150101', 'Jr República de Ecuador # 495 interior C - Lima - Lima - Lima', '150101', NULL, 'fbdsbfbfsd', '6', NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 'pendiente', '20000000001-09-T001-2', 'sunat/xml/20000000001/20000000001-09-T001-2.xml', NULL, '8fbOV+8NNw89+YSZDKIN4HOYME8=', NULL, NULL, NULL, '2026-03-04 16:54:58', '2026-03-04 16:54:58');
+INSERT INTO `guia_remision` VALUES (9, 3, 2, 20, NULL, 'T001', 3, '2026-03-04', '4', '576756765756', 'emesdffsdv', NULL, NULL, NULL, NULL, NULL, '01', NULL, '02', '2026-03-04', 1.000, 'KGM', '150101', 'Jr República de Ecuador # 495 interior C - Lima - Lima - Lima', '150101', NULL, 'fbdsbfbfsd', '6', NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 'pendiente', '20000000001-09-T001-3', 'sunat/xml/20000000001/20000000001-09-T001-3.xml', NULL, '6fdw1/30F0fTza/89d80PnHBfeg=', NULL, NULL, NULL, '2026-03-04 16:57:27', '2026-03-04 16:57:27');
 
 -- ----------------------------
 -- Table structure for guia_remision_detalles
@@ -660,6 +1027,38 @@ CREATE TABLE `jobs`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for metodos_pago
+-- ----------------------------
+DROP TABLE IF EXISTS `metodos_pago`;
+CREATE TABLE `metodos_pago`  (
+  `id_metodo_pago` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codigo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `tipo` enum('Efectivo','Tarjeta','Transferencia','Billetera','Cheque','Otro') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Otro',
+  `id_banco` bigint UNSIGNED NULL DEFAULT NULL,
+  `id_cuenta` bigint UNSIGNED NULL DEFAULT NULL,
+  `es_efectivo` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'true = queda en caja física; false = va a cuenta bancaria',
+  `requiere_referencia` tinyint(1) NOT NULL DEFAULT 0,
+  `requiere_comprobante` tinyint(1) NOT NULL DEFAULT 0,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_metodo_pago`) USING BTREE,
+  UNIQUE INDEX `metodos_pago_nombre_unique`(`nombre` ASC) USING BTREE,
+  UNIQUE INDEX `metodos_pago_codigo_unique`(`codigo` ASC) USING BTREE,
+  INDEX `metodos_pago_id_banco_foreign`(`id_banco` ASC) USING BTREE,
+  INDEX `metodos_pago_tipo_index`(`tipo` ASC) USING BTREE,
+  INDEX `metodos_pago_id_cuenta_foreign`(`id_cuenta` ASC) USING BTREE,
+  CONSTRAINT `metodos_pago_id_banco_foreign` FOREIGN KEY (`id_banco`) REFERENCES `bancos` (`id_banco`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `metodos_pago_id_cuenta_foreign` FOREIGN KEY (`id_cuenta`) REFERENCES `cuentas_bancarias` (`id_cuenta`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of metodos_pago
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for migrations
 -- ----------------------------
 DROP TABLE IF EXISTS `migrations`;
@@ -668,7 +1067,7 @@ CREATE TABLE `migrations`  (
   `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 61 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of migrations
@@ -689,6 +1088,37 @@ INSERT INTO `migrations` VALUES (26, '2026_02_27_100000_add_nombre_xml_to_ventas
 INSERT INTO `migrations` VALUES (27, '2026_02_28_190559_add_vehiculo_m1l_to_guia_remision', 10);
 INSERT INTO `migrations` VALUES (28, '2026_03_02_201358_make_cotizaciones_cliente_optional', 11);
 INSERT INTO `migrations` VALUES (29, '2026_03_04_165324_ampliar_documento_clientes', 12);
+INSERT INTO `migrations` VALUES (30, '2026_03_04_000001_create_bancos_table', 13);
+INSERT INTO `migrations` VALUES (31, '2026_03_04_000002_create_metodos_pago_table', 13);
+INSERT INTO `migrations` VALUES (32, '2026_03_04_000003_create_denominaciones_billetes_table', 13);
+INSERT INTO `migrations` VALUES (33, '2026_03_04_000004_create_cajas_table', 13);
+INSERT INTO `migrations` VALUES (34, '2026_03_04_000005_create_movimientos_caja_table', 13);
+INSERT INTO `migrations` VALUES (35, '2026_03_04_000006_create_apertura_caja_billetes_table', 13);
+INSERT INTO `migrations` VALUES (36, '2026_03_04_000007_create_cierre_caja_billetes_table', 13);
+INSERT INTO `migrations` VALUES (37, '2026_03_04_000008_create_auditoria_cajas_table', 13);
+INSERT INTO `migrations` VALUES (38, '2026_03_04_000009_create_permisos_caja_table', 13);
+INSERT INTO `migrations` VALUES (39, '2026_03_04_000010_create_cuentas_bancarias_table', 13);
+INSERT INTO `migrations` VALUES (40, '2026_03_04_000011_create_titulares_cuenta_bancaria_table', 13);
+INSERT INTO `migrations` VALUES (41, '2026_03_04_000012_create_movimientos_bancarios_table', 13);
+INSERT INTO `migrations` VALUES (42, '2026_03_04_000013_create_conciliaciones_bancarias_table', 13);
+INSERT INTO `migrations` VALUES (43, '2026_03_04_000014_create_billeteras_digitales_table', 13);
+INSERT INTO `migrations` VALUES (44, '2026_03_04_000015_create_configuracion_metodos_pago_table', 13);
+INSERT INTO `migrations` VALUES (45, '2026_03_04_000016_create_reportes_financieros_table', 13);
+INSERT INTO `migrations` VALUES (46, '2026_03_04_000017_update_cajas_and_create_arqueos', 13);
+INSERT INTO `migrations` VALUES (47, '2026_03_05_000001_create_transportistas_table', 14);
+INSERT INTO `migrations` VALUES (48, '2026_03_05_000002_add_transportista_to_guia_remision', 15);
+INSERT INTO `migrations` VALUES (49, '2026_03_05_050441_add_nombre_to_cajas_table', 15);
+INSERT INTO `migrations` VALUES (50, '2026_03_05_050551_add_responsable_to_cajas_table', 15);
+INSERT INTO `migrations` VALUES (51, '2026_03_05_052809_add_inactiva_estado_to_cajas_table', 15);
+INSERT INTO `migrations` VALUES (52, '2026_03_05_053504_add_id_cuenta_to_metodos_pago_table', 15);
+INSERT INTO `migrations` VALUES (53, '2026_03_05_055229_create_caja_metodos_pago_table', 15);
+INSERT INTO `migrations` VALUES (54, '2026_03_05_062249_make_id_usuario_apertura_nullable_in_cajas_table', 16);
+INSERT INTO `migrations` VALUES (55, '2026_03_05_063017_add_creacion_to_auditoria_cajas_accion_enum', 17);
+INSERT INTO `migrations` VALUES (56, '2026_03_05_add_foto_to_clientes', 17);
+INSERT INTO `migrations` VALUES (57, '2026_03_06_000001_add_remitente_and_placa_secundaria_to_guia_remision', 18);
+INSERT INTO `migrations` VALUES (58, '2026_03_06_000002_add_remitente_direccion_ubigeo_to_guia_remision', 18);
+INSERT INTO `migrations` VALUES (59, '2026_03_06_000003_update_cajas_estado_enum', 18);
+INSERT INTO `migrations` VALUES (60, '2026_03_06_000004_add_deposito_to_auditoria_cajas_accion', 18);
 
 -- ----------------------------
 -- Table structure for motivo_nota
@@ -755,6 +1185,70 @@ INSERT INTO `motivo_traslado` VALUES (8, '14', 'Venta sujeta a confirmación del
 INSERT INTO `motivo_traslado` VALUES (9, '17', 'Traslado de bienes para transformación', 1, '2026-02-24 17:34:24', '2026-02-24 17:34:24');
 INSERT INTO `motivo_traslado` VALUES (10, '18', 'Recojo de bienes transformados', 1, '2026-02-24 17:34:24', '2026-02-24 17:34:24');
 INSERT INTO `motivo_traslado` VALUES (11, '19', 'Traslado emisor itinerante de comprobantes de pago', 1, '2026-02-24 17:34:24', '2026-02-24 17:34:24');
+
+-- ----------------------------
+-- Table structure for movimientos_bancarios
+-- ----------------------------
+DROP TABLE IF EXISTS `movimientos_bancarios`;
+CREATE TABLE `movimientos_bancarios`  (
+  `id_movimiento` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_cuenta` bigint UNSIGNED NOT NULL,
+  `id_empresa` int NOT NULL,
+  `tipo` enum('Deposito','Retiro','Transferencia','Comision','Interes') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Deposito',
+  `monto` decimal(14, 2) NOT NULL,
+  `fecha_movimiento` date NOT NULL,
+  `numero_operacion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `referencia` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `conciliado` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_movimiento`) USING BTREE,
+  INDEX `movimientos_bancarios_id_cuenta_index`(`id_cuenta` ASC) USING BTREE,
+  INDEX `movimientos_bancarios_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `movimientos_bancarios_fecha_movimiento_index`(`fecha_movimiento` ASC) USING BTREE,
+  INDEX `movimientos_bancarios_conciliado_index`(`conciliado` ASC) USING BTREE,
+  INDEX `movimientos_bancarios_numero_operacion_index`(`numero_operacion` ASC) USING BTREE,
+  CONSTRAINT `movimientos_bancarios_id_cuenta_foreign` FOREIGN KEY (`id_cuenta`) REFERENCES `cuentas_bancarias` (`id_cuenta`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `movimientos_bancarios_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of movimientos_bancarios
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for movimientos_caja
+-- ----------------------------
+DROP TABLE IF EXISTS `movimientos_caja`;
+CREATE TABLE `movimientos_caja`  (
+  `id_movimiento` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_caja` bigint UNSIGNED NOT NULL,
+  `id_empresa` int NOT NULL,
+  `id_usuario` bigint UNSIGNED NOT NULL,
+  `tipo` enum('Ingreso','Egreso') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Ingreso',
+  `concepto` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto` decimal(12, 2) NOT NULL,
+  `numero_operacion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `referencia_tipo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `referencia_id` bigint UNSIGNED NULL DEFAULT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_movimiento`) USING BTREE,
+  INDEX `movimientos_caja_id_usuario_foreign`(`id_usuario` ASC) USING BTREE,
+  INDEX `movimientos_caja_id_caja_index`(`id_caja` ASC) USING BTREE,
+  INDEX `movimientos_caja_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `movimientos_caja_tipo_index`(`tipo` ASC) USING BTREE,
+  INDEX `movimientos_caja_numero_operacion_index`(`numero_operacion` ASC) USING BTREE,
+  CONSTRAINT `movimientos_caja_id_caja_foreign` FOREIGN KEY (`id_caja`) REFERENCES `cajas` (`id_caja`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `movimientos_caja_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `movimientos_caja_id_usuario_foreign` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of movimientos_caja
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for movimientos_stock
@@ -905,6 +1399,34 @@ CREATE TABLE `password_reset_tokens`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for permisos_caja
+-- ----------------------------
+DROP TABLE IF EXISTS `permisos_caja`;
+CREATE TABLE `permisos_caja`  (
+  `id_permiso` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_usuario` bigint UNSIGNED NOT NULL,
+  `id_empresa` int NOT NULL,
+  `puede_abrir_caja` tinyint(1) NOT NULL DEFAULT 0,
+  `puede_cerrar_caja` tinyint(1) NOT NULL DEFAULT 0,
+  `puede_autorizar_cierre` tinyint(1) NOT NULL DEFAULT 0,
+  `puede_rechazar_cierre` tinyint(1) NOT NULL DEFAULT 0,
+  `puede_registrar_movimientos` tinyint(1) NOT NULL DEFAULT 0,
+  `puede_ver_reportes` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_permiso`) USING BTREE,
+  UNIQUE INDEX `permisos_caja_id_usuario_id_empresa_unique`(`id_usuario` ASC, `id_empresa` ASC) USING BTREE,
+  INDEX `permisos_caja_id_usuario_index`(`id_usuario` ASC) USING BTREE,
+  INDEX `permisos_caja_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  CONSTRAINT `permisos_caja_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `permisos_caja_id_usuario_foreign` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of permisos_caja
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for permissions
 -- ----------------------------
 DROP TABLE IF EXISTS `permissions`;
@@ -921,7 +1443,7 @@ CREATE TABLE `permissions`  (
   UNIQUE INDEX `permissions_name_unique`(`name` ASC) USING BTREE,
   INDEX `permissions_module_index`(`module` ASC) USING BTREE,
   INDEX `permissions_action_index`(`action` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 89 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 113 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permissions
@@ -1014,6 +1536,30 @@ INSERT INTO `permissions` VALUES (85, 'cuentas-pagar.view', 'Ver Cuentas por Pag
 INSERT INTO `permissions` VALUES (86, 'cuentas-pagar.create', 'Crear Cuentas por Pagar', 'cuentas-pagar', 'create', 'Permiso para Crear en el módulo de Cuentas por Pagar', '2026-03-04 19:14:12', '2026-03-04 19:14:12');
 INSERT INTO `permissions` VALUES (87, 'cuentas-pagar.edit', 'Editar Cuentas por Pagar', 'cuentas-pagar', 'edit', 'Permiso para Editar en el módulo de Cuentas por Pagar', '2026-03-04 19:14:12', '2026-03-04 19:14:12');
 INSERT INTO `permissions` VALUES (88, 'cuentas-pagar.delete', 'Eliminar Cuentas por Pagar', 'cuentas-pagar', 'delete', 'Permiso para Eliminar en el módulo de Cuentas por Pagar', '2026-03-04 19:14:12', '2026-03-04 19:14:12');
+INSERT INTO `permissions` VALUES (89, 'guias-remision-transportista.view', 'Ver GR Transportista', 'guias-remision-transportista', 'view', 'Permiso para Ver en el módulo de GR Transportista', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (90, 'guias-remision-transportista.create', 'Crear GR Transportista', 'guias-remision-transportista', 'create', 'Permiso para Crear en el módulo de GR Transportista', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (91, 'guias-remision-transportista.edit', 'Editar GR Transportista', 'guias-remision-transportista', 'edit', 'Permiso para Editar en el módulo de GR Transportista', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (92, 'guias-remision-transportista.delete', 'Eliminar GR Transportista', 'guias-remision-transportista', 'delete', 'Permiso para Eliminar en el módulo de GR Transportista', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (93, 'bancos.view', 'Ver Bancos', 'bancos', 'view', 'Permiso para Ver en el módulo de Bancos', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (94, 'bancos.create', 'Crear Bancos', 'bancos', 'create', 'Permiso para Crear en el módulo de Bancos', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (95, 'bancos.edit', 'Editar Bancos', 'bancos', 'edit', 'Permiso para Editar en el módulo de Bancos', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (96, 'bancos.delete', 'Eliminar Bancos', 'bancos', 'delete', 'Permiso para Eliminar en el módulo de Bancos', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (97, 'metodos-pago.view', 'Ver Métodos de Pago', 'metodos-pago', 'view', 'Permiso para Ver en el módulo de Métodos de Pago', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (98, 'metodos-pago.create', 'Crear Métodos de Pago', 'metodos-pago', 'create', 'Permiso para Crear en el módulo de Métodos de Pago', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (99, 'metodos-pago.edit', 'Editar Métodos de Pago', 'metodos-pago', 'edit', 'Permiso para Editar en el módulo de Métodos de Pago', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (100, 'metodos-pago.delete', 'Eliminar Métodos de Pago', 'metodos-pago', 'delete', 'Permiso para Eliminar en el módulo de Métodos de Pago', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (101, 'caja.view', 'Ver Control de Caja', 'caja', 'view', 'Permiso para Ver en el módulo de Control de Caja', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (102, 'caja.create', 'Crear Control de Caja', 'caja', 'create', 'Permiso para Crear en el módulo de Control de Caja', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (103, 'caja.edit', 'Editar Control de Caja', 'caja', 'edit', 'Permiso para Editar en el módulo de Control de Caja', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (104, 'caja.delete', 'Eliminar Control de Caja', 'caja', 'delete', 'Permiso para Eliminar en el módulo de Control de Caja', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (105, 'cuentas-bancarias.view', 'Ver Cuentas Bancarias', 'cuentas-bancarias', 'view', 'Permiso para Ver en el módulo de Cuentas Bancarias', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (106, 'cuentas-bancarias.create', 'Crear Cuentas Bancarias', 'cuentas-bancarias', 'create', 'Permiso para Crear en el módulo de Cuentas Bancarias', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (107, 'cuentas-bancarias.edit', 'Editar Cuentas Bancarias', 'cuentas-bancarias', 'edit', 'Permiso para Editar en el módulo de Cuentas Bancarias', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (108, 'cuentas-bancarias.delete', 'Eliminar Cuentas Bancarias', 'cuentas-bancarias', 'delete', 'Permiso para Eliminar en el módulo de Cuentas Bancarias', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (109, 'utilidades.view', 'Ver Análisis de Utilidades', 'utilidades', 'view', 'Permiso para Ver en el módulo de Análisis de Utilidades', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (110, 'utilidades.create', 'Crear Análisis de Utilidades', 'utilidades', 'create', 'Permiso para Crear en el módulo de Análisis de Utilidades', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (111, 'utilidades.edit', 'Editar Análisis de Utilidades', 'utilidades', 'edit', 'Permiso para Editar en el módulo de Análisis de Utilidades', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
+INSERT INTO `permissions` VALUES (112, 'utilidades.delete', 'Eliminar Análisis de Utilidades', 'utilidades', 'delete', 'Permiso para Eliminar en el módulo de Análisis de Utilidades', '2026-03-06 17:40:41', '2026-03-06 17:40:41');
 
 -- ----------------------------
 -- Table structure for personal_access_tokens
@@ -1034,7 +1580,7 @@ CREATE TABLE `personal_access_tokens`  (
   UNIQUE INDEX `personal_access_tokens_token_unique`(`token` ASC) USING BTREE,
   INDEX `personal_access_tokens_tokenable_type_tokenable_id_index`(`tokenable_type` ASC, `tokenable_id` ASC) USING BTREE,
   INDEX `personal_access_tokens_expires_at_index`(`expires_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 91 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 95 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of personal_access_tokens
@@ -1114,6 +1660,10 @@ INSERT INTO `personal_access_tokens` VALUES (87, 'App\\Models\\User', 2, 'auth_t
 INSERT INTO `personal_access_tokens` VALUES (88, 'App\\Models\\User', 2, 'auth_token', 'f18274c7e60c589abfef297134f816e44ec50073cd3f15c5ee026239a99d405d', '[\"*\"]', NULL, '2026-03-05 01:49:33', '2026-03-04 17:49:33', '2026-03-04 17:49:33');
 INSERT INTO `personal_access_tokens` VALUES (89, 'App\\Models\\User', 2, 'auth_token', '3a74b66de74b7297005e2553bb2e7b9a2bdbd6f8b48cd24558a3676279bae72a', '[\"*\"]', NULL, '2026-03-05 02:16:46', '2026-03-04 18:16:46', '2026-03-04 18:16:46');
 INSERT INTO `personal_access_tokens` VALUES (90, 'App\\Models\\User', 2, 'auth_token', 'f98e94c2ec09131541bdef764c5a5ecf6083ed33cedf0d2e7d1c26bd1a5c6569', '[\"*\"]', NULL, '2026-03-05 03:32:55', '2026-03-04 19:32:55', '2026-03-04 19:32:55');
+INSERT INTO `personal_access_tokens` VALUES (91, 'App\\Models\\User', 2, 'auth_token', 'ba18a1e1518039a965677bc9a54dd877df0ef7824ad3896a91e083b84d299646', '[\"*\"]', NULL, '2026-03-07 01:23:17', '2026-03-06 17:23:17', '2026-03-06 17:23:17');
+INSERT INTO `personal_access_tokens` VALUES (92, 'App\\Models\\User', 2, 'auth_token', 'ffb4b50a2cc29850d3e5e469d28f2a5ce9bfc80d592d58f4ddc22355e64d5ee1', '[\"*\"]', NULL, '2026-03-07 04:54:41', '2026-03-06 20:54:41', '2026-03-06 20:54:41');
+INSERT INTO `personal_access_tokens` VALUES (93, 'App\\Models\\User', 2, 'auth_token', '7558fe48bbf47cd973a8791d2f47763bfe78cac116c0845a283f566cf6b8618c', '[\"*\"]', NULL, '2026-03-07 05:06:25', '2026-03-06 21:06:25', '2026-03-06 21:06:25');
+INSERT INTO `personal_access_tokens` VALUES (94, 'App\\Models\\User', 2, 'auth_token', 'ef446265b9ab3c2b414ba1419784c8ce0491b4790b52a946189d8b6553a9fb01', '[\"*\"]', NULL, '2026-03-07 05:07:48', '2026-03-06 21:07:48', '2026-03-06 21:07:48');
 
 -- ----------------------------
 -- Table structure for plantilla_impresion
@@ -1816,7 +2366,7 @@ CREATE TABLE `productos_compras`  (
   `cantidad` decimal(10, 2) NOT NULL,
   `precio` decimal(10, 3) NOT NULL COMMENT 'Precio unitario',
   `costo` decimal(10, 3) NOT NULL COMMENT 'Costo unitario',
-  `subtotal` decimal(10, 2) GENERATED ALWAYS AS ((`cantidad` * `precio`)) STORED NULL,
+  `subtotal` decimal(10, 2) GENERATED ALWAYS AS ((`cantidad` * `precio`)) STORED,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_producto_compra`) USING BTREE,
@@ -1923,6 +2473,34 @@ INSERT INTO `proveedores` VALUES (4, '20608300393', 'COMPAÑIA FOOD RETAIL S.A.C
 INSERT INTO `proveedores` VALUES (5, '10774252008', 'YARLEQUE ZAPATA EMER RODRIGO', NULL, '', '', 2, NULL, NULL, NULL, NULL, 1, '2026-03-04 00:45:46', '2026-03-04 05:45:46', '2026-03-04 05:45:46');
 
 -- ----------------------------
+-- Table structure for reportes_financieros
+-- ----------------------------
+DROP TABLE IF EXISTS `reportes_financieros`;
+CREATE TABLE `reportes_financieros`  (
+  `id_reporte` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `id_usuario` bigint UNSIGNED NOT NULL,
+  `tipo` enum('Flujo','Rentabilidad','Indicadores','Deuda') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `datos_json` json NULL,
+  `generado_en` datetime NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_reporte`) USING BTREE,
+  INDEX `reportes_financieros_id_usuario_foreign`(`id_usuario` ASC) USING BTREE,
+  INDEX `reportes_financieros_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `reportes_financieros_tipo_index`(`tipo` ASC) USING BTREE,
+  INDEX `reportes_financieros_fecha_inicio_index`(`fecha_inicio` ASC) USING BTREE,
+  CONSTRAINT `reportes_financieros_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `reportes_financieros_id_usuario_foreign` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of reportes_financieros
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for role_permission
 -- ----------------------------
 DROP TABLE IF EXISTS `role_permission`;
@@ -1994,10 +2572,62 @@ CREATE TABLE `sessions`  (
 -- ----------------------------
 -- Records of sessions
 -- ----------------------------
-INSERT INTO `sessions` VALUES ('4WUzo0xi01jZaQJKDPBQkdRxPkyKMvStAUGsvxBC', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWHR5OUVRRDc5MFUzTHl5dmxzb1VhZzJ3MFp5dnJTd3VCWW96OElsbCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NjU6Imh0dHA6Ly9mYWN0dXJhY2lvbl9zYW50b2QudGVzdC9hcGkvcHJvdmVlZG9yZXM/c2VhcmNoPTEwNzYxNjU5NjIxIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjYwOiIkMnkkMTIkb2tETnJ6U0MxWWF0NzlTdUlMY21QT3VtL1h3blJzdS5tcS92aVpadlFndHJKT1BscC9RaHUiO30=', 1772652718);
-INSERT INTO `sessions` VALUES ('B0E7J8L5f4XGT0AwdaMESHTG52QoMrPlHE1lPyZf', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiU09MdGxQVmZsdHlITmlSN1JNN2Z0TkF6cFlZVHhoNjVnUURoa2pPdyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTA6Imh0dHA6Ly9mYWN0dXJhX2lsaWRlc2F2YS50ZXN0L2FwaS9wZXJtaXNzaW9ucy91c2VyIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjYwOiIkMnkkMTIkb2tETnJ6U0MxWWF0NzlTdUlMY21QT3VtL1h3blJzdS5tcS92aVpadlFndHJKT1BscC9RaHUiO30=', 1772647166);
-INSERT INTO `sessions` VALUES ('cBQS9JA7sjOwKMfdBVFHFzfShnfrIzo9bCwMmyI7', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiZWtjVTRoVTMweXdSb3JPZzd6MkQ3R1lxNm1Fb0xpbWh2cFg3Z2RoRSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTI6Imh0dHA6Ly9mYWN0dXJhY2lvbl9zYW50b2QudGVzdC9hcGkvY3VlbnRhcy1wb3ItcGFnYXIiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjI7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjA6IiQyeSQxMiRva0ROcnpTQzFZYXQ3OVN1SUxjbVBPdW0vWHduUnN1Lm1xL3ZpWlp2UWd0ckpPUGxwL1FodSI7fQ==', 1772652991);
-INSERT INTO `sessions` VALUES ('HMf7nantBDdhSKNPrE9vdzhvw0MgkFE2EJq4Ly0t', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiZXdSTHBwOEFYV3NWZHp0Y0huNkFwQlVudWNSczA5R1o4UVJHT25raCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzc6Imh0dHA6Ly9mYWN0dXJhY2lvbl9zYW50b2QudGVzdC9pbmljaW8iO3M6NToicm91dGUiO3M6NjoiaW5pY2lvIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1772649774);
+INSERT INTO `sessions` VALUES ('PpS30DpKnzk8WKDkhaPfe5JlgBq0FMAwJvyUGJsl', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoid3pRaG81dGtGOHRQQ0xSUVVkcGNweU10WGhoOXVrWjhpMGhNQzZnViI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzY6Imh0dHA6Ly9mYWN0dXJhY2lvbl9zYW50b2QudGVzdC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1772831580);
+INSERT INTO `sessions` VALUES ('XQ4JQpOX6UuAKOLhfMPxzqVDXozscRCoKR4nz5gi', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiMm80UFc1OGxTaWpKeDg3M2R6Uk1NcU5wbDVFbkVjSUdMQ1RRMXRTeSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTQ6Imh0dHA6Ly9mYWN0dXJhY2lvbl9zYW50b2QudGVzdC9hcGkvcHJvZHVjdG9zP2FsbWFjZW49MSI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MjtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiYWZkMTRlNGEzZGYyMDgxNjE2ZDVhMjdmZjVkY2VkOTgzZTQ5MDIxMTE2ZGRkYmNjZTBhZGZkMjc3ODgwZmUxOSI7fQ==', 1772838716);
+
+-- ----------------------------
+-- Table structure for titulares_cuenta_bancaria
+-- ----------------------------
+DROP TABLE IF EXISTS `titulares_cuenta_bancaria`;
+CREATE TABLE `titulares_cuenta_bancaria`  (
+  `id_titular` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_cuenta` bigint UNSIGNED NOT NULL,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `documento_tipo` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DNI',
+  `documento_numero` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `titular_principal` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_titular`) USING BTREE,
+  UNIQUE INDEX `titulares_cuenta_bancaria_documento_numero_unique`(`documento_numero` ASC) USING BTREE,
+  INDEX `titulares_cuenta_bancaria_id_cuenta_index`(`id_cuenta` ASC) USING BTREE,
+  INDEX `titulares_cuenta_bancaria_documento_numero_index`(`documento_numero` ASC) USING BTREE,
+  CONSTRAINT `titulares_cuenta_bancaria_id_cuenta_foreign` FOREIGN KEY (`id_cuenta`) REFERENCES `cuentas_bancarias` (`id_cuenta`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of titulares_cuenta_bancaria
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for transportistas
+-- ----------------------------
+DROP TABLE IF EXISTS `transportistas`;
+CREATE TABLE `transportistas`  (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `tipo_documento` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '1=DNI, 6=RUC',
+  `numero_documento` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `razon_social` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre_comercial` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `numero_mtc` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Número de autorización MTC',
+  `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `direccion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `transportistas_numero_documento_unique`(`numero_documento` ASC) USING BTREE,
+  INDEX `transportistas_id_empresa_index`(`id_empresa` ASC) USING BTREE,
+  INDEX `transportistas_numero_documento_index`(`numero_documento` ASC) USING BTREE,
+  INDEX `transportistas_estado_index`(`estado` ASC) USING BTREE,
+  CONSTRAINT `transportistas_id_empresa_foreign` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of transportistas
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for ubigeo_inei

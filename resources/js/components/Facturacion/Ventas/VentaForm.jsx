@@ -1,7 +1,7 @@
 import MainLayout from "../../Layout/MainLayout";
 import { Button } from "../../ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Componentes compartidos
 import ProductMultipleSearch from "../../shared/ProductMultipleSearch";
@@ -48,6 +48,23 @@ export default function VentaForm({ ventaId = null }) {
         setMetodoPago,
     } = useVentaForm(ventaId);
 
+    const [almacenes, setAlmacenes] = useState([]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("auth_token");
+        fetch(baseUrl("/api/almacenes"), {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.success) setAlmacenes(data.data);
+            })
+            .catch(() => {});
+    }, []);
+
+    const principalId = String(almacenes.find((a) => a.es_principal)?.id || "1");
+    const childId = String(almacenes.find((a) => !a.es_principal)?.id || principalId);
+
     // Leer parámetros de la URL: tipo y cotizacion_id
     useEffect(() => {
         if (!isEditing) {
@@ -81,7 +98,7 @@ export default function VentaForm({ ventaId = null }) {
                     try {
                         const token = localStorage.getItem("auth_token");
                         const response = await fetch(
-                            `/api/cotizaciones/${cotizacionIdParam}`,
+                            baseUrl(`/api/cotizaciones/${cotizacionIdParam}`),
                             {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
@@ -154,7 +171,7 @@ export default function VentaForm({ ventaId = null }) {
                     try {
                         const token = localStorage.getItem("auth_token");
                         const response = await fetch(
-                            `/api/ventas/${notaVentaIdParam}`,
+                            baseUrl(`/api/ventas/${notaVentaIdParam}`),
                             {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
@@ -214,25 +231,17 @@ export default function VentaForm({ ventaId = null }) {
         }
     }, [isEditing]);
 
-    // NUEVO: Sincronizar almacén con tipo de documento
+    // Sincronizar almacén con tipo de documento
     useEffect(() => {
-        if (formData.id_tido) {
-            let nuevoAlmacen = "1"; // Por defecto Almacén 1
+        if (formData.id_tido && almacenes.length > 0) {
+            // Nota de Venta → almacén hijo, Factura/Boleta → almacén principal
+            const nuevoAlmacen = formData.id_tido === "6" ? childId : principalId;
 
-            if (formData.id_tido === "6") {
-                // Nota de Venta → Almacén 2 (Kardex Real)
-                nuevoAlmacen = "2";
-            } else if (formData.id_tido === "1" || formData.id_tido === "2") {
-                // Factura/Boleta → Almacén 1 (SUNAT)
-                nuevoAlmacen = "1";
-            }
-
-            // Solo actualizar si cambió
             if (formData.almacen !== nuevoAlmacen) {
                 setFormData((prev) => ({ ...prev, almacen: nuevoAlmacen }));
             }
         }
-    }, [formData.id_tido]);
+    }, [formData.id_tido, almacenes]);
 
     const totales = calcularTotales();
     const monedaSimbolo = getSimboloMoneda(formData.tipo_moneda);
@@ -332,8 +341,8 @@ export default function VentaForm({ ventaId = null }) {
                             showPriceSelector={true}
                             submitButtonText="Agregar Producto"
                             almacen={formData.almacen}
+                            almacenes={almacenes}
                             onAlmacenChange={(val) => {
-                                // Solo permitir cambio si no hay tipo de documento seleccionado
                                 if (!formData.id_tido) {
                                     setFormData((prev) => ({
                                         ...prev,

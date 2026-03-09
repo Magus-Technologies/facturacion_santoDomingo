@@ -314,7 +314,7 @@ class ProductoImportController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'almacen'           => 'required|in:1,2',
+                'almacen'           => 'required|exists:almacenes,id',
                 'lista'             => 'required|array|min:1',
                 'lista.*.producto'  => 'required|string',
             ]);

@@ -18,6 +18,7 @@ import {
  */
 export const useCotizacionForm = (cotizacionId = null) => {
     const isEditing = !!cotizacionId;
+    const [almacenes, setAlmacenes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [cliente, setCliente] = useState(null);
@@ -62,20 +63,31 @@ export const useCotizacionForm = (cotizacionId = null) => {
         empresas_ids: empresaActiva.id_empresa ? [empresaActiva.id_empresa] : [],
     });
 
+    // Cargar almacenes
+    useEffect(() => {
+        const token = localStorage.getItem('auth_token');
+        fetch(baseUrl("/api/almacenes"), {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.success) setAlmacenes(data.data);
+            })
+            .catch(() => {});
+    }, []);
+
+    const principalId = String(almacenes.find((a) => a.es_principal)?.id || "1");
+    const childId = String(almacenes.find((a) => !a.es_principal)?.id || principalId);
+
     // Sincronizar almacén con tipo de documento
     useEffect(() => {
-        if (formData.id_tido) {
-            let nuevoAlmacen = "1";
-            if (formData.id_tido === "6") {
-                nuevoAlmacen = "2"; // Nota de Venta → Almacén Real
-            } else if (formData.id_tido === "1" || formData.id_tido === "2") {
-                nuevoAlmacen = "1"; // Factura/Boleta → Facturación
-            }
+        if (formData.id_tido && almacenes.length > 0) {
+            const nuevoAlmacen = formData.id_tido === "6" ? childId : principalId;
             if (formData.almacen !== nuevoAlmacen) {
                 setFormData((prev) => ({ ...prev, almacen: nuevoAlmacen }));
             }
         }
-    }, [formData.id_tido]);
+    }, [formData.id_tido, almacenes]);
 
     useEffect(() => {
         if (isEditing) {
@@ -402,5 +414,8 @@ export const useCotizacionForm = (cotizacionId = null) => {
         
         // Utilidades
         calcularTotales,
+        almacenes,
+        principalId,
+        childId,
     };
 };

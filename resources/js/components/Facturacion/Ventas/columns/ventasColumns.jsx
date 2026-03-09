@@ -382,7 +382,7 @@ export const getVentasColumns = (handlers, ocultarSunat = false, sunatLoadingId 
                                         className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
                                     >
                                         <PackageMinus className="mr-2 h-4 w-4" />
-                                        Descontar Almacén Real
+                                        Descontar Stock
                                     </DropdownMenuItem>
                                 )}
                                 {puedeGenerarXml && handlers.handleGenerarXml && (

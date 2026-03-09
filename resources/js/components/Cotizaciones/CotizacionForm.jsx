@@ -42,6 +42,9 @@ export default function CotizacionForm({ cotizacionId = null }) {
         handlePaymentScheduleConfirm,
         handleSubmit,
         calcularTotales,
+        almacenes,
+        principalId,
+        childId,
     } = useCotizacionForm(cotizacionId);
 
     const totales = calcularTotales();
@@ -140,10 +143,11 @@ export default function CotizacionForm({ cotizacionId = null }) {
                             showPriceSelector={true}
                             submitButtonText="Agregar"
                             almacen={formData.almacen}
+                            almacenes={almacenes}
                             onAlmacenChange={(val) => {
-                                // Almacén Real (2) → Nota de Venta, Facturación (1) → Boleta por defecto
-                                const nuevoTipo = val === "2" ? "6" : "1";
-                                const nuevaSerie = val === "2" ? "NV01" : "B001";
+                                // Almacén hijo → Nota de Venta, Principal → Boleta por defecto
+                                const nuevoTipo = val !== principalId ? "6" : "1";
+                                const nuevaSerie = val !== principalId ? "NV01" : "B001";
                                 setFormData((prev) => ({
                                     ...prev,
                                     almacen: val,

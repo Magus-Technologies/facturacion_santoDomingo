@@ -10,7 +10,7 @@ class ProductoService
     /**
      * Listar productos por almacén
      */
-    public function listar(int $idEmpresa, string $almacen, ?string $search = null, bool $soloConStock = false)
+    public function listar(int $idEmpresa, int $almacen, ?string $search = null, bool $soloConStock = false)
     {
         $query = Producto::with(['categoria', 'unidad'])
             ->where('id_empresa', $idEmpresa)
@@ -94,7 +94,7 @@ class ProductoService
     /**
      * Generar código automático
      */
-    private function generarCodigo(int $idEmpresa, string $almacen): string
+    private function generarCodigo(int $idEmpresa, int $almacen): string
     {
         $prefijo = "PROD-A{$almacen}-";
         $ultimo = Producto::where('id_empresa', $idEmpresa)

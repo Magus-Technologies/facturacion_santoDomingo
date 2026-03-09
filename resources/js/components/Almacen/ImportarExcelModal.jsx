@@ -6,7 +6,7 @@ import { Loader2, FileSpreadsheet, Upload, Download } from "lucide-react";
 import ListaProductosModal from "./ListaProductosModal";
 import { baseUrl } from "@/lib/baseUrl";
 
-export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen = "1" }) {
+export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen = "1", almacenNombre = "" }) {
     const [loading, setLoading] = useState(false);
     const [loadingPlantilla, setLoadingPlantilla] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -295,6 +295,7 @@ export default function ImportarExcelModal({ isOpen, onClose, onSuccess, almacen
                 warnings={warningsLeidos}
                 onSuccess={handleListaModalSuccess}
                 almacen={almacen}
+                almacenNombre={almacenNombre}
             />
         </>
     );

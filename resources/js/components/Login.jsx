@@ -28,7 +28,7 @@ function FloatingParticles() {
             delay: Math.random() * 8,
             opacity: Math.random() * 0.15 + 0.05,
         }))
-    , []);
+        , []);
 
     return (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -96,7 +96,7 @@ export default function Login({ onLoginSuccess }) {
                 });
 
                 if (response.ok) {
-                    window.location.href = baseUrl("/inicio");
+                    window.location.href = baseUrl("/dashboard");
                 } else {
                     localStorage.removeItem("auth_token");
                     localStorage.removeItem("user");
@@ -158,7 +158,7 @@ export default function Login({ onLoginSuccess }) {
                     setPermissions(data.permissions);
                 }
 
-                window.location.href = baseUrl("/inicio");
+                window.location.href = baseUrl("/dashboard");
 
                 if (onLoginSuccess) {
                     onLoginSuccess(data);
@@ -209,9 +209,8 @@ export default function Login({ onLoginSuccess }) {
                 <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 xl:px-20">
                     {/* Logo grande con glow */}
                     <div
-                        className={`login-float mb-8 transition-all duration-1000 ease-out ${
-                            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                        }`}
+                        className={`login-float mb-8 transition-all duration-1000 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                            }`}
                     >
                         <div className="relative">
                             {/* Glow detrás del logo */}
@@ -227,9 +226,8 @@ export default function Login({ onLoginSuccess }) {
 
                     {/* Separador elegante animado */}
                     <div
-                        className={`flex items-center gap-4 mb-8 w-full max-w-xs transition-all duration-1000 delay-300 ease-out ${
-                            mounted ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
-                        }`}
+                        className={`flex items-center gap-4 mb-8 w-full max-w-xs transition-all duration-1000 delay-300 ease-out ${mounted ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                            }`}
                     >
                         <div className="flex-1 h-px login-line-shimmer" />
                         <Grape className="h-5 w-5 text-accent-300/50 login-icon-spin" />
@@ -238,9 +236,8 @@ export default function Login({ onLoginSuccess }) {
 
                     {/* Texto descriptivo */}
                     <div
-                        className={`text-center max-w-sm transition-all duration-1000 delay-500 ease-out ${
-                            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-                        }`}
+                        className={`text-center max-w-sm transition-all duration-1000 delay-500 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                            }`}
                     >
                         <h2 className="text-accent-200 text-lg font-light tracking-wide mb-3">
                             Sistema de Facturación Electrónica
@@ -252,9 +249,8 @@ export default function Login({ onLoginSuccess }) {
 
                     {/* Indicador decorativo inferior */}
                     <div
-                        className={`absolute bottom-10 left-12 xl:left-20 right-12 xl:right-20 transition-all duration-1000 delay-700 ease-out ${
-                            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                        }`}
+                        className={`absolute bottom-10 left-12 xl:left-20 right-12 xl:right-20 transition-all duration-1000 delay-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            }`}
                     >
                         <div className="flex items-center justify-center text-accent-300/50 text-xs tracking-widest uppercase">
                             <Wine className="h-3.5 w-3.5 mr-2" />
@@ -283,9 +279,8 @@ export default function Login({ onLoginSuccess }) {
 
                 <div className="w-full max-w-md px-6 sm:px-8 py-12 relative z-10">
                     {/* Logo solo en mobile */}
-                    <div className={`lg:hidden text-center mb-8 transition-all duration-700 ${
-                        mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-                    }`}>
+                    <div className={`lg:hidden text-center mb-8 transition-all duration-700 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+                        }`}>
                         <img
                             src={baseUrl("/images/logos/logo.svg")}
                             alt="Santo Domingo Logo"
@@ -294,9 +289,8 @@ export default function Login({ onLoginSuccess }) {
                     </div>
 
                     {/* Card del formulario */}
-                    <div className={`relative bg-white rounded-2xl shadow-xl shadow-black/5 lg:shadow-lg p-8 sm:p-10 border border-gray-100 lg:border-gray-100/80 overflow-hidden transition-all duration-700 delay-200 ${
-                        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                    }`}>
+                    <div className={`relative bg-white rounded-2xl shadow-xl shadow-black/5 lg:shadow-lg p-8 sm:p-10 border border-gray-100 lg:border-gray-100/80 overflow-hidden transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                        }`}>
                         {/* Línea de glow animada en el borde */}
                         <GlowBorder />
 
@@ -304,9 +298,8 @@ export default function Login({ onLoginSuccess }) {
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-primary-400 to-accent-400 login-line-shimmer" />
 
                         {/* Encabezado */}
-                        <div className={`mb-8 transition-all duration-500 delay-400 ${
-                            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                        }`}>
+                        <div className={`mb-8 transition-all duration-500 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            }`}>
                             <h1 className="text-2xl font-bold text-gray-900 mb-1">
                                 Bienvenido
                             </h1>
@@ -323,9 +316,8 @@ export default function Login({ onLoginSuccess }) {
                             action="javascript:void(0);"
                         >
                             {/* Campo Usuario/Email */}
-                            <div className={`transition-all duration-500 delay-[600ms] ${
-                                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                            }`}>
+                            <div className={`transition-all duration-500 delay-[600ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                                }`}>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
                                     Usuario / Email
                                 </label>
@@ -346,9 +338,8 @@ export default function Login({ onLoginSuccess }) {
                             </div>
 
                             {/* Campo Contraseña */}
-                            <div className={`transition-all duration-500 delay-[700ms] ${
-                                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                            }`}>
+                            <div className={`transition-all duration-500 delay-[700ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                                }`}>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
                                     Contraseña
                                 </label>
@@ -390,9 +381,8 @@ export default function Login({ onLoginSuccess }) {
                             )}
 
                             {/* Enlace Olvidé Contraseña */}
-                            <div className={`text-right transition-all duration-500 delay-[800ms] ${
-                                mounted ? 'opacity-100' : 'opacity-0'
-                            }`}>
+                            <div className={`text-right transition-all duration-500 delay-[800ms] ${mounted ? 'opacity-100' : 'opacity-0'
+                                }`}>
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -405,9 +395,8 @@ export default function Login({ onLoginSuccess }) {
                             </div>
 
                             {/* Botón Submit */}
-                            <div className={`transition-all duration-500 delay-[900ms] ${
-                                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                            }`}>
+                            <div className={`transition-all duration-500 delay-[900ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                                }`}>
                                 <button
                                     type="submit"
                                     disabled={loading}
@@ -430,9 +419,8 @@ export default function Login({ onLoginSuccess }) {
                     </div>
 
                     {/* Footer fuera de la card */}
-                    <div className={`text-center mt-8 transition-all duration-500 delay-[1000ms] ${
-                        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                    }`}>
+                    <div className={`text-center mt-8 transition-all duration-500 delay-[1000ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                        }`}>
                         <p className="text-xs text-gray-400 lg:text-gray-400 mb-2">
                             Desarrollado por:
                         </p>

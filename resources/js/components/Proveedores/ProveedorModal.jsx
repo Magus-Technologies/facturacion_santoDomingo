@@ -3,6 +3,7 @@ import { Modal, ModalForm, ModalField } from "../ui/modal";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { toast } from "@/lib/sweetalert";
+import { baseUrl } from "@/lib/baseUrl";
 import { consultarDocumento } from "@/services/apisPeru";
 import { Loader2 } from "lucide-react";
 import SelectUbigeo from "../ui/SelectUbigeo";
@@ -182,8 +183,8 @@ export default function ProveedorModal({ isOpen, onClose, proveedor, onSuccess }
             };
 
             const url = isEditing
-                ? `/api/proveedores/${proveedor.proveedor_id}`
-                : "/api/proveedores";
+                ? baseUrl(`/api/proveedores/${proveedor.proveedor_id}`)
+                : baseUrl("/api/proveedores");
 
             const method = isEditing ? "PUT" : "POST";
 

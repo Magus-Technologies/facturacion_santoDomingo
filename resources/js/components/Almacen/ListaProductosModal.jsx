@@ -7,7 +7,7 @@ import { toast } from "@/lib/sweetalert";
 import { Loader2, Search, Edit, Eye, Trash2, Warehouse, AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react";
 import { baseUrl } from "@/lib/baseUrl";
 
-export default function ListaProductosModal({ isOpen, onClose, productos, warnings = [], onSuccess, almacen = "1" }) {
+export default function ListaProductosModal({ isOpen, onClose, productos, warnings = [], onSuccess, almacen = "1", almacenNombre = "" }) {
     const [loading, setLoading] = useState(false);
     const [almacenDestino, setAlmacenDestino] = useState(almacen);
     const [busqueda, setBusqueda] = useState("");
@@ -224,7 +224,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
                             <Warehouse className="h-4 w-4 text-gray-500 shrink-0" />
                             <p className="text-sm text-gray-600">
-                                Se importará en <span className="font-semibold text-gray-800">{almacenDestino === "1" ? "Facturación" : "Almacén Real"}</span>.
+                                Se importará en <span className="font-semibold text-gray-800">{almacenNombre || `Almacén ${almacenDestino}`}</span>.
                             </p>
                         </div>
                     </div>
@@ -438,7 +438,7 @@ export default function ListaProductosModal({ isOpen, onClose, productos, warnin
                         <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-lg border">
                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
                             <span>
-                                <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>{almacenDestino === "1" ? "Facturación" : "Almacén Real"}</strong>.
+                                <strong>{listaProductos.length}</strong> producto(s) listos para importar en <strong>{almacenNombre || `Almacén ${almacenDestino}`}</strong>.
                                 Las categorías y unidades nuevas se crearán automáticamente.
                             </span>
                         </div>

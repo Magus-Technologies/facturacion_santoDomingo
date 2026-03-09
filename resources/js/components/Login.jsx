@@ -184,17 +184,17 @@ export default function Login({ onLoginSuccess }) {
     return (
         <div className="min-h-screen flex flex-col lg:flex-row">
             {/* Panel izquierdo - Branding */}
-            <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-gradient-to-br from-primary-950 via-primary-800 to-primary-700">
+            <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-linear-to-br from-primary-950 via-primary-800 to-primary-700">
                 {/* Patrón decorativo de fondo */}
                 <div className="absolute inset-0">
                     {/* Anillos animados */}
-                    <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full border border-white/[0.06] login-ring-spin" />
-                    <div className="absolute -top-16 -left-16 w-[400px] h-[400px] rounded-full border border-white/[0.04] login-ring-spin-reverse" />
-                    <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full border border-accent-300/[0.08] login-ring-spin" />
-                    <div className="absolute -bottom-20 -right-20 w-[450px] h-[450px] rounded-full border border-accent-300/[0.05] login-ring-spin-reverse" />
+                    <div className="absolute -top-32 -left-32 w-125 h-125 rounded-full border border-white/6 login-ring-spin" />
+                    <div className="absolute -top-16 -left-16 w-100 h-100 rounded-full border border-white/4 login-ring-spin-reverse" />
+                    <div className="absolute -bottom-40 -right-40 w-150 h-150 rounded-full border border-accent-300/8 login-ring-spin" />
+                    <div className="absolute -bottom-20 -right-20 w-122.5 h-122.5 rounded-full border border-accent-300/5 login-ring-spin-reverse" />
 
                     {/* Gradiente radial pulsante */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-300/[0.04] rounded-full blur-3xl login-glow-pulse" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent-300/4 rounded-full blur-3xl login-glow-pulse" />
 
                     {/* Líneas decorativas diagonales */}
                     <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -263,7 +263,7 @@ export default function Login({ onLoginSuccess }) {
             {/* Panel derecho - Formulario */}
             <div className="flex-1 flex items-center justify-center bg-gray-50 relative min-h-screen lg:min-h-0">
                 {/* Fondo decorativo sutil para mobile */}
-                <div className="absolute inset-0 lg:hidden bg-gradient-to-br from-primary-800 via-primary-600 to-primary-500">
+                <div className="absolute inset-0 lg:hidden bg-linear-to-br from-primary-800 via-primary-600 to-primary-500">
                     <div className="absolute inset-0 opacity-[0.05]" style={{
                         backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 60px, rgba(255,255,255,0.3) 60px, rgba(255,255,255,0.3) 61px)',
                     }} />
@@ -295,7 +295,7 @@ export default function Login({ onLoginSuccess }) {
                         <GlowBorder />
 
                         {/* Barra decorativa superior */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-primary-400 to-accent-400 login-line-shimmer" />
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary-500 via-primary-400 to-accent-400 login-line-shimmer" />
 
                         {/* Encabezado */}
                         <div className={`mb-8 transition-all duration-500 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
@@ -316,7 +316,7 @@ export default function Login({ onLoginSuccess }) {
                             action="javascript:void(0);"
                         >
                             {/* Campo Usuario/Email */}
-                            <div className={`transition-all duration-500 delay-[600ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            <div className={`transition-all duration-500 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                                 }`}>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
                                     Usuario / Email
@@ -338,7 +338,7 @@ export default function Login({ onLoginSuccess }) {
                             </div>
 
                             {/* Campo Contraseña */}
-                            <div className={`transition-all duration-500 delay-[700ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            <div className={`transition-all duration-500 delay-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                                 }`}>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
                                     Contraseña
@@ -381,7 +381,7 @@ export default function Login({ onLoginSuccess }) {
                             )}
 
                             {/* Enlace Olvidé Contraseña */}
-                            <div className={`text-right transition-all duration-500 delay-[800ms] ${mounted ? 'opacity-100' : 'opacity-0'
+                            <div className={`text-right transition-all duration-500 delay-800 ${mounted ? 'opacity-100' : 'opacity-0'
                                 }`}>
                                 <button
                                     type="button"
@@ -395,12 +395,12 @@ export default function Login({ onLoginSuccess }) {
                             </div>
 
                             {/* Botón Submit */}
-                            <div className={`transition-all duration-500 delay-[900ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            <div className={`transition-all duration-500 delay-900 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                                 }`}>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full py-3.5 px-6 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+                                    className="w-full py-3.5 px-6 bg-linear-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
                                 >
                                     {loading ? (
                                         <>
@@ -419,7 +419,7 @@ export default function Login({ onLoginSuccess }) {
                     </div>
 
                     {/* Footer fuera de la card */}
-                    <div className={`text-center mt-8 transition-all duration-500 delay-[1000ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                    <div className={`text-center mt-8 transition-all duration-500 delay-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                         }`}>
                         <p className="text-xs text-gray-400 lg:text-gray-400 mb-2">
                             Desarrollado por:

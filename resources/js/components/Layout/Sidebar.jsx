@@ -66,8 +66,8 @@ export default function Sidebar({ isOpen, isCollapsed, currentPath = "/dashboard
     // Filtrar módulos según permisos
     const filterModulesByPermissions = (modules) => {
         return modules.filter(module => {
-            // Dashboard siempre visible
-            if (module.id === 'dashboard') return true;
+            // Dashboard y Ecommerce siempre visibles
+            if (module.id === 'dashboard' || module.id === 'ecommerce') return true;
             
             // Si tiene submódulos, filtrar los submódulos
             if (module.submodules) {

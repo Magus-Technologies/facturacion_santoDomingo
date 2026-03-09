@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'token.query' => \App\Http\Middleware\TokenFromQuery::class,
         ]);
+
+        // Habilitar CORS para todas las rutas API
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Dominio Caja: respuestas JSON automáticas sin try/catch en controladores

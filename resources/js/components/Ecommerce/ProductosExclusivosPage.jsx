@@ -19,7 +19,9 @@ export default function ProductosExclusivosPage() {
     const tabs = [
         { id: 'nuevos_ingresos', label: 'Nuevos Ingresos' },
         { id: 'mas_vendidos', label: 'Los más Vendidos' },
-        { id: 'ofertas_especiales', label: 'Ofertas Especiales' }
+        { id: 'ofertas_especiales', label: 'Ofertas Especiales' },
+        { id: 'productos_en_remate', label: 'Productos En Remate' },
+        { id: 'productos_de_tendencia', label: 'Productos de Tendencia' }
     ];
 
     useEffect(() => {

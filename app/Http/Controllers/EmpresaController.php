@@ -203,4 +203,34 @@ class EmpresaController extends Controller
             ], 500);
         }
     }
+
+    public function public()
+    {
+        $empresa = Empresa::where('estado', '1')->first();
+        if (!$empresa) {
+            return response()->json(['success' => false, 'message' => 'No encontrado'], 404);
+        }
+
+        $telefonos = array_filter([
+            $empresa->telefono,
+            $empresa->telefono2,
+            $empresa->telefono3,
+        ]);
+
+        return response()->json([
+            'success'      => true,
+            'data'         => [
+                'razon_social' => $empresa->razon_social,
+                'comercial'    => $empresa->comercial,
+                'descripcion'  => $empresa->propaganda,
+                'direccion'    => $empresa->direccion,
+                'email'        => $empresa->email,
+                'telefonos'    => array_values($telefonos),
+                'logo_url'     => $empresa->logo ? asset('storage/' . $empresa->logo) : null,
+                'distrito'     => $empresa->distrito,
+                'provincia'    => $empresa->provincia,
+                'departamento' => $empresa->departamento,
+            ]
+        ]);
+    }
 }

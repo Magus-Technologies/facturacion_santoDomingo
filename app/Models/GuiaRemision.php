@@ -47,7 +47,16 @@ class GuiaRemision extends Model
         'conductor_licencia',
         'vehiculo_placa',
         'vehiculo_placa_secundaria',
+        'vehiculo_marca',
+        'vehiculo_configuracion',
+        'vehiculo_habilitacion',
         'vehiculo_m1l',
+        'remitente_cod_establecimiento',
+        'destinatario_cod_establecimiento',
+        'doc_relacionado_tipo',
+        'doc_relacionado_serie',
+        'doc_relacionado_numero',
+        'doc_relacionado_emisor_ruc',
         'observaciones',
         'estado',
         'nombre_xml',
@@ -57,6 +66,26 @@ class GuiaRemision extends Model
         'codigo_sunat',
         'mensaje_sunat',
         'ticket_sunat',
+        // ─── NUEVOS CAMPOS SUNAT ────────────────────────────────────────
+        // Pagador del Flete
+        'pagador_tipo_doc',
+        'pagador_documento',
+        'pagador_razon_social',
+        // Mercancía Especial
+        'mercancia_iqbf',
+        'mercancia_peligrosa',
+        'codigo_onu',
+        'mercancia_voluminosa',
+        // Vehículo - Ampliación
+        'numero_registro_mtc',
+        'emisor_autorizacion',
+        // Transportista
+        'tipo_documento_identidad_transportista',
+        'numero_documento_transportista',
+        // Tipo de Guía y Carga
+        'tipo_guia',
+        'nro_bultos',
+        'indicador_transbordo',
     ];
 
     protected $casts = [
@@ -64,6 +93,12 @@ class GuiaRemision extends Model
         'fecha_traslado' => 'date',
         'peso_total' => 'decimal:3',
         'numero' => 'integer',
+        // ─── NUEVOS CASTS SUNAT ─────────────────────────────────────────
+        'mercancia_iqbf' => 'boolean',
+        'mercancia_peligrosa' => 'boolean',
+        'mercancia_voluminosa' => 'boolean',
+        'vehiculo_m1l' => 'boolean',
+        'indicador_transbordo' => 'boolean',
     ];
 
     public function empresa(): BelongsTo
@@ -84,6 +119,11 @@ class GuiaRemision extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(GuiaRemisionDetalle::class, 'id_guia', 'id');
+    }
+
+    public function transportista(): BelongsTo
+    {
+        return $this->belongsTo(Transportista::class, 'id_transportista', 'id');
     }
 
     public function getNumeroCompletoAttribute(): string

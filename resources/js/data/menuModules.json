@@ -188,22 +188,16 @@
           "path": "/ecommerce/exclusivos"
         },
         {
-          "id": "ecommerce-pedidos",
-          "name": "Pedidos",
-          "icon": "ShoppingCart",
-          "path": "/ecommerce/pedidos"
+          "id": "ecommerce-nav-menu",
+          "name": "Navegación",
+          "icon": "Menu",
+          "path": "/ecommerce/nav-menu"
         },
         {
-          "id": "ecommerce-reportes",
-          "name": "Reportes",
-          "icon": "BarChart3",
-          "path": "/ecommerce/reportes"
-        },
-        {
-          "id": "ecommerce-configuracion",
-          "name": "Configuración",
-          "icon": "Settings",
-          "path": "/ecommerce/configuracion"
+          "id": "ecommerce-marcas",
+          "name": "Marcas",
+          "icon": "Tag",
+          "path": "/ecommerce/marcas"
         }
       ]
     }

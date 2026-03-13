@@ -36,12 +36,11 @@ import { TransportistaAddPage } from "./components/GuiaRemisionTransportista/Tra
 import GuiaRemisionTransportista from "./components/GuiaRemisionTransportista/GuiaRemisionTransportistaPage";
 import GuiaRemisionTransportistaForm from "./components/GuiaRemisionTransportista/GuiaRemisionTransportistaForm";
 import ProductosPage from "./components/Ecommerce/BannerPromocionalPage";
-import ReportesPage from "./components/Ecommerce/ReportesPage";
-import ConfiguracionPage from "./components/Ecommerce/ConfiguracionPage";
-import PedidosPage from "./components/Ecommerce/PedidosPage";
 import EcommerceApp from "./components/Ecommerce/EcommerceApp";
 import BannerPromocionalModal from "./components/Ecommerce/BannerPromocionalModal";
 import ProductosExclusivosPage from "./components/Ecommerce/ProductosExclusivosPage";
+import NavMenuPage from "./components/Ecommerce/NavMenuPage";
+import MarcasPage from "./components/Ecommerce/MarcasPage";
 
 import "./bootstrap";
 import "../css/app.css";
@@ -95,12 +94,11 @@ const components = {
     GuiaRemisionTransportista,
     GuiaRemisionTransportistaForm,
     ProductosPage,
-    ReportesPage,
-    ConfiguracionPage,
-    PedidosPage,
     EcommerceApp,
     BannerPromocionalModal,
     ProductosExclusivosPage,
+    NavMenuPage,
+    MarcasPage,
 };
 
 // Monta cada elemento con atributo data-react-component

@@ -16,11 +16,13 @@ export default function GuiaRemisionTransportista() {
 
     const [guiaSeleccionada, setGuiaSeleccionada] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [generandoXmlId, setGenerandoXmlId] = useState(null);
+    const [regenerandoXmlId, setRegenerandoXmlId] = useState(null);
 
     const handleView = async (guia) => {
         try {
             const response = await api.get(`/guias-remision-transportista/${guia.id}`);
-            setGuiaSeleccionada(response.data);
+            setGuiaSeleccionada(response.data.data);
             setIsModalOpen(true);
         } catch {
             toast.error('Error al cargar detalle');
@@ -73,6 +75,44 @@ export default function GuiaRemisionTransportista() {
         }
     };
 
+    const handleGenerarXml = async (guia) => {
+        setGenerandoXmlId(guia.id);
+        try {
+            const response = await api.post(`/comprobantes/generar-xml/${guia.id}`);
+            if (response.data?.success) {
+                toast.success('XML generado exitosamente');
+                refetch();
+            } else {
+                toast.error(response.data?.message || 'Error al generar XML');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al generar XML');
+        } finally {
+            setGenerandoXmlId(null);
+        }
+    };
+
+    const handleEditar = (guia) => {
+        window.location.href = baseUrl(`/guia-remision-transportista/add?id=${guia.id}`);
+    };
+
+    const handleRegenerarXml = async (guia) => {
+        setRegenerandoXmlId(guia.id);
+        try {
+            const response = await api.post(`/comprobantes/generar-xml/${guia.id}`);
+            if (response.data?.success) {
+                toast.success('XML regenerado exitosamente');
+                refetch();
+            } else {
+                toast.error(response.data?.message || 'Error al regenerar XML');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al regenerar XML');
+        } finally {
+            setRegenerandoXmlId(null);
+        }
+    };
+
     const handlers = {
         handleView,
         handleVerPdf,
@@ -80,9 +120,12 @@ export default function GuiaRemisionTransportista() {
         handleVerXml,
         handleConsultarTicket: consultarTicket,
         handleDescargarCdr,
+        handleGenerarXml,
+        handleEditar,
+        handleRegenerarXml,
     };
 
-    const columns = getGuiaRemisionTransportistaColumns(handlers, enviandoId);
+    const columns = getGuiaRemisionTransportistaColumns(handlers, enviandoId, generandoXmlId, regenerandoXmlId);
 
     return (
         <MainLayout>

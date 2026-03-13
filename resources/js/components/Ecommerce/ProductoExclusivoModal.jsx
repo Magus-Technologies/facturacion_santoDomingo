@@ -263,6 +263,8 @@ export default function ProductoExclusivoModal({ isOpen, onClose, item, onSucces
                             <option value="nuevos_ingresos">Nuevos Ingresos</option>
                             <option value="mas_vendidos">Los más Vendidos</option>
                             <option value="ofertas_especiales">Ofertas Especiales</option>
+                            <option value="productos_en_remate">Productos En Remate</option>
+                            <option value="productos_de_tendencia">Productos de Tendencia</option>
                         </select>
                     </div>
 

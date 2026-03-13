@@ -211,3 +211,5 @@ Route::get('/ecommerce/reportes', function () { return view('ecommerce.reportes'
 Route::get('/ecommerce/configuracion', function () { return view('ecommerce.configuracion'); })->name('ecommerce.configuracion');
 Route::get('/ecommerce/pedidos', function () { return view('ecommerce.pedidos'); })->name('ecommerce.pedidos');
 Route::get('/ecommerce/exclusivos', function () { return view('ecommerce.exclusivos'); })->name('ecommerce.exclusivos');
+Route::get('/ecommerce/nav-menu', function () { return view('ecommerce.nav-menu'); })->name('ecommerce.nav-menu');
+Route::get('/ecommerce/marcas', function () { return view('ecommerce.marcas'); })->name('ecommerce.marcas');

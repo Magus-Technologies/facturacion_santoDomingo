@@ -28,6 +28,13 @@ Route::post('/public/banners-promocionales-test', [\App\Http\Controllers\BannerP
 Route::get('/public/grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'index']);
 Route::get('/public/grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'show']);
 Route::get('/public/productos-exclusivos', [\App\Http\Controllers\ProductoExclusivoController::class, 'index']);
+Route::get('/public/productos-en-remate', [\App\Http\Controllers\ProductoEnRemateController::class, 'index']);
+Route::get('/public/productos-de-tendencia', [\App\Http\Controllers\ProductoDeTendenciaController::class, 'index']);
+Route::get('/public/nav-menu', [\App\Http\Controllers\NavMenuController::class, 'public']);
+Route::get('/public/marcas', [\App\Http\Controllers\MarcaController::class, 'public']);
+Route::get('/public/categorias', [\App\Http\Controllers\CategoriaProductoController::class, 'index']);
+Route::get('/public/empresa', [\App\Http\Controllers\EmpresaController::class, 'public']);
+Route::get('/public/footer-config', [\App\Http\Controllers\FooterConfigController::class, 'public']);
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
@@ -216,8 +223,10 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('guias-remision-transportista/exportar-excel', [\App\Http\Controllers\Exports\GuiaRemisionExportController::class, 'descargarExcel']);
     Route::get('guias-remision-transportista', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'index']);
     Route::post('guias-remision-transportista', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'store']);
+    Route::put('guias-remision-transportista/{id}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'update']);
     Route::get('guias-remision-transportista/{id}/cdr', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'cdr']);
     Route::get('guias-remision-transportista/{id}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'show']);
+    Route::post('guias-remision-transportista/{id}/generar-xml', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'generarXml']);
     Route::post('guias-remision-transportista/{id}/enviar', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'enviar']);
     Route::get('guias-remision-transportista/{id}/ticket', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'consultarTicket']);
     Route::get('guias-remision-transportista/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'xml'])->where('nombre', '.*');
@@ -248,6 +257,22 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::put('banners-promocionales/{id}', [\App\Http\Controllers\BannerPromocionalController::class, 'update']);
     Route::delete('banners-promocionales/{id}', [\App\Http\Controllers\BannerPromocionalController::class, 'destroy']);
 
+    // Marcas
+    Route::get('marcas', [\App\Http\Controllers\MarcaController::class, 'index']);
+    Route::post('marcas', [\App\Http\Controllers\MarcaController::class, 'store']);
+    Route::put('marcas/{cod}', [\App\Http\Controllers\MarcaController::class, 'update']);
+    Route::delete('marcas/{cod}', [\App\Http\Controllers\MarcaController::class, 'destroy']);
+
+    // Footer Config (Newsletter banner)
+    Route::get('footer-config', [\App\Http\Controllers\FooterConfigController::class, 'show']);
+    Route::post('footer-config', [\App\Http\Controllers\FooterConfigController::class, 'update']);
+
+    // Navegación del Ecommerce
+    Route::get('nav-menu', [\App\Http\Controllers\NavMenuController::class, 'index']);
+    Route::post('nav-menu', [\App\Http\Controllers\NavMenuController::class, 'store']);
+    Route::put('nav-menu/{id}', [\App\Http\Controllers\NavMenuController::class, 'update']);
+    Route::delete('nav-menu/{id}', [\App\Http\Controllers\NavMenuController::class, 'destroy']);
+
     // Grupo Selección (Carrusel de Categorías)
     Route::get('grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'index']);
     Route::post('grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'store']);
@@ -257,6 +282,12 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
 
     // Productos Exclusivos (Tabs en Home)
     Route::apiResource('productos-exclusivos', \App\Http\Controllers\ProductoExclusivoController::class);
+
+    // Productos En Remate
+    Route::apiResource('productos-en-remate', \App\Http\Controllers\ProductoEnRemateController::class);
+
+    // Productos de Tendencia
+    Route::apiResource('productos-de-tendencia', \App\Http\Controllers\ProductoDeTendenciaController::class);
 
     // Test endpoint para verificar storage
     Route::post('test-upload', function (Request $request) {

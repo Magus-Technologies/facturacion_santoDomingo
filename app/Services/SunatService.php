@@ -689,6 +689,16 @@ class SunatService
             ->setNumDoc($guia->destinatario_documento)
             ->setRznSocial($guia->destinatario_nombre);
 
+        $partida = new Direction($guia->ubigeo_partida, $guia->dir_partida);
+        if ($guia->remitente_cod_establecimiento) {
+            $partida->setCodLocal($guia->remitente_cod_establecimiento);
+        }
+
+        $llegada = new Direction($guia->ubigeo_llegada, $guia->dir_llegada);
+        if ($guia->destinatario_cod_establecimiento) {
+            $llegada->setCodLocal($guia->destinatario_cod_establecimiento);
+        }
+
         $shipment = (new Shipment())
             ->setCodTraslado($guia->motivo_traslado)
             ->setDesTraslado($guia->descripcion_motivo)
@@ -696,8 +706,8 @@ class SunatService
             ->setFecTraslado($fechaTraslado)
             ->setPesoTotal((float) $guia->peso_total)
             ->setUndPesoTotal($guia->und_peso_total ?? 'KGM')
-            ->setPartida(new Direction($guia->ubigeo_partida, $guia->dir_partida))
-            ->setLlegada(new Direction($guia->ubigeo_llegada, $guia->dir_llegada));
+            ->setPartida($partida)
+            ->setLlegada($llegada);
 
         if ($guia->conductor_documento) {
             $driver = (new Driver())
@@ -711,7 +721,18 @@ class SunatService
         }
 
         if ($guia->vehiculo_placa) {
-            $shipment->setVehiculo((new Vehicle())->setPlaca($guia->vehiculo_placa));
+            $vehicle = (new Vehicle())
+                ->setPlaca($guia->vehiculo_placa);
+            
+            if ($guia->vehiculo_marca) $vehicle->setMarca($guia->vehiculo_marca);
+            if ($guia->vehiculo_configuracion) $vehicle->setModPre($guia->vehiculo_configuracion);
+            if ($guia->vehiculo_habilitacion) $vehicle->setNroHabi($guia->vehiculo_habilitacion);
+            
+            if ($guia->vehiculo_placa_secundaria) {
+                $vehicle->setSecundaria($guia->vehiculo_placa_secundaria);
+            }
+            
+            $shipment->setVehiculo($vehicle);
         }
 
         $details = [];
@@ -733,6 +754,18 @@ class SunatService
             ->setDestinatario($destinatario)
             ->setEnvio($shipment)
             ->setDetails($details);
+
+        if ($guia->doc_relacionado_tipo && $guia->doc_relacionado_numero) {
+            $rel = new \Greenter\Model\Despatch\DespatchRel();
+            $rel->setTipoDoc($guia->doc_relacionado_tipo)
+                ->setNumDoc($guia->doc_relacionado_serie . '-' . $guia->doc_relacionado_numero);
+            
+            if ($guia->doc_relacionado_emisor_ruc) {
+                $rel->setEmisor($guia->doc_relacionado_emisor_ruc);
+            }
+            
+            $despatch->setRelDesps([$rel]);
+        }
 
         if ($remitente) {
             $despatch->setTercero($remitente);

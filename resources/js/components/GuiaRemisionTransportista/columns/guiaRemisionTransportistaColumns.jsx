@@ -11,6 +11,8 @@ import {
     MoreHorizontal,
     Loader2,
     Search,
+    Edit,
+    RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,7 +36,7 @@ const estadoIconos = {
     Rechazado: <XCircle className="h-3 w-3" />,
 };
 
-export const getGuiaRemisionTransportistaColumns = (handlers, enviandoId = null) => [
+export const getGuiaRemisionTransportistaColumns = (handlers, enviandoId = null, generandoXmlId = null, regenerandoXmlId = null) => [
     {
         accessorKey: 'serie',
         header: 'Documento',
@@ -150,6 +152,51 @@ export const getGuiaRemisionTransportistaColumns = (handlers, enviandoId = null)
                                 <DropdownMenuItem onClick={() => handlers.handleVerPdf(guia)}>
                                     <Printer className="mr-2 h-4 w-4 text-gray-600" />
                                     Ver PDF
+                                </DropdownMenuItem>
+                            )}
+                            {guia.estado === 'pendiente' && handlers.handleEditar && (
+                                <DropdownMenuItem 
+                                    onClick={() => handlers.handleEditar(guia)}
+                                    className="text-blue-600 focus:bg-blue-50 focus:text-blue-700"
+                                >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar
+                                </DropdownMenuItem>
+                            )}
+                            {!guia.nombre_xml && handlers.handleGenerarXml && (
+                                <DropdownMenuItem 
+                                    onClick={() => handlers.handleGenerarXml(guia)}
+                                    className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
+                                >
+                                    {generandoXmlId === guia.id ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Generando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FileCode className="mr-2 h-4 w-4" />
+                                            Generar XML
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+                            )}
+                            {guia.nombre_xml && handlers.handleRegenerarXml && (
+                                <DropdownMenuItem 
+                                    onClick={() => handlers.handleRegenerarXml(guia)}
+                                    className="text-amber-600 focus:bg-amber-50 focus:text-amber-700"
+                                >
+                                    {regenerandoXmlId === guia.id ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Regenerando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <RefreshCw className="mr-2 h-4 w-4" />
+                                            Regenerar XML
+                                        </>
+                                    )}
                                 </DropdownMenuItem>
                             )}
                             {guia.nombre_xml && handlers.handleVerXml && (

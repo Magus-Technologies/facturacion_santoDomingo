@@ -13,10 +13,10 @@ class GuiaRemisionDetalleResource extends JsonResource
             'id' => $this->id,
             'id_guia' => $this->id_guia,
             'id_producto' => $this->id_producto,
+            'codigo' => $this->codigo,
             'descripcion' => $this->descripcion,
             'cantidad' => $this->cantidad,
-            'unidad_medida' => $this->unidad_medida,
-            'producto' => new ProductoResource($this->whenLoaded('producto')),
+            'unidad' => $this->unidad,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

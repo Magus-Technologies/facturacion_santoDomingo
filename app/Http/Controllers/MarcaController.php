@@ -6,6 +6,7 @@ use App\Models\Marca;
 use App\Http\Resources\MarcaResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MarcaController extends Controller
 {
@@ -23,7 +24,7 @@ class MarcaController extends Controller
     /** GET /api/public/marcas — ecommerce (solo activas) */
     public function public(): JsonResponse
     {
-        $marcas = Marca::where('estado', '1')->orderBy('nombre_marca')->get();
+        $marcas = Marca::orderBy('nombre_marca')->get();
 
         return response()->json([
             'success' => true,

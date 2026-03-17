@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
             CategoriaSeeder::class,
             MarcaSeeder::class,
             ProductoSeeder::class,
+            ProductoShopSeeder::class,
+            OfertaSeeder::class,
+            NavMenuSeeder::class,
+            EcommerceNavMenuSeeder::class,
         ]);
     }
 }

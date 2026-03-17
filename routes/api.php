@@ -19,6 +19,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // API Pública de Productos
 Route::get('/public/productos', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'index']);
 Route::get('/public/productos/{id}', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'show']);
+Route::get('/public/productos-destacados', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'destacados']);
+Route::get('/public/productos-mejor-valorados', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'mejorValorados']);
 
 // API Pública de Banners Promocionales
 Route::get('/public/banners-promocionales', [\App\Http\Controllers\BannerPromocionalController::class, 'index']);
@@ -365,7 +367,21 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('resumen-diario', [\App\Http\Controllers\ResumenDiarioController::class, 'store']);
     Route::post('resumen-diario/anular', [\App\Http\Controllers\ResumenDiarioController::class, 'anular']);
     Route::post('resumen-diario/consultar', [\App\Http\Controllers\ResumenDiarioController::class, 'consultarTicket']);
+
+    // Ofertas
+    Route::get('ofertas', [\App\Http\Controllers\OfertaController::class, 'index'])->middleware('permission:productos.view');
+    Route::post('ofertas', [\App\Http\Controllers\OfertaController::class, 'store'])->middleware('permission:productos.edit');
+    Route::get('ofertas/{id}', [\App\Http\Controllers\OfertaController::class, 'show'])->middleware('permission:productos.view');
+    Route::put('ofertas/{id}', [\App\Http\Controllers\OfertaController::class, 'update'])->middleware('permission:productos.edit');
+    Route::delete('ofertas/{id}', [\App\Http\Controllers\OfertaController::class, 'destroy'])->middleware('permission:productos.delete');
+    Route::get('productos/{id}/ofertas', [\App\Http\Controllers\OfertaController::class, 'porProducto']);
 });
+
+// Ofertas Públicas (sin autenticación)
+Route::get('/public/ofertas/vigentes', [\App\Http\Controllers\OfertaController::class, 'vigentes']);
+
+// Shop Productos Públicos (para shop-list-prod.php)
+Route::get('/public/shop-productos', [\App\Http\Controllers\Api\ShopProductosController::class, 'index']);
 
 Route::get('/departamentos' ,[UbicacionesControlller::class,'obtenerDepartamentos']);
 Route::get('/provincias/{departamentoId}',[UbicacionesControlller::class,'obtenerProvincias']);

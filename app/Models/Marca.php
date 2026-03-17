@@ -21,6 +21,11 @@ class Marca extends Model
 
     protected $appends = ['imagen_url'];
 
+    public function productos()
+    {
+        return $this->hasMany(Producto::class, 'marca_id', 'cod_marca');
+    }
+
     public function getImagenUrlAttribute(): ?string
     {
         if (!$this->imagen) return null;

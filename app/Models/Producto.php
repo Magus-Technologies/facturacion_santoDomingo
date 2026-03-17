@@ -15,16 +15,18 @@ class Producto extends Model
         'nombre',
         'descripcion',
         'precio',
+        'oferta',
         'costo',
         'precio_mayor',
         'precio_menor',
-
         'precio_unidad',
         'cantidad',
         'stock_minimo',
         'stock_maximo',
         'id_empresa',
         'categoria_id',
+        'marca_id',
+        'cod_marca',
         'unidad_id',
         'almacen',
         'codsunat',
@@ -35,6 +37,12 @@ class Producto extends Model
         'imagen',
         'ultima_salida',
         'fecha_ultimo_ingreso',
+        'es_destacado',
+        'en_oferta',
+        'precio_oferta',
+        'tipo_descuento',
+        'valor_descuento',
+        'valoracion',
     ];
 
     protected $casts = [
@@ -68,6 +76,27 @@ class Producto extends Model
     public function unidad()
     {
         return $this->belongsTo(Unidad::class, 'unidad_id');
+    }
+
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class, 'marca_id', 'cod_marca');
+    }
+
+    public function ofertas()
+    {
+        return $this->hasMany(Oferta::class, 'id_producto', 'id_producto');
+    }
+
+    public function ofertaVigente()
+    {
+        return $this->hasOne(Oferta::class, 'id_producto', 'id_producto')
+            ->where('estado', '1')
+            ->where('fecha_inicio', '<=', now())
+            ->where(function ($q) {
+                $q->whereNull('fecha_fin')
+                  ->orWhere('fecha_fin', '>=', now());
+            });
     }
 
     // Scopes

@@ -20,6 +20,7 @@ import {
     Tag,
     Image as ImageIcon,
     MoreHorizontal,
+    Zap,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -178,6 +179,25 @@ export default function ProductosList() {
 
     const columns = [
         {
+            id: "imagen",
+            header: "Imagen",
+            cell: ({ row }) => (
+                <div className="flex items-center justify-center">
+                    {row.original.imagen ? (
+                        <img 
+                            src={baseUrl(`/storage/${row.original.imagen}`)} 
+                            alt={row.original.nombre} 
+                            className="h-10 w-10 object-contain rounded-md border border-gray-200"
+                        />
+                    ) : (
+                        <div className="h-10 w-10 bg-gray-100 rounded-md flex items-center justify-center">
+                            <ImageIcon className="h-5 w-5 text-gray-400" />
+                        </div>
+                    )}
+                </div>
+            ),
+        },
+        {
             accessorKey: "codigo",
             header: "Código",
             cell: ({ row }) => (
@@ -214,6 +234,37 @@ export default function ProductosList() {
             cell: ({ row }) => (
                 <span className="text-sm text-gray-600">{row.original.categoria?.nombre || "N/A"}</span>
             ),
+        },
+        {
+            id: "marca",
+            header: "Marca",
+            cell: ({ row }) => {
+                const marca = row.original.marca;
+                const nombreMarca = marca?.nombre_marca || marca?.nombre || "N/A";
+                return <span className="text-sm text-gray-600">{nombreMarca}</span>;
+            },
+        },
+        {
+            id: "ofertas",
+            header: "Ofertas",
+            cell: ({ row }) => {
+                const ofertasVigentes = row.original.ofertas?.filter(o => o.estado === '1') || [];
+                return (
+                    <div className="flex items-center gap-1">
+                        {ofertasVigentes.length > 0 ? (
+                            <>
+                                <Zap className="h-4 w-4 text-yellow-500" />
+                                <span className="text-sm font-semibold text-yellow-600">{ofertasVigentes.length}</span>
+                            </>
+                        ) : (
+                            <>
+                                <Zap className="h-4 w-4 text-gray-300" />
+                                <span className="text-sm text-gray-400">0</span>
+                            </>
+                        )}
+                    </div>
+                );
+            },
         },
         {
             accessorKey: "cantidad",

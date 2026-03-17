@@ -12,7 +12,7 @@ class ProductoService
      */
     public function listar(int $idEmpresa, int $almacen, ?string $search = null, bool $soloConStock = false)
     {
-        $query = Producto::with(['categoria', 'unidad'])
+        $query = Producto::with(['categoria', 'unidad', 'marca', 'ofertas'])
             ->where('id_empresa', $idEmpresa)
             ->where('almacen', $almacen)
             ->where('estado', '1');
@@ -53,7 +53,7 @@ class ProductoService
 
         $producto = Producto::create($data);
 
-        $producto->load(['categoria', 'unidad']);
+        $producto->load(['categoria', 'unidad', 'marca', 'ofertas']);
 
         return $producto;
     }
@@ -65,7 +65,7 @@ class ProductoService
     {
         $producto->update($data);
 
-        $producto->load(['categoria', 'unidad']);
+        $producto->load(['categoria', 'unidad', 'marca', 'ofertas']);
 
         return ['producto' => $producto, 'sincronizado' => false];
     }

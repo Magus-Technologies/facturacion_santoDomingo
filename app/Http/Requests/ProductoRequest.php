@@ -29,6 +29,7 @@ class ProductoRequest extends FormRequest
             'stock_minimo' => 'nullable|integer|min:0',
             'stock_maximo' => 'nullable|integer|min:0',
             'categoria_id' => 'nullable|exists:categorias,id',
+            'marca_id' => 'nullable|exists:marcra_productos,cod_marca',
             'unidad_id' => 'nullable|exists:unidades,id',
             'almacen' => 'required|exists:almacenes,id',
             'codsunat' => 'nullable|string|max:20',

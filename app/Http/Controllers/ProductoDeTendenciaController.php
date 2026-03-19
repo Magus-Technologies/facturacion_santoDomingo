@@ -3,27 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductoDeTendencia;
-use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductoDeTendenciaController extends Controller
 {
     public function index(Request $request)
     {
-        $items = ProductoDeTendencia::with('producto')
+        $items = ProductoDeTendencia::with(['producto.categoria', 'producto.marca'])
             ->where('tab_name', 'productos_de_tendencia')
             ->where('estado', '1')
             ->orderBy('orden', 'asc')
             ->get()
             ->map(function ($item) {
                 $prod = $item->producto;
+                $imagen = $item->imagen
+                    ? asset('storage/' . $item->imagen)
+                    : ($prod?->imagen ? asset('storage/' . $prod->imagen) : null);
+
                 return [
                     'id'          => $item->id_exclusivo,
                     'producto_id' => $item->producto_id,
                     'nombre'      => $prod?->nombre,
-                    'precio'      => $prod?->precio,
+                    'precio'      => (float) ($prod?->precio ?? 0),
+                    'costo'       => (float) ($prod?->costo ?? 0),
                     'stock'       => $prod?->cantidad ?? 0,
-                    'imagen_url'  => $item->imagen ? asset('storage/' . $item->imagen) : null,
+                    'moneda'      => $prod?->moneda ?? 'PEN',
+                    'imagen_url'  => $imagen,
+                    'categoria'   => $prod?->categoria?->nombre,
                     'orden'       => $item->orden,
                     'estado'      => $item->estado,
                 ];

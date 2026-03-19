@@ -38,6 +38,8 @@ export default function ProductoModal({
     const [showUnidadModal, setShowUnidadModal] = useState(false);
     const [showMarcaModal, setShowMarcaModal] = useState(false);
     const [activeTab, setActiveTab] = useState("general");
+    const [enTendencia, setEnTendencia] = useState(false);
+    const [tendenciaId, setTendenciaId] = useState(null);
     const [ofertas, setOfertas] = useState([]);
     const [ofertaForm, setOfertaForm] = useState({
         tipo: "porcentaje",
@@ -112,6 +114,7 @@ export default function ProductoModal({
 
                 setIsAutoCode(!producto.codigo);
                 fetchOfertas(producto.id_producto);
+                fetchTendencia(producto.id_producto);
             } else {
                 setFormData({
                     nombre: "",
@@ -135,6 +138,8 @@ export default function ProductoModal({
                 setImagePreview(null);
                 setIsAutoCode(true);
                 setOfertas([]);
+                setEnTendencia(false);
+                setTendenciaId(null);
             }
             setErrors({});
             setActiveTab("general");
@@ -213,6 +218,23 @@ export default function ProductoModal({
             }
         } catch (error) {
             console.error("Error al cargar ofertas:", error);
+        }
+    };
+
+    const fetchTendencia = async (productoId) => {
+        try {
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch(baseUrl("/api/productos-de-tendencia"), {
+                headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+            });
+            const data = await response.json();
+            if (data.success) {
+                const entry = data.data?.find((t) => t.producto_id === productoId);
+                setEnTendencia(!!entry);
+                setTendenciaId(entry?.id ?? null);
+            }
+        } catch {
+            // silencioso
         }
     };
 
@@ -389,6 +411,30 @@ export default function ProductoModal({
             const data = await response.json();
 
             if (data.success) {
+                const savedId = data.data?.id_producto;
+
+                // Manejar tendencia
+                if (savedId) {
+                    if (enTendencia && !tendenciaId) {
+                        // Agregar a tendencia
+                        await fetch(baseUrl("/api/productos-de-tendencia"), {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                Accept: "application/json",
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ producto_id: savedId }),
+                        });
+                    } else if (!enTendencia && tendenciaId) {
+                        // Quitar de tendencia
+                        await fetch(baseUrl(`/api/productos-de-tendencia/${tendenciaId}`), {
+                            method: "DELETE",
+                            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+                        });
+                    }
+                }
+
                 onClose();
                 onSuccess?.(data.data);
 
@@ -737,6 +783,20 @@ export default function ProductoModal({
                                     </Select>
                                 </ModalField>
                             </div>
+
+                            {/* Tendencia */}
+                            <label className="flex items-center gap-2 cursor-pointer select-none rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={enTendencia}
+                                    onChange={(e) => setEnTendencia(e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-gray-700">Producto de Tendencia</span>
+                                    <p className="text-xs text-gray-500">Aparecerá en la sección "Productos de Tendencia" del ecommerce</p>
+                                </div>
+                            </label>
 
                             <div className="pt-2">
                                 <details className="group border rounded-lg bg-gray-50/30 overflow-hidden">

@@ -21,6 +21,9 @@ Route::get('/public/productos', [\App\Http\Controllers\Api\ProductoPublicoContro
 Route::get('/public/productos/{id}', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'show']);
 Route::get('/public/productos-destacados', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'destacados']);
 Route::get('/public/productos-mejor-valorados', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'mejorValorados']);
+// Nuevos endpoints con lógica específica
+Route::get('/public/productos-mas-rentables', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'masRentables']);
+Route::get('/public/productos-mejor-valorados-mes', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'mejorValoradosMes']);
 
 // API Pública de Banners Promocionales
 Route::get('/public/banners-promocionales', [\App\Http\Controllers\BannerPromocionalController::class, 'index']);
@@ -29,8 +32,13 @@ Route::post('/public/banners-promocionales-test', [\App\Http\Controllers\BannerP
 // API Pública de Grupo Selección (Categorías del Carrusel)
 Route::get('/public/grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'index']);
 Route::get('/public/grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'show']);
+Route::post('/public/grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'store']);
+Route::post('/public/grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'update']);
+Route::delete('/public/grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'destroy']);
 Route::get('/public/productos-exclusivos', [\App\Http\Controllers\ProductoExclusivoController::class, 'index']);
 Route::get('/public/productos-en-remate', [\App\Http\Controllers\ProductoEnRemateController::class, 'index']);
+Route::delete('/public/productos-en-remate/{id}', [\App\Http\Controllers\ProductoEnRemateController::class, 'destroy']);
+Route::patch('/public/productos-en-remate/{id}', [\App\Http\Controllers\ProductoEnRemateController::class, 'update']);
 Route::get('/public/productos-de-tendencia', [\App\Http\Controllers\ProductoDeTendenciaController::class, 'index']);
 Route::get('/public/nav-menu', [\App\Http\Controllers\NavMenuController::class, 'public']);
 Route::get('/public/marcas', [\App\Http\Controllers\MarcaController::class, 'public']);
@@ -261,8 +269,8 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
 
     // Marcas
     Route::get('marcas', [\App\Http\Controllers\MarcaController::class, 'index']);
-    Route::post('marcas', [\App\Http\Controllers\MarcaController::class, 'store']);
-    Route::put('marcas/{cod}', [\App\Http\Controllers\MarcaController::class, 'update']);
+    Route::post('marcas/{cod}', [\App\Http\Controllers\MarcaController::class, 'update']);
+    Route::delete('marcas/{cod}/imagen', [\App\Http\Controllers\MarcaController::class, 'destroyImagen']);
     Route::delete('marcas/{cod}', [\App\Http\Controllers\MarcaController::class, 'destroy']);
 
     // Footer Config (Newsletter banner)
@@ -275,12 +283,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::put('nav-menu/{id}', [\App\Http\Controllers\NavMenuController::class, 'update']);
     Route::delete('nav-menu/{id}', [\App\Http\Controllers\NavMenuController::class, 'destroy']);
 
-    // Grupo Selección (Carrusel de Categorías)
-    Route::get('grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'index']);
-    Route::post('grupo-seleccion', [\App\Http\Controllers\GrupoSeleccionController::class, 'store']);
-    Route::get('grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'show']);
-    Route::put('grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'update']);
-    Route::delete('grupo-seleccion/{id}', [\App\Http\Controllers\GrupoSeleccionController::class, 'destroy']);
+    // Grupo Selección movido a rutas públicas (/public/grupo-seleccion)
 
     // Productos Exclusivos (Tabs en Home)
     Route::apiResource('productos-exclusivos', \App\Http\Controllers\ProductoExclusivoController::class);
@@ -379,6 +382,11 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
 
 // Ofertas Públicas (sin autenticación)
 Route::get('/public/ofertas/vigentes', [\App\Http\Controllers\OfertaController::class, 'vigentes']);
+
+// Ecommerce Home Sections (sin autenticación)
+Route::get('/public/nuevos-ingresos',   [\App\Http\Controllers\Api\EcommercePublicoController::class, 'nuevosIngresos']);
+Route::get('/public/mas-vendidos',      [\App\Http\Controllers\Api\EcommercePublicoController::class, 'masVendidos']);
+Route::get('/public/ofertas-especiales', [\App\Http\Controllers\Api\EcommercePublicoController::class, 'ofertasEspeciales']);
 
 // Shop Productos Públicos (para shop-list-prod.php)
 Route::get('/public/shop-productos', [\App\Http\Controllers\Api\ShopProductosController::class, 'index']);

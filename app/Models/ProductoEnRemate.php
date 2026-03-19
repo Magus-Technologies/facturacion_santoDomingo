@@ -15,9 +15,14 @@ class ProductoEnRemate extends Model
     protected $fillable = [
         'tab_name',
         'imagen',
+        'precio_remate',
         'producto_id',
         'orden',
         'estado'
+    ];
+
+    protected $casts = [
+        'precio_remate' => 'decimal:2',
     ];
 
     public function __construct(array $attributes = [])

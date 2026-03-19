@@ -21,6 +21,7 @@ import {
     Image as ImageIcon,
     MoreHorizontal,
     Zap,
+    Gavel,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -39,6 +40,10 @@ export default function ProductosList() {
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [busqueda, setBusqueda] = useState("");
     const [filtroStock, setFiltroStock] = useState("todos");
+    const [remateModalOpen, setRemateModalOpen] = useState(false);
+    const [productoRemate, setProductoRemate] = useState(null);
+    const [precioRemateInput, setPrecioRemateInput] = useState("");
+    const [savingRemate, setSavingRemate] = useState(false);
 
     // Almacenes dinámicos
     const [almacenes, setAlmacenes] = useState([]);
@@ -154,6 +159,45 @@ export default function ProductosList() {
     const handleModalClose = () => {
         setIsModalOpen(false);
         setSelectedProducto(null);
+    };
+
+    const handlePonerEnRemate = (producto) => {
+        setProductoRemate(producto);
+        setPrecioRemateInput(parseFloat(producto?.costo || 0).toFixed(2));
+        setRemateModalOpen(true);
+    };
+
+    const handleConfirmarRemate = async () => {
+        if (!productoRemate) return;
+        setSavingRemate(true);
+        try {
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch(baseUrl("/api/productos-en-remate"), {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    producto_id: productoRemate.id_producto,
+                    precio_remate: parseFloat(precioRemateInput) || null,
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success("Producto agregado a remate exitosamente");
+                setRemateModalOpen(false);
+                setProductoRemate(null);
+                setPrecioRemateInput("");
+            } else {
+                toast.error(data.message || "Error al poner en remate");
+            }
+        } catch {
+            toast.error("Error de conexión al servidor");
+        } finally {
+            setSavingRemate(false);
+        }
     };
 
     const handleModalSuccess = (productoActualizado) => {
@@ -314,6 +358,11 @@ export default function ProductosList() {
                                     <Edit className="h-4 w-4 text-accent-600" />
                                 </Button>
                             </PermissionGuard>
+                            <PermissionGuard permission="productos.edit">
+                                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handlePonerEnRemate(producto); }} title="Poner en remate" className="text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                    <Gavel className="h-4 w-4" />
+                                </Button>
+                            </PermissionGuard>
                             <PermissionGuard permission="productos.delete">
                                 <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(producto); }} title="Eliminar producto" className="text-red-600 hover:text-red-700 hover:bg-red-50">
                                     <Trash2 className="h-4 w-4" />
@@ -332,6 +381,12 @@ export default function ProductosList() {
                                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(producto); }}>
                                             <Edit className="mr-2 h-4 w-4 text-accent-600" />
                                             Editar producto
+                                        </DropdownMenuItem>
+                                    </PermissionGuard>
+                                    <PermissionGuard permission="productos.edit">
+                                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePonerEnRemate(producto); }} className="text-orange-600 focus:bg-orange-50 focus:text-orange-700">
+                                            <Gavel className="mr-2 h-4 w-4" />
+                                            Poner en remate
                                         </DropdownMenuItem>
                                     </PermissionGuard>
                                     <PermissionGuard permission="productos.delete">
@@ -525,6 +580,50 @@ export default function ProductosList() {
                     almacenes={almacenes}
                     onSuccess={handleModalSuccess}
                 />
+
+                {/* Modal: Poner en Remate */}
+                {remateModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                        <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="bg-orange-100 p-2 rounded-full">
+                                    <Gavel className="h-5 w-5 text-orange-600" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-gray-900">Poner en Remate</h2>
+                            </div>
+                            <p className="text-gray-600 text-sm mb-1">¿Deseas agregar este producto a la lista de remate?</p>
+                            <p className="font-semibold text-gray-900 mb-1">{productoRemate?.nombre}</p>
+                            <div className="flex gap-4 text-xs text-gray-500 mb-4">
+                                <span>Precio: <strong>{productoRemate?.moneda === "USD" ? "$" : "S/"} {parseFloat(productoRemate?.precio || 0).toFixed(2)}</strong></span>
+                                <span>Costo: <strong>{productoRemate?.moneda === "USD" ? "$" : "S/"} {parseFloat(productoRemate?.costo || 0).toFixed(2)}</strong></span>
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Precio de Remate ({productoRemate?.moneda === "USD" ? "USD" : "S/"})
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={precioRemateInput}
+                                    onChange={(e) => setPrecioRemateInput(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                    placeholder="Ej: 18.00"
+                                />
+                                <p className="text-xs text-orange-600 mt-1">Se recomienda igual o menor al costo.</p>
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <Button variant="outline" onClick={() => { setRemateModalOpen(false); setProductoRemate(null); setPrecioRemateInput(""); }} disabled={savingRemate}>
+                                    Cancelar
+                                </Button>
+                                <Button onClick={handleConfirmarRemate} disabled={savingRemate} className="bg-orange-600 hover:bg-orange-700 text-white gap-2">
+                                    {savingRemate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gavel className="h-4 w-4" />}
+                                    Confirmar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </MainLayout>
     );

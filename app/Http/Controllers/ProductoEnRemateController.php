@@ -10,22 +10,33 @@ class ProductoEnRemateController extends Controller
 {
     public function index(Request $request)
     {
-        $items = ProductoEnRemate::with('producto')
+        $items = ProductoEnRemate::with(['producto.categoria', 'producto.marca'])
             ->where('tab_name', 'productos_en_remate')
             ->where('estado', '1')
             ->orderBy('orden', 'asc')
             ->get()
             ->map(function ($item) {
                 $prod = $item->producto;
+                $precioOriginal = (float) ($prod?->precio ?? 0);
+                $precioRemate   = $item->precio_remate ? (float) $item->precio_remate : null;
+                $imagen = $item->imagen
+                    ? asset('storage/' . $item->imagen)
+                    : ($prod?->imagen ? asset('storage/' . $prod->imagen) : null);
+
                 return [
-                    'id'          => $item->id_exclusivo,
-                    'producto_id' => $item->producto_id,
-                    'nombre'      => $prod?->nombre,
-                    'precio'      => $prod?->precio,
-                    'stock'       => $prod?->cantidad ?? 0,
-                    'imagen_url'  => $item->imagen ? asset('storage/' . $item->imagen) : null,
-                    'orden'       => $item->orden,
-                    'estado'      => $item->estado,
+                    'id'             => $item->id_exclusivo,
+                    'producto_id'    => $item->producto_id,
+                    'nombre'         => $prod?->nombre,
+                    'codigo'         => $prod?->codigo,
+                    'precio'         => $precioOriginal,
+                    'costo'          => (float) ($prod?->costo ?? 0),
+                    'precio_remate'  => $precioRemate,
+                    'stock'          => $prod?->cantidad ?? 0,
+                    'imagen_url'     => $imagen,
+                    'categoria'      => $prod?->categoria?->nombre,
+                    'moneda'         => $prod?->moneda ?? 'PEN',
+                    'orden'          => $item->orden,
+                    'estado'         => $item->estado,
                 ];
             });
 
@@ -35,10 +46,11 @@ class ProductoEnRemateController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'producto_id' => 'required|exists:productos,id_producto',
-            'orden' => 'nullable|integer',
-            'estado' => 'nullable|string|max:1',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            'producto_id'   => 'required|exists:productos,id_producto',
+            'precio_remate' => 'nullable|numeric|min:0',
+            'orden'         => 'nullable|integer',
+            'estado'        => 'nullable|string|max:1',
+            'imagen'        => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
         // Verificar si ya existe
@@ -89,12 +101,13 @@ class ProductoEnRemateController extends Controller
         $productoEnRemate = ProductoEnRemate::findOrFail($id);
         
         $request->validate([
-            'orden' => 'nullable|integer',
-            'estado' => 'nullable|string|max:1',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            'precio_remate' => 'nullable|numeric|min:0',
+            'orden'         => 'nullable|integer',
+            'estado'        => 'nullable|string|max:1',
+            'imagen'        => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
-        $data = $request->only(['orden', 'estado']);
+        $data = $request->only(['precio_remate', 'orden', 'estado']);
 
         if ($request->hasFile('imagen')) {
             if ($productoEnRemate->imagen) {

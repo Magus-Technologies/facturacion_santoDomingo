@@ -22,7 +22,7 @@ class ShopProductosController extends Controller
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('nombre', 'like', "%{$search}%")
-                        ->orWhere('prod_cod', 'like', "%{$search}%");
+                        ->orWhere('codigo', 'like', "%{$search}%");
                 });
             }
 
@@ -64,7 +64,7 @@ class ShopProductosController extends Controller
                     'nombre'   => $prod->nombre,
                     'precio'   => (float) $prod->precio,
                     'stock'    => (int) $prod->cantidad,
-                    'imagen1'  => $prod->imagen ?? null,
+                    'imagen1'  => $prod->imagen ? asset('storage/' . $prod->imagen) : null,
                     'content1' => $prod->descripcion ?? '',
                     'content2' => '',
                     'content3' => '',

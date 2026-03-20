@@ -15,7 +15,7 @@ class ShopProductosController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Producto::where('estado', '1');
+            $query = Producto::with('marca')->where('estado', '1');
 
             // Búsqueda por nombre o código
             if ($request->has('search') && !empty($request->search)) {
@@ -60,14 +60,16 @@ class ShopProductosController extends Controller
             // Mapear datos al formato esperado por shop-list-prod.php
             $data = $productos->map(function ($prod) {
                 return [
-                    'prod_id' => $prod->id_producto,
-                    'nombre' => $prod->nombre,
-                    'precio' => (float) $prod->precio,
-                    'stock' => (int) $prod->cantidad,
-                    'imagen1' => $prod->imagen ?? null,
+                    'prod_id'  => $prod->id_producto,
+                    'nombre'   => $prod->nombre,
+                    'precio'   => (float) $prod->precio,
+                    'stock'    => (int) $prod->cantidad,
+                    'imagen1'  => $prod->imagen ?? null,
                     'content1' => $prod->descripcion ?? '',
                     'content2' => '',
                     'content3' => '',
+                    'marca'    => $prod->marca?->nombre_marca ?? '',
+                    'marca_id' => $prod->marca_id ?? '',
                     'is_ofert' => false,
                 ];
             });

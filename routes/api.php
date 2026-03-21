@@ -18,6 +18,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Ruta interna eCommerce → facturación (protegida con clave secreta, no requiere token de usuario)
 Route::post('/internal/pedido-a-cotizacion', [\App\Http\Controllers\Api\InternalCotizacionController::class, 'store']);
+Route::get('/internal/cotizaciones-cliente', [\App\Http\Controllers\Api\InternalCotizacionController::class, 'porCliente']);
 
 // API Pública de Productos
 Route::get('/public/productos', [\App\Http\Controllers\Api\ProductoPublicoController::class, 'index']);

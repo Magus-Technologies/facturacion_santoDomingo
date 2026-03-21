@@ -28,6 +28,26 @@ class InternalCotizacionController extends Controller
      *   ]
      * }
      */
+    /**
+     * GET /api/internal/cotizaciones-cliente?secret=...&documento=...
+     */
+    public function porCliente(Request $request)
+    {
+        $secret = config('app.internal_secret');
+        if (!$secret || $request->query('secret') !== $secret) {
+            return response()->json(['success' => false, 'message' => 'No autorizado'], 401);
+        }
+
+        $documento = $request->query('documento', '');
+        $cotizaciones = Cotizacion::where('id_empresa', 1)
+            ->where('cliente_documento', $documento)
+            ->withCount('detalles')
+            ->orderByDesc('id')
+            ->get(['id', 'numero', 'fecha', 'subtotal', 'igv', 'total', 'estado', 'asunto']);
+
+        return response()->json(['success' => true, 'data' => $cotizaciones]);
+    }
+
     public function store(Request $request)
     {
         // Validar clave interna

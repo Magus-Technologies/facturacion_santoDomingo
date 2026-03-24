@@ -26,7 +26,7 @@ export const useGuiasRemision = () => {
         try {
             setLoading(true);
             setError(null);
-            const res = await fetch(baseUrl('/api/guias-remision'), {
+            const res = await fetch(baseUrl('/api/guias-remision-remitente'), {
                 headers: getAuthHeaders(),
             });
             const data = await res.json();

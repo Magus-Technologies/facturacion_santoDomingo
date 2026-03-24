@@ -66,12 +66,24 @@ class GuiaRemisionTransportistaStoreRequest extends FormRequest
             'mercancia_voluminosa'     => 'nullable|boolean',
             // Detalles
             'detalles'                 => 'required|array|min:1',
-            'detalles.*.descripcion'   => 'required|string',
-            'detalles.*.cantidad'      => 'required|numeric|min:0.001',
-            'detalles.*.unidad'        => 'nullable|string|max:5',
-            'detalles.*.codigo'        => 'nullable|string|max:30',
+            'detalles.*.descripcion'          => 'required|string',
+            'detalles.*.cantidad'             => 'required|numeric|min:0.001',
+            'detalles.*.unidad'               => 'nullable|string|max:5',
+            'detalles.*.codigo'               => 'nullable|string|max:30',
+            'detalles.*.bien_normalizado'     => 'nullable|boolean',
+            'detalles.*.codigo_producto_sunat'=> 'nullable|string|max:30',
+            'detalles.*.partida_arancelaria'  => 'nullable|string|max:15',
+            'detalles.*.codigo_gtin'          => 'nullable|string|max:14',
+            // Indicadores de traslado
+            'indicador_retorno_vehiculo_vacio'           => 'nullable|boolean',
+            'indicador_transporte_subcontratado'         => 'nullable|boolean',
+            'indicador_retorno_envases_embalajes_vacios' => 'nullable|boolean',
+            // Subcontratador
+            'subcontratador_tipo_doc'    => 'nullable|string|max:1',
+            'subcontratador_documento'   => 'nullable|string|max:15',
+            'subcontratador_nombre'      => 'nullable|string|max:255',
             // Observaciones
-            'observaciones'            => 'nullable|string',
+            'observaciones'              => 'nullable|string',
         ];
     }
 }

@@ -20,14 +20,15 @@ class GuiaRemisionTransportistaController extends Controller
     ) {}
 
     /**
-     * GET /api/v1/guias-remision
-     * Lista todas las guías de remisión de la empresa
+     * GET /api/v1/guias-remision-transportista
+     * Lista todas las guías de remisión transportista (V001) de la empresa
      */
     public function index(Request $request): JsonResponse
     {
         $idEmpresa = $request->user()->id_empresa ?? 1;
 
         $guias = GuiaRemision::where('id_empresa', $idEmpresa)
+            ->where('serie', 'V001')
             ->with(['detalles', 'transportista'])
             ->paginate(15);
 
@@ -246,19 +247,30 @@ class GuiaRemisionTransportistaController extends Controller
     }
 
     /**
-     * GET /api/v1/guias-remision/{nombre}/xml
+     * GET /api/v1/guias-remision-transportista/xml/{nombre}
      * Descarga el XML de una guía
      */
-    public function xml(string $nombre)
+    public function xml(string $nombre, Request $request)
     {
-        $rutaXml = storage_path('app/guias-remision/' . $nombre . '.xml');
-
-        if (!file_exists($rutaXml)) {
+        // Remover extensión .xml si viene en el nombre
+        $nombre = preg_replace('/\.xml$/i', '', $nombre);
+        
+        // Buscar la guía por nombre_xml
+        $guia = GuiaRemision::where('nombre_xml', $nombre)->first();
+        
+        if (!$guia || !$guia->xml_url) {
             throw new GuiaRemisionException('Archivo XML no encontrado.', 404);
         }
-
-        return response()->download($rutaXml, $nombre . '.xml', [
+        
+        $rutaXml = storage_path('app/' . $guia->xml_url);
+        
+        if (!file_exists($rutaXml)) {
+            throw new GuiaRemisionException('Archivo XML no encontrado en el servidor.', 404);
+        }
+        
+        return response()->file($rutaXml, [
             'Content-Type' => 'application/xml',
+            'Content-Disposition' => 'inline; filename="' . $nombre . '.xml"',
         ]);
     }
 }

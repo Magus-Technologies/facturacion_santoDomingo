@@ -10,7 +10,7 @@ class TokenFromQuery
     public function handle(Request $request, Closure $next)
     {
         if ($request->has('token')) {
-            // Asegurar que Laravel no redirija a /login en caso de error de auth
+            // Forzar que Laravel trate esto como petición API (JSON)
             $request->headers->set('Accept', 'application/json');
             
             if (!$request->bearerToken()) {

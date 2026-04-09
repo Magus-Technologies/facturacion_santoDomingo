@@ -72,6 +72,15 @@ class GuiaRemisionResource extends JsonResource
             'doc_relacionado_serie' => $this->doc_relacionado_serie,
             'doc_relacionado_numero' => $this->doc_relacionado_numero,
             'doc_relacionado_emisor_ruc' => $this->doc_relacionado_emisor_ruc,
+            // Indicadores de traslado
+            'indicador_transbordo' => $this->indicador_transbordo,
+            'indicador_retorno_vehiculo_vacio' => $this->indicador_retorno_vehiculo_vacio,
+            'indicador_transporte_subcontratado' => $this->indicador_transporte_subcontratado,
+            'indicador_retorno_envases_embalajes_vacios' => $this->indicador_retorno_envases_embalajes_vacios,
+            // Subcontratador
+            'subcontratador_tipo_doc' => $this->subcontratador_tipo_doc,
+            'subcontratador_documento' => $this->subcontratador_documento,
+            'subcontratador_nombre' => $this->subcontratador_nombre,
             'observaciones' => $this->observaciones,
             'estado' => $this->estado,
             'nombre_xml' => $this->nombre_xml,

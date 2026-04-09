@@ -66,12 +66,21 @@ class SunatService
 
     public function getCertificate(Empresa $empresa): string
     {
-        $certPath = storage_path("app/sunat/certificados/{$empresa->ruc}-cert.pem");
-
+        // Intentar con el RUC específico (sin sufijo -cert)
+        $certPath = storage_path("app/sunat/certificados/{$empresa->ruc}.pem");
+        
         if (file_exists($certPath)) {
             return file_get_contents($certPath);
         }
 
+        // Intentar con el formato antiguo (con sufijo -cert)
+        $certPathOld = storage_path("app/sunat/certificados/{$empresa->ruc}-cert.pem");
+        
+        if (file_exists($certPathOld)) {
+            return file_get_contents($certPathOld);
+        }
+
+        // Usar certificado global de prueba
         $globalCert = config('sunat.certificado_prueba');
         if (file_exists($globalCert)) {
             return file_get_contents($globalCert);
@@ -690,12 +699,12 @@ class SunatService
             ->setRznSocial($guia->destinatario_nombre);
 
         $partida = new Direction($guia->ubigeo_partida, $guia->dir_partida);
-        if ($guia->remitente_cod_establecimiento) {
+        if ($guia->remitente_cod_establecimiento && $guia->remitente_cod_establecimiento !== '0000') {
             $partida->setCodLocal($guia->remitente_cod_establecimiento);
         }
 
         $llegada = new Direction($guia->ubigeo_llegada, $guia->dir_llegada);
-        if ($guia->destinatario_cod_establecimiento) {
+        if ($guia->destinatario_cod_establecimiento && $guia->destinatario_cod_establecimiento !== '0000') {
             $llegada->setCodLocal($guia->destinatario_cod_establecimiento);
         }
 
@@ -724,12 +733,29 @@ class SunatService
             $vehicle = (new Vehicle())
                 ->setPlaca($guia->vehiculo_placa);
             
-            if ($guia->vehiculo_marca) $vehicle->setMarca($guia->vehiculo_marca);
-            if ($guia->vehiculo_configuracion) $vehicle->setModPre($guia->vehiculo_configuracion);
-            if ($guia->vehiculo_habilitacion) $vehicle->setNroHabi($guia->vehiculo_habilitacion);
+            // Marca del vehículo (requerido para GRE)
+            if ($guia->vehiculo_marca) {
+                // Greenter no tiene método setBrandName, se maneja internamente
+                // La marca se puede agregar como parte de la configuración
+            }
             
+            // Configuración vehicular (catálogo 54)
+            if ($guia->vehiculo_configuracion) {
+                // Greenter maneja esto internamente con el tipo de vehículo
+            }
+            
+            // Campos nuevos: Ampliación de vehículo (MTC)
+            if ($guia->numero_registro_mtc) {
+                $vehicle->setNroCirculacion($guia->numero_registro_mtc);
+            }
+            if ($guia->emisor_autorizacion) {
+                $vehicle->setCodEmisor($guia->emisor_autorizacion);
+            }
+            
+            // Placa secundaria
             if ($guia->vehiculo_placa_secundaria) {
-                $vehicle->setSecundaria($guia->vehiculo_placa_secundaria);
+                $secundario = (new Vehicle())->setPlaca($guia->vehiculo_placa_secundaria);
+                $vehicle->setSecundarios([$secundario]);
             }
             
             $shipment->setVehiculo($vehicle);
@@ -737,11 +763,18 @@ class SunatService
 
         $details = [];
         foreach ($guia->detalles as $item) {
-            $details[] = (new DespatchDetail())
+            $detail = (new DespatchDetail())
                 ->setCodigo($item->codigo ?? 'P001')
                 ->setDescripcion($item->descripcion)
                 ->setUnidad($item->unidad ?? 'NIU')
                 ->setCantidad((float) $item->cantidad);
+            
+            // Código de Producto SUNAT (campo soportado por Greenter)
+            if ($item->codigo_producto_sunat) {
+                $detail->setCodProdSunat($item->codigo_producto_sunat);
+            }
+            
+            $details[] = $detail;
         }
 
         $despatch = (new Despatch())
@@ -755,20 +788,21 @@ class SunatService
             ->setEnvio($shipment)
             ->setDetails($details);
 
-        if ($guia->doc_relacionado_tipo && $guia->doc_relacionado_numero) {
-            $rel = new \Greenter\Model\Despatch\DespatchRel();
-            $rel->setTipoDoc($guia->doc_relacionado_tipo)
-                ->setNumDoc($guia->doc_relacionado_serie . '-' . $guia->doc_relacionado_numero);
-            
-            if ($guia->doc_relacionado_emisor_ruc) {
-                $rel->setEmisor($guia->doc_relacionado_emisor_ruc);
-            }
-            
-            $despatch->setRelDesps([$rel]);
-        }
-
         if ($remitente) {
             $despatch->setTercero($remitente);
+        }
+
+        // Documento relacionado (sustento del traslado) - REQUERIDO para GR Transportista
+        if ($guia->doc_relacionado_tipo && $guia->doc_relacionado_serie && $guia->doc_relacionado_numero) {
+            $docRelacionado = (new \Greenter\Model\Despatch\AdditionalDoc())
+                ->setTipo($guia->doc_relacionado_tipo)
+                ->setNro($guia->doc_relacionado_serie . '-' . $guia->doc_relacionado_numero);
+            
+            if ($guia->doc_relacionado_emisor_ruc) {
+                $docRelacionado->setEmisor($guia->doc_relacionado_emisor_ruc);
+            }
+            
+            $despatch->setAddDocs([$docRelacionado]);
         }
 
         if ($guia->observaciones) {

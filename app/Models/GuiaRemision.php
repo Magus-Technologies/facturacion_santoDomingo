@@ -16,6 +16,7 @@ class GuiaRemision extends Model
         'id_venta',
         'serie',
         'numero',
+        'tipo_doc',
         'fecha_emision',
         'destinatario_tipo_doc',
         'destinatario_documento',
@@ -86,6 +87,14 @@ class GuiaRemision extends Model
         'tipo_guia',
         'nro_bultos',
         'indicador_transbordo',
+        // Indicadores de traslado adicionales
+        'indicador_retorno_vehiculo_vacio',
+        'indicador_transporte_subcontratado',
+        'indicador_retorno_envases_embalajes_vacios',
+        // Subcontratador
+        'subcontratador_tipo_doc',
+        'subcontratador_documento',
+        'subcontratador_nombre',
     ];
 
     protected $casts = [
@@ -99,6 +108,10 @@ class GuiaRemision extends Model
         'mercancia_voluminosa' => 'boolean',
         'vehiculo_m1l' => 'boolean',
         'indicador_transbordo' => 'boolean',
+        'indicador_retorno_vehiculo_vacio' => 'boolean',
+        'indicador_transporte_subcontratado' => 'boolean',
+        'indicador_retorno_envases_embalajes_vacios' => 'boolean',
+        'bien_normalizado' => 'boolean',
     ];
 
     public function empresa(): BelongsTo

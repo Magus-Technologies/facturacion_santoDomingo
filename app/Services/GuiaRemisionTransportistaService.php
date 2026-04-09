@@ -73,6 +73,7 @@ class GuiaRemisionTransportistaService
             'id_usuario'               => $request->user()->id,
             'serie'                    => self::SERIE,
             'numero'                   => $numero,
+            'tipo_doc'                 => '31',
             'fecha_emision'            => now()->toDateString(),
             'remitente_tipo_doc'       => $request->remitente_tipo_doc,
             'remitente_documento'      => $request->remitente_documento,
@@ -120,6 +121,14 @@ class GuiaRemisionTransportistaService
             'pagador_razon_social'     => $request->pagador_razon_social,
             'observaciones'            => $request->observaciones,
             'estado'                   => 'pendiente',
+            // Indicadores de traslado
+            'indicador_retorno_vehiculo_vacio'           => $request->boolean('indicador_retorno_vehiculo_vacio'),
+            'indicador_transporte_subcontratado'         => $request->boolean('indicador_transporte_subcontratado'),
+            'indicador_retorno_envases_embalajes_vacios' => $request->boolean('indicador_retorno_envases_embalajes_vacios'),
+            // Subcontratador
+            'subcontratador_tipo_doc'  => $request->subcontratador_tipo_doc,
+            'subcontratador_documento' => $request->subcontratador_documento,
+            'subcontratador_nombre'    => $request->subcontratador_nombre,
         ];
     }
 
@@ -127,14 +136,18 @@ class GuiaRemisionTransportistaService
     {
         $detallesFormateados = array_map(function ($detalle) use ($guiaId) {
             return [
-                'id_guia'      => $guiaId,
-                'id_producto'  => $detalle['id_producto'] ?? null,
-                'codigo'       => $detalle['codigo'] ?? null,
-                'descripcion'  => $detalle['descripcion'],
-                'cantidad'     => $detalle['cantidad'],
-                'unidad'       => $detalle['unidad'] ?? 'NIU',
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'id_guia'              => $guiaId,
+                'id_producto'          => $detalle['id_producto'] ?? null,
+                'codigo'               => $detalle['codigo'] ?? null,
+                'bien_normalizado'     => !empty($detalle['bien_normalizado']),
+                'codigo_producto_sunat'=> $detalle['codigo_producto_sunat'] ?? null,
+                'partida_arancelaria'  => $detalle['partida_arancelaria'] ?? null,
+                'codigo_gtin'          => $detalle['codigo_gtin'] ?? null,
+                'descripcion'          => $detalle['descripcion'],
+                'cantidad'             => $detalle['cantidad'],
+                'unidad'               => $detalle['unidad'] ?? 'NIU',
+                'created_at'           => now(),
+                'updated_at'           => now(),
             ];
         }, $detalles);
 

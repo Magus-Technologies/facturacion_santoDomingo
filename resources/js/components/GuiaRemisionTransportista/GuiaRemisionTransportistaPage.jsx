@@ -78,7 +78,7 @@ export default function GuiaRemisionTransportista() {
     const handleGenerarXml = async (guia) => {
         setGenerandoXmlId(guia.id);
         try {
-            const response = await api.post(`/comprobantes/generar-xml/${guia.id}`);
+            const response = await api.post(`/guias-remision-transportista/${guia.id}/generar-xml`);
             if (response.data?.success) {
                 toast.success('XML generado exitosamente');
                 refetch();
@@ -99,7 +99,7 @@ export default function GuiaRemisionTransportista() {
     const handleRegenerarXml = async (guia) => {
         setRegenerandoXmlId(guia.id);
         try {
-            const response = await api.post(`/comprobantes/generar-xml/${guia.id}`);
+            const response = await api.post(`/guias-remision-transportista/${guia.id}/generar-xml`);
             if (response.data?.success) {
                 toast.success('XML regenerado exitosamente');
                 refetch();

@@ -110,10 +110,19 @@ export default function GuiaRemisionTransportistaForm() {
         mercancia_peligrosa: false,
         codigo_onu: '',
         mercancia_voluminosa: false,
+        indicador_retorno_vehiculo_vacio: false,
+        indicador_transporte_subcontratado: false,
+        indicador_retorno_envases_embalajes_vacios: false,
+        subcontratador_tipo_doc: '6',
+        subcontratador_documento: '',
+        subcontratador_nombre: '',
     });
 
+    const [mostrarCamposSunat, setMostrarCamposSunat] = useState(false);
+
     const [detalles, setDetalles] = useState([
-        { codigo: '', descripcion: '', cantidad: '1', unidad: 'NIU' },
+        { codigo: '', descripcion: '', cantidad: '1', unidad: 'NIU',
+          bien_normalizado: false, codigo_producto_sunat: '', partida_arancelaria: '', codigo_gtin: '' },
     ]);
 
     const [consultandoConductor, setConsultandoConductor] = useState(false);
@@ -319,7 +328,7 @@ export default function GuiaRemisionTransportistaForm() {
         });
     };
 
-    const addDetalle = () => setDetalles((prev) => [...prev, { codigo: '', descripcion: '', cantidad: '1', unidad: 'NIU' }]);
+    const addDetalle = () => setDetalles((prev) => [...prev, { codigo: '', descripcion: '', cantidad: '1', unidad: 'NIU', bien_normalizado: false, codigo_producto_sunat: '', partida_arancelaria: '', codigo_gtin: '' }]);
 
     const removeDetalle = (idx) => {
         if (detalles.length <= 1) return;
@@ -947,10 +956,15 @@ export default function GuiaRemisionTransportistaForm() {
                                         {detalles.length} {detalles.length === 1 ? 'ítem' : 'ítems'}
                                     </Badge>
                                 </CardTitle>
-                                <Button type="button" variant="outline" size="sm" onClick={addDetalle} className="gap-1">
-                                    <Plus className="h-3 w-3" />
-                                    Agregar
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setMostrarCamposSunat((v) => !v)} className="gap-1 text-xs">
+                                        {mostrarCamposSunat ? 'Ocultar campos SUNAT' : 'Campos SUNAT'}
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={addDetalle} className="gap-1">
+                                        <Plus className="h-3 w-3" />
+                                        Agregar
+                                    </Button>
+                                </div>
                             </div>
                             {errors.detalles && <p className="text-xs text-red-600 mt-1">{errors.detalles}</p>}
                         </CardHeader>
@@ -960,6 +974,14 @@ export default function GuiaRemisionTransportistaForm() {
                                     <TableRow>
                                         <TableHead className="w-[40px]">#</TableHead>
                                         <TableHead className="w-[90px]">Código</TableHead>
+                                        {mostrarCamposSunat && (
+                                            <>
+                                                <TableHead className="w-[32px] text-center text-xs text-blue-600">Norm.</TableHead>
+                                                <TableHead className="w-[110px] text-xs text-blue-600">Cód. SUNAT</TableHead>
+                                                <TableHead className="w-[100px] text-xs text-blue-600">P. Arancelaria</TableHead>
+                                                <TableHead className="w-[100px] text-xs text-blue-600">GTIN</TableHead>
+                                            </>
+                                        )}
                                         <TableHead>Descripción</TableHead>
                                         <TableHead className="w-[90px]">Cant.</TableHead>
                                         <TableHead className="w-[80px]">Und.</TableHead>
@@ -980,6 +1002,46 @@ export default function GuiaRemisionTransportistaForm() {
                                                     className="h-8 text-xs"
                                                 />
                                             </TableCell>
+                                            {mostrarCamposSunat && (
+                                                <>
+                                                    <TableCell className="text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={!!det.bien_normalizado}
+                                                            onChange={(e) => handleDetalleChange(i, 'bien_normalizado', e.target.checked)}
+                                                            className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                                            title="Bien normalizado"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            value={det.codigo_producto_sunat || ''}
+                                                            onChange={(e) => handleDetalleChange(i, 'codigo_producto_sunat', e.target.value)}
+                                                            placeholder="10000000"
+                                                            className="h-8 text-xs"
+                                                            maxLength={30}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            value={det.partida_arancelaria || ''}
+                                                            onChange={(e) => handleDetalleChange(i, 'partida_arancelaria', e.target.value)}
+                                                            placeholder="0101.21.00.00"
+                                                            className="h-8 text-xs"
+                                                            maxLength={15}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            value={det.codigo_gtin || ''}
+                                                            onChange={(e) => handleDetalleChange(i, 'codigo_gtin', e.target.value)}
+                                                            placeholder="00000000000000"
+                                                            className="h-8 text-xs"
+                                                            maxLength={14}
+                                                        />
+                                                    </TableCell>
+                                                </>
+                                            )}
                                             <TableCell>
                                                 <Input
                                                     value={det.descripcion}
@@ -1033,6 +1095,53 @@ export default function GuiaRemisionTransportistaForm() {
                             </Table>
                         </CardContent>
                     </Card>
+
+                    {/* ─── SUBCONTRATADOR ────────────────────────────────────────────── */}
+                    {form.indicador_transporte_subcontratado && (
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <Truck className="h-4 w-4 text-blue-600" />
+                                    Datos del Subcontratador
+                                </CardTitle>
+                                <CardDescription>Empresa subcontratada para el transporte</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">Tipo Doc. *</Label>
+                                        <Select
+                                            value={form.subcontratador_tipo_doc}
+                                            onValueChange={(v) => handleChange('subcontratador_tipo_doc', v)}
+                                        >
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="6">RUC</SelectItem>
+                                                <SelectItem value="1">DNI</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">Documento *</Label>
+                                        <Input
+                                            value={form.subcontratador_documento}
+                                            onChange={(e) => handleChange('subcontratador_documento', e.target.value)}
+                                            placeholder="20XXXXXXXXX"
+                                            maxLength={15}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-gray-500 mb-1 block">Razón Social / Nombre *</Label>
+                                        <Input
+                                            value={form.subcontratador_nombre}
+                                            onChange={(e) => handleChange('subcontratador_nombre', e.target.value)}
+                                            placeholder="Empresa Transportes S.A.C."
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* ─── MERCANCÍA ESPECIAL (NUEVO) ────────────────────────────────── */}
                     <Card>
@@ -1200,6 +1309,26 @@ export default function GuiaRemisionTransportistaForm() {
                                     rows={2}
                                     className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 />
+                            </div>
+
+                            {/* Indicadores de traslado */}
+                            <div className="border-t border-gray-200 pt-4 space-y-2">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Indicadores</h4>
+                                {[
+                                    { key: 'indicador_retorno_vehiculo_vacio', label: 'Retorno de vehículo vacío' },
+                                    { key: 'indicador_transporte_subcontratado', label: 'Transporte subcontratado' },
+                                    { key: 'indicador_retorno_envases_embalajes_vacios', label: 'Retorno con envases/embalajes vacíos' },
+                                ].map(({ key, label }) => (
+                                    <label key={key} className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!form[key]}
+                                            onChange={(e) => handleChange(key, e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-xs text-gray-700">{label}</span>
+                                    </label>
+                                ))}
                             </div>
 
                             {/* Resumen */}

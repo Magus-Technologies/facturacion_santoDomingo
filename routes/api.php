@@ -241,6 +241,7 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('guias-remision-transportista/proximo-numero', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'proximoNumero']);
     Route::get('guias-remision-transportista/motivos', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'motivos']);
     Route::get('guias-remision-transportista/exportar-excel', [\App\Http\Controllers\Exports\GuiaRemisionExportController::class, 'descargarExcel']);
+    Route::get('guias-remision-transportista/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'xml'])->where('nombre', '.*');
     Route::get('guias-remision-transportista', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'index']);
     Route::post('guias-remision-transportista', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'store']);
     Route::put('guias-remision-transportista/{id}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'update']);
@@ -249,7 +250,11 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::post('guias-remision-transportista/{id}/generar-xml', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'generarXml']);
     Route::post('guias-remision-transportista/{id}/enviar', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'enviar']);
     Route::get('guias-remision-transportista/{id}/ticket', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'consultarTicket']);
-    Route::get('guias-remision-transportista/xml/{nombre}', [\App\Http\Controllers\GuiaRemisionTransportistaController::class, 'xml'])->where('nombre', '.*');
+
+    // Guías de Remisión Remitente (tipoDoc 09, serie T001)
+    Route::get('guias-remision-remitente/proximo-numero', [\App\Http\Controllers\GuiaRemisionRemitenteController::class, 'proximoNumero']);
+    Route::get('guias-remision-remitente', [\App\Http\Controllers\GuiaRemisionRemitenteController::class, 'index']);
+    Route::get('guias-remision-remitente/{id}', [\App\Http\Controllers\GuiaRemisionRemitenteController::class, 'show']);
 
     // -----------------------------------------------------------------------
     // MÓDULO FINANZAS

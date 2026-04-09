@@ -59,6 +59,12 @@ Route::middleware(['token.query', 'auth:sanctum'])->group(function () {
     Route::get('/verify', [AuthController::class, 'verify']);
     Route::post('/switch-empresa', [AuthController::class, 'switchEmpresa']);
 
+    // Perfil del usuario autenticado
+    Route::get('perfil', [\App\Http\Controllers\Api\PerfilController::class, 'show']);
+    Route::put('perfil', [\App\Http\Controllers\Api\PerfilController::class, 'update']);
+    Route::put('perfil/password', [\App\Http\Controllers\Api\PerfilController::class, 'cambiarPassword']);
+    Route::post('perfil/foto', [\App\Http\Controllers\Api\PerfilController::class, 'subirFoto']);
+
     // Usuarios
     Route::get('users/roles', [\App\Http\Controllers\Api\UserController::class, 'getRoles']);
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);

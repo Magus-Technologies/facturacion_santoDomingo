@@ -32,8 +32,12 @@ Route::get('/login', function () {
 
 Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
 
+// Perfil
+Route::get('/perfil', function () { return view('perfil'); })->name('perfil');
+
 // Configuración
-Route::get('/configuracion/usuarios', function () { 
+Route::get('/configuracion', function () { return view('configuracion.index'); })->name('configuracion');
+Route::get('/configuracion/usuarios', function () {
     return view('configuracion.userList'); 
 })->name('userList');
 

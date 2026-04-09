@@ -85,6 +85,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'rol_id' => $user->rol_id,
                 'id_empresa' => $user->id_empresa,
+                'foto_perfil' => $user->foto_perfil,
             ],
             'empresas' => $empresas,
             'permissions' => $permissions,
@@ -139,6 +140,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'rol_id' => $user->rol_id,
                 'id_empresa' => $user->id_empresa,
+                'foto_perfil' => $user->foto_perfil,
             ],
             'empresas' => $empresas,
         ]);
@@ -217,6 +219,7 @@ class AuthController extends Controller
                 'email' => $request->user()->email,
                 'rol_id' => $request->user()->rol_id,
                 'id_empresa' => $request->user()->id_empresa,
+                'foto_perfil' => $request->user()->foto_perfil,
             ]
         ]);
     }

@@ -41,6 +41,8 @@ import BannerPromocionalModal from "./components/Ecommerce/BannerPromocionalModa
 import ProductosExclusivosPage from "./components/Ecommerce/ProductosExclusivosPage";
 import NavMenuPage from "./components/Ecommerce/NavMenuPage";
 import MarcasPage from "./components/Ecommerce/MarcasPage";
+import MiPerfil from "./components/Perfil/MiPerfil";
+import ConfiguracionHub from "./components/Configuracion/ConfiguracionHub";
 
 import "./bootstrap";
 import "../css/app.css";
@@ -99,6 +101,8 @@ const components = {
     ProductosExclusivosPage,
     NavMenuPage,
     MarcasPage,
+    MiPerfil,
+    ConfiguracionHub,
 };
 
 // Monta cada elemento con atributo data-react-component
